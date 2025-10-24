@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+
+/* Compact Ant Design Table */
+.compact-table .ant-table-thead > tr > th,
+.compact-table .ant-table-tbody > tr > td {
+  padding: 1 !important;            /* no padding */
+  font-size: 14px !important;       /* small text */
+  line-height: 1.2 !important;      /* tighter rows */
+  text-align: left !important;      /* 👈 left align text */
+}
+
+.compact-table .ant-table-cell {
+  font-size: 18px !important;
+  padding: 2px !important;
+}
+
+/* Optional: smaller header */
+.compact-table .ant-table-thead > tr > th {
+  height: 24px !important;
+  background-color: #8a8b8b;
+  font-weight: 600;
+  color:aliceblue;
+  font-size: 14px !important;
+}
+
+/* Table overall structure */
+.compact-table .ant-table {
+  border-spacing: 0 !important;
+  border-collapse: collapse !important;
+  width: 100% !important;  /* fits container (like w-[700px]) */
+}
+
+/* Optional: tighter pagination */
+.compact-table .ant-table-pagination {
+  margin: 4px 1 !important;
+}
+
+.compact-table .ant-pagination-item {
+  font-size: 14px !important;
+  min-width: 22px !important;
+  height: 22px !important;
+  line-height: 20px !important;
+}

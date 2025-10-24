@@ -1,0 +1,25 @@
+/* Compact Ant Design Table */
+.compact-table .ant-table-tbody > tr > td,
+.compact-table .ant-table-thead > tr > th {
+  padding: 0 !important;        /* remove all cell padding */
+  font-size: 11px !important;   /* small text */
+  line-height: 1 !important;    /* tight line height */
+}
+
+.compact-table .ant-table-cell {
+  font-size: 11px !important;
+  padding: 0 !important;
+}
+
+/* Optional: minimize header height too */
+.compact-table .ant-table-thead > tr > th {
+  height: 24px !important;
+  text-align: center;
+  background-color: #fafafa;
+}
+
+/* Optional: tighter table layout */
+.compact-table .ant-table {
+  border-spacing: 0 !important;
+  border-collapse: collapse !important;
+}
