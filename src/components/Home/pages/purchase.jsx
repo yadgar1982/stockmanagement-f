@@ -47,14 +47,8 @@ const Purchase = () => {
 
   //get branding
   const branding = JSON.parse(localStorage.getItem("branding") || "null");
-  console.log("branding", branding)
-
-
-
 
   // fetch data from redux:
-
-
   const { suppliers, loading, error } = useSelector((state) => state.suppliers);
   const allSuppliers = suppliers?.data || [];
   const supplier = allSuppliers.map((item) => ({
@@ -165,25 +159,25 @@ const Purchase = () => {
 
   //print function
   const handlePrint = async (record) => {
-  try {
-    // 1️⃣ Fetch supplier data first
-    const supplier = await handleSup(record.supplierId);
+    try {
+      // 1️⃣ Fetch supplier data first
+      const supplier = await handleSup(record.supplierId);
 
-    // 2️⃣ Create a hidden iframe for printing
-    const iframe = document.createElement("iframe");
-    iframe.style.position = "fixed";
-    iframe.style.top = "0";
-    iframe.style.left = "0";
-    iframe.style.width = "0";
-    iframe.style.height = "0";
-    iframe.style.border = "0";
-    document.body.appendChild(iframe);
+      // 2️⃣ Create a hidden iframe for printing
+      const iframe = document.createElement("iframe");
+      iframe.style.position = "fixed";
+      iframe.style.top = "0";
+      iframe.style.left = "0";
+      iframe.style.width = "0";
+      iframe.style.height = "0";
+      iframe.style.border = "0";
+      document.body.appendChild(iframe);
 
-    const doc = iframe.contentDocument || iframe.contentWindow.document;
+      const doc = iframe.contentDocument || iframe.contentWindow.document;
 
 
-    const style = doc.createElement("style");
-    style.textContent = `
+      const style = doc.createElement("style");
+      style.textContent = `
       body {
         font-family: Arial, sans-serif;
         margin: 50px 20px 20px 20px; /* push down content */
@@ -225,10 +219,10 @@ const Purchase = () => {
         font-size: 0.9em;
       }
     `;
-    doc.head.appendChild(style);
+      doc.head.appendChild(style);
 
-    // 4️⃣ Add HTML content
-    doc.body.innerHTML = `
+      // 4️⃣ Add HTML content
+      doc.body.innerHTML = `
       <header>
         <!-- LEFT: Company -->
         <div class="company">
@@ -295,14 +289,14 @@ const Purchase = () => {
     `;
 
       iframe.contentWindow.focus();
-    iframe.contentWindow.print();
+      iframe.contentWindow.print();
 
-    
-    setTimeout(() => document.body.removeChild(iframe), 500);
-  } catch (err) {
-    console.error("Failed to fetch supplier or print:", err);
-  }
-};
+
+      setTimeout(() => document.body.removeChild(iframe), 500);
+    } catch (err) {
+      console.error("Failed to fetch supplier or print:", err);
+    }
+  };
 
 
   const supplierChange = async (id) => {
@@ -310,7 +304,6 @@ const Purchase = () => {
     const { data } = await httpReq.get(`/api/supplier/get/${id}`);
     return setSupplierData(data);
   }
-  console.log("supplier", supplierData)
 
   // get userName
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
@@ -340,15 +333,15 @@ const Purchase = () => {
 
   };
 
-    
-  const handleIspassed=async(id)=>{
-    try{
-      const httpReq=http();
-    await httpReq.put(`/api/purchase/update/${id}`,{isPassed:true});
+
+  const handleIspassed = async (id) => {
+    try {
+      const httpReq = http();
+      await httpReq.put(`/api/purchase/update/${id}`, { isPassed: true });
       toast.success("Purchase marked as passed!");
       mutate("/api/purchase/get");
-    }catch(err){
-      toast.error("Failed to Pass!",err);
+    } catch (err) {
+      toast.error("Failed to Pass!", err);
     }
   }
 
@@ -415,11 +408,11 @@ const Purchase = () => {
           onClick={() => handleEdit(record)}
           className="!text-white  !w-[100px] "
         >
-          <EditOutlined className=" !p-2 bg-blue-700 flex justify-center h-[20px] !w-[30]   md:!w-[100%]  md:text-[15px]"/>
+          <EditOutlined className=" !p-2 bg-blue-700 flex justify-center h-[20px] !w-[30]   md:!w-[100%]  md:text-[15px]" />
         </a>
       ),
     },
-     {
+    {
       title: (
         <span className="text-sm md:!text-1xl font-semibold !text-white">
           Edit
@@ -429,8 +422,8 @@ const Purchase = () => {
       width: 20,
       fixed: "right",
       render: (_, record) => (
-        
-         <Popconfirm
+
+        <Popconfirm
           title="Are you sure to Pass this Purchase?"
           description="This action cannot be undone."
           okText="yes"
@@ -438,7 +431,7 @@ const Purchase = () => {
           onConfirm={async () => handleIspassed(record._id)}
           className="!text-white  !w-[40px] !rounded-9"
         >
-        
+
           <CheckOutlined className=" !p-2 bg-green-700 flex justify-center h-[20px] !w-[30]   md:!w-[100%]  md:text-[15px]" />
         </Popconfirm>
       ),
@@ -465,61 +458,133 @@ const Purchase = () => {
 
   ];
 
-const dataSource= purchaseData?.data.filter(item=>item.isPassed===false).map((item)=>({
-  ...item,
-  key:item._Id
-}))
+  const dataSource = purchaseData?.data.filter(item => item.isPassed === false).map((item) => ({
+    ...item,
+    key: item._Id
+  }))
+
   //currency change
   const currencyChange = (e) => {
-    // e is the selected currency string, e.g., "AFN"
-    const selectedCurrency = currency.find((i) => i.currencyName === e);
 
+    const selectedCurrency = currency.find((i) => i.currencyName === e);
     if (selectedCurrency) {
-      console.log("Selected currency object:", selectedCurrency);
-      console.log("Rate:", selectedCurrency.rate);
       setCrncy(Number(selectedCurrency.rate))
     } else {
       console.log("Currency not found");
     }
   };
 
-  const onFinish = async (values) => {
-    const httpReq = http(token);
+  // const onFinish = async (values) => {
 
-    try {
-      // Find selected objects from arrays
-      const selectedSupplier = supplier.find(s => s.supplierId === values.supplierId);
-      const selectedProduct = product.find(p => p.productId === values.productId);
-      const selectedCompany = company.find(c => c.companyId === values.companyId);
-      const selectedStock = stock.find(s => s.stockId === values.warehouseId);
-      const selectedDealer = dealer.find(d => d.dealerId === values.dealerId);
+  //   const httpReq = http(token);
 
-      const formattedValues = {
-        ...values,
-        purchaseDate: values.purchaseDate
-          ? values.purchaseDate.format("MM-DD-YYYY")
-          : null,
+  //   try {
+  //     // Find selected objects from arrays
+  //     const selectedSupplier = supplier.find(s => s.supplierId === values.supplierId);
+  //     const selectedProduct = product.find(p => p.productId === values.productId);
+  //     const selectedCompany = company.find(c => c.companyId === values.companyId);
+  //     const selectedStock = stock.find(s => s.stockId === values.warehouseId);
+  //     const selectedDealer = dealer.find(d => d.dealerId === values.dealerId);
 
-        supplierName: selectedSupplier?.supplierName,
-        productName: selectedProduct?.productName,
-        companyName: selectedCompany?.companyName,
-        warehouseName: selectedStock?.stockName,
-        dealerName: selectedDealer?.dealerName,
-        isPassed:false,
-      };
+  //     const formattedValues = {
+  //       ...values,
+  //       purchaseDate: values.purchaseDate
+  //         ? values.purchaseDate.format("DD-MM-YYYY")
+  //         : null,
 
-      const data = await httpReq.post("/api/purchase/create", formattedValues);
-      toast.success("Purchase record added successfully");
-      mutate("/api/purchase/get");
-      form.resetFields();
-      return data;
+  //       supplierName: selectedSupplier?.supplierName,
+  //       productName: selectedProduct?.productName,
+  //       companyName: selectedCompany?.companyName,
+  //       warehouseName: selectedStock?.stockName,
+  //       dealerName: selectedDealer?.dealerName,
+  //       isPassed: false,
+  //     };
 
-    } catch (err) {
-      console.log(err);
-      toast.error("Failed to register", err);
+
+  //     const supplierTransaction = {
+  //       credit: formattedValues?.unitCost * formattedValues?.quantity,
+  //       debit: 0,
+  //       description: formattedValues.description,
+  //       date: Date.now(),
+  //     }
+
+
+  //     const data = await httpReq.post("/api/purchase/create", formattedValues);
+  //     if (selectedSupplier) {
+  //       await httpReq.put(`/api/supplier/transaction/${selectedSupplier.supplierId}`, supplierTransaction);
+  //     }
+
+
+  //     toast.success("Purchase record added successfully");
+  //     mutate("/api/purchase/get");
+  //     form.resetFields();
+  //     return data;
+
+  //   } catch (err) {
+  //     console.log(err);
+  //     toast.error("Failed to register", err);
+  //   }
+  // };
+
+const onFinish = async (values) => {
+  const httpReq = http(token);
+
+  try {
+    // 1️⃣ Find selected objects from arrays
+    const selectedSupplier = supplier.find(s => s.supplierId === values.supplierId);
+    const selectedProduct = product.find(p => p.productId === values.productId);
+    const selectedCompany = company.find(c => c.companyId === values.companyId);
+    const selectedStock = stock.find(s => s.stockId === values.warehouseId);
+    const selectedDealer = dealer.find(d => d.dealerId === values.dealerId);
+
+    // 2️⃣ Prepare formatted values for purchase
+    const formattedValues = {
+      ...values,
+      purchaseDate: values.purchaseDate ? values.purchaseDate.format("DD-MM-YYYY") : null,
+      supplierName: selectedSupplier?.supplierName,
+      productName: selectedProduct?.productName,
+      companyName: selectedCompany?.companyName,
+      warehouseName: selectedStock?.stockName,
+      dealerName: selectedDealer?.dealerName,
+      isPassed: false,
+    };
+
+    // 3️⃣ Create transaction object
+    const supplierTransaction = {
+      credit: Number(formattedValues.unitCost) * Number(formattedValues.quantity),
+      debit: 0,
+      description: formattedValues.description,
+      date: new Date(),
+      formattedDate: new Date().toLocaleString(),
+      products: [formattedValues.productName], // products array
+    };
+
+    // 4️⃣ Create purchase
+    const data = await httpReq.post("/api/purchase/create", formattedValues);
+
+    // 5️⃣ Push transaction to supplier (only if supplier exists)
+    if (selectedSupplier) {
+      // Use MongoDB _id of supplier
+      const supplierId = selectedSupplier.id || selectedSupplier.supplierId;
+
+      await httpReq.put(
+        `/api/supplier/transaction/${supplierId}`,
+        supplierTransaction,
+        { headers: { "Content-Type": "application/json" } }
+      );
     }
-  };
 
+    // 6️⃣ Success feedback
+    toast.success("Purchase record and transaction added successfully");
+    mutate("/api/purchase/get");
+    form.resetFields();
+    return data;
+
+  } catch (err) {
+    console.error("Error in onFinish:", err);
+    toast.error("Failed to register");
+  }
+};
 
   const onUpdate = async (values) => {
 
@@ -741,19 +806,11 @@ const dataSource= purchaseData?.data.filter(item=>item.isPassed===false).map((it
   const handleProductChange = (value) => {
     setSelectedProduct(value);
 
-
-    console.log("total Purchase", totalPurchase)
     if (Array.isArray(totalPurchase)) {
-      // filter all matching items (returns an array)
-      const filteredPurchase = totalPurchase.filter((p) => p.productId === value);
-      console.log("filtered", filteredPurchase);
-
-      // sum the quantities
+      const filteredPurchase = totalPurchase.filter((p) => p.productId === value)
       const calculatedQty = filteredPurchase.reduce((sum, item) => sum + item.quantity, 0);
 
-      // get unit from first matched item
       const unit = filteredPurchase.length > 0 ? filteredPurchase[0].unit : null;
-
       setProductUnit(unit);
       setProductQty(calculatedQty);
     } else {

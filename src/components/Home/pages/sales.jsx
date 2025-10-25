@@ -940,7 +940,7 @@ const Sales = () => {
                   label="Sales Date"
                   name="salesDate"
                 >
-                  <DatePicker className="w-full" format="MM/DD/YYYY" />
+                  <DatePicker className="w-full" format="DD/MM/YYYY" />
                 </Form.Item>
                 <Form.Item
                   label="userName"
