@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { fetchBranding } from '../../../redux/slices/brandingSlice';
 import { useSelector ,useDispatch} from 'react-redux';
 import {
+  AuditOutlined,
   FileMarkdownOutlined,
   LogoutOutlined,
   MenuFoldOutlined,
@@ -58,6 +59,11 @@ const dispatch=useDispatch()
       icon: < ShopOutlined className='md:!text-xl !text-purple-500 font-semibold'/>,
       label: <span className='md:!text-lg !text-purple-500 font-semibold'>Sales</span>,
     },
+    {
+      key: 'user',
+      icon: < AuditOutlined className='md:!text-xl !text-purple-500 font-semibold'/>,
+      label: <span className='md:!text-lg !text-purple-500 font-semibold'>Reports</span>,
+    },
   ]
 
   const logout = () => {
@@ -94,10 +100,10 @@ const dispatch=useDispatch()
             boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
             zIndex: 20,
           }}
-          className='!bg-zinc-300'>
+          className='!bg-blue-900'>
           <Button
             type="text"
-            icon={collapsed ? <MenuUnfoldOutlined className='!text-yellow-900 !text-2xl' /> : <MenuFoldOutlined className='!text-yellow-900 !text-2xl' />}
+            icon={collapsed ? <MenuUnfoldOutlined className='!text-blue-100 !text-2xl' /> : <MenuFoldOutlined className='!text-blue-100 !text-2xl' />}
             onClick={() => setCollapsed(!collapsed)}
             style={{
               fontSize: '16px',
@@ -106,7 +112,7 @@ const dispatch=useDispatch()
             }}
           />
           <Button
-            className="!bg-green-500 !border-none !text-white !text-2xl !w-30 !h-8 !rounded-full !font-bold"
+            className="!bg-blue-500 !border-none !text-white !text-2xl !w-30 !h-8 !rounded-full !font-bold"
             onClick={() => navigate('/')}
           >
             <span className='!text-lg'>Logout</span>

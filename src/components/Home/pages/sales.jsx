@@ -395,7 +395,7 @@ const Sales = () => {
           className="!text-white !w-full !w-[20px] !justify-center !rounded-full cursor-pointer"
           onClick={() => handlePrint(record)}
         >
-          <PrinterOutlined className=" !p-2 bg-blue-700 flex justify-center h-[20px] rounded-[5px] md:text-[15px]" />
+          <PrinterOutlined className=" !p-2 bg-zinc-700 flex justify-center h-[20px] !w-[30]   md:!w-[100%]  md:text-[15px]"/>
         </span>
       )
     }
@@ -416,7 +416,7 @@ const Sales = () => {
           onClick={() => handleEdit(record)}
           className="!text-white  !w-[100px] !rounded-full"
         >
-          <EditOutlined className=" !p-2 bg-green-700 flex justify-center h-[20px] rounded-[5px] md:text-[15px]" />
+          <EditOutlined className=" !p-2 bg-blue-700 flex justify-center h-[20px] !w-[30]   md:!w-[100%]  md:text-[15px]" />
         </a>
       ),
     },
@@ -457,7 +457,7 @@ const Sales = () => {
           onConfirm={async () => handleDelete(obj._id)}
           className="!text-white w-full !w-[100px] !rounded-full"
         >
-          <a className="!text-white w-full  !rounded-full"><DeleteOutlined className=" !p-2 bg-red-700 flex justify-center h-[20px] rounded-[5px] md:text-[15px]" /></a>
+          <a className="!text-white w-full  !rounded-full"><DeleteOutlined className="!p-2 bg-red-700 flex justify-center h-[20px] !w-[30]   md:!w-[100%]  md:text-[15px]" /></a>
         </Popconfirm>
       )
 
