@@ -1,62 +1,65 @@
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
-import './App.css'
-import Home from "./components/Home"
-import Inventory from './components/Home/pages/inventory';
-import Sales from "./components/Home/pages/sales";
-import Purchase from './components/Home/pages/purchase';
-import User from './components/Home/User';
-import Admin from './components/Home/Admin';
-import Login from './components/Home/Login';
-import UserRegister from "./components/Admin/User";
-import SupplierRegister from "./components/Admin/Supplier";
-import CustomerRegister from "./components/Admin/Customer";
-import DealerRegister from "./components/Admin/Dealer";
-import CompanyRegister from "./components/Admin/Company";
-import BrandingRegister from "./components/Admin/Branding";
-import Currency from './components/Admin/Currency';
-import Stock from './components/Admin/Stock';
-import Products from './components/Admin/Products';
-import NotFound from "./components/Home/pages/NotFound";
-
+import React, { Suspense, lazy } from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import './App.css';
 import "react-toastify/dist/ReactToastify.css";
-import React from 'react'
-import {Provider} from "react-redux";
-import {store}from "./redux/store";
+import { Provider } from "react-redux";
+import { store } from "./redux/store";
+
+// Lazy loaded components
+const Home = lazy(() => import("./components/Home"));
+const Login = lazy(() => import('./components/Home/Login'));
+const Inventory = lazy(() => import('./components/Shared/shared-components/inventory'));
+const Sales = lazy(() => import("./components/Shared/shared-components/sales"));
+const Purchase = lazy(() => import('./components/Shared/shared-components/purchase'));
+const SupPayments = lazy(() => import('./components/Shared/shared-components/supplierPayments'));
+const User = lazy(() => import('./components/User/index'));
+const Admin = lazy(() => import('./components/Admin/index'));
+const UserRegister = lazy(() => import("./components/Admin/User"));
+const SupplierRegister = lazy(() => import("./components/Admin/Supplier"));
+const CustomerRegister = lazy(() => import("./components/Admin/Customer"));
+const DealerRegister = lazy(() => import("./components/Admin/Dealer"));
+const CompanyRegister = lazy(() => import("./components/Admin/Company"));
+const BrandingRegister = lazy(() => import("./components/Admin/Branding"));
+const Currency = lazy(() => import('./components/Admin/Currency'));
+const Stock = lazy(() => import('./components/Admin/Stock'));
+const Products = lazy(() => import('./components/Admin/Products'));
+const NotFound = lazy(() => import("./components/Home/pages/NotFound"));
 
 function App() {
-
-
   return (
-   <Provider store={store}>
-     <Router>
-      <Routes>
-        <Route path='/' element={<Home />} />
-        <Route path='/login' element={<Login />} />
-        <Route path='/*' element={<NotFound />} />
+    <Provider store={store}>
+      <Router>
+        {/* Suspense fallback shows while lazy components load */}
+        <Suspense fallback={<div style={{textAlign:'center', marginTop:'50px'}}>Loading...</div>}>
+          <Routes>
+            {/* Home related routes */}
+            <Route path='/' element={<Home />} />
+            <Route path='/login' element={<Login />} />
+            <Route path='/*' element={<NotFound />} />
 
+            {/* User related routes */}
+            <Route path='/inventory' element={<Inventory />} />
+            <Route path='/purchase' element={<Purchase />} />
+            <Route path='/sales' element={<Sales />} />
+            <Route path='/supplierPayments' element={<SupPayments />} />
+            <Route path='/user' element={<User />} />
+            <Route path='/admin' element={<Admin />} />
 
-        {/* user related routes */}
-        <Route path='/inventory' element={<Inventory />} />
-        <Route path='/purchase' element={<Purchase />} />
-        <Route path='/sales' element={<Sales />} />
-        <Route path='/user' element={<User />} />
-        <Route path='/admin' element={<Admin />} />
-
-        {/* Admin Related Route */}
-        <Route path="/register" element={<UserRegister/>}></Route>
-        <Route path="/customer" element={<CustomerRegister/>}></Route>
-        <Route path="/supplier" element={<SupplierRegister/>}></Route>
-        <Route path="/dealer" element={<DealerRegister/>}></Route>
-        <Route path="/company" element={<CompanyRegister/>}></Route>
-        <Route path="/currency" element={<Currency/>}></Route>
-        <Route path="/stock" element={<Stock/>}></Route>
-        <Route path="/product" element={<Products/>}></Route>
-        <Route path="/branding" element={<BrandingRegister/>}></Route>
-      </Routes>
-
-    </Router>
-   </Provider>
-  )
+            {/* Admin related routes */}
+            <Route path="/register" element={<UserRegister />} />
+            <Route path="/customer" element={<CustomerRegister />} />
+            <Route path="/supplier" element={<SupplierRegister />} />
+            <Route path="/dealer" element={<DealerRegister />} />
+            <Route path="/company" element={<CompanyRegister />} />
+            <Route path="/currency" element={<Currency />} />
+            <Route path="/stock" element={<Stock />} />
+            <Route path="/product" element={<Products />} />
+            <Route path="/branding" element={<BrandingRegister />} />
+          </Routes>
+        </Suspense>
+      </Router>
+    </Provider>
+  );
 }
 
-export default App
+export default App;

@@ -41,7 +41,7 @@ const Company = () => {
       }
        const httpReq = http(token);
       const data = { ...values,role:"company"};
-           const res = await httpReq.post("/api/company/create", data);
+       const res = await httpReq.post("/api/company/create", data);
       toast.success(res?.data?.msg)
       setFormData((prev) => ({ ...prev, ...res?.data?.company }))
       mutate("/api/company/get/all");

@@ -1,5 +1,7 @@
-
+import React from 'react'
 import dayjs from "dayjs"
+
+
 import { useState, useEffect } from 'react';
 import { Form, Input, Button, Card, Select, Table, Popconfirm, } from "antd"
 import UserLayout from '../UserLayout';
@@ -23,13 +25,10 @@ import { fetchCurrency } from '../../../redux/slices/currencySlice';
 
 
 
-const SupplierStatement = () => {
+const SupplierPayment = () => {
   const dispatch = useDispatch();
 
   const token = cookies.get("authToken")
-
-
-  
   const [unit, setUnit] = useState("");
   const [amount, setAmount] = useState(0);
   const [exchange, setExchange] = useState(0)
@@ -140,7 +139,7 @@ const SupplierStatement = () => {
  
   setTotalPaid(totalPaid|| 0)
     const supplierPurchase=purchase.filter(i=>i.supplierId==id);
-  const totalPurchaseAmount= supplierPurchase.reduce((sum,item)=> sum +(item.unitCost || 0),0)
+  const totalPurchaseAmount= supplierPurchase.reduce((sum,item)=> sum +(item.totalCost || 0),0)
   setTotalPurchasedAmt(totalPurchaseAmount)  
   setSupplierData(data);
 };
@@ -830,4 +829,4 @@ const handlePrint = async (record) => {
   )
 }
 
-export default SupplierStatement;
+export default SupplierPayment;

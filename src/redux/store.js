@@ -7,6 +7,8 @@ import stockReducer from "./slices/stockSlice"
 import dealerReducer from "./slices/dealerSlice"
 import currencyReducer from "./slices/currencySlice"
 import brandingReducer from "./slices/brandingSlice"
+import purchaseReducer from "./slices/purchaseSlice"
+import paymentReducer from "./slices/paymentSlice"
 
 
 export const store=configureStore({
@@ -19,6 +21,8 @@ export const store=configureStore({
     dealers:dealerReducer,
     currencies:currencyReducer,
     brandings:brandingReducer,
+    purchase:purchaseReducer,
+    payments:paymentReducer,
 
   }
 });

@@ -8,18 +8,19 @@ const User = () => {
   const [size, setSize] = useState('small');
 
   const items = [
-    {
+     {
       key: "1",
-      label: "Stock",
-      icon: <StockOutlined />,
-      children: <div className='bg-white w-full'> Stock Coponent</div>, // component inside Tab 1
-    },
-    {
-      key: "2",
       label: "F-Statements",
       icon: <AccountBookOutlined />,
       children: <div className='bg-white w-full'> <Statements /></div>, // component inside Tab 2
     },
+    {
+      key: "2",
+      label: "Stock",
+      icon: <StockOutlined />,
+      children: <div className='bg-white w-full'> Stock Coponent</div>, // component inside Tab 1
+    },
+   
   ];
 
 
@@ -28,7 +29,7 @@ const User = () => {
 
       <div className='bg-zinc-400 border-none'>
         <div className='w-full justify-center items-center flex p-5'> <h1 className='text-zinc-500 text-shadow-black text-shadow-lg md:text-6xl md:font-bold '>Reports and Statements:</h1></div>
-        <div className=' bg-zinc-300 '>
+        <div className=' bg-zinc-50 pt-4  md:!h-[80vh]'>
 
           <Tabs
             defaultActiveKey="1"

@@ -5,6 +5,7 @@ import useSWR, { mutate } from "swr"
 import { http, fetcher } from '../Modules/http';
 import AdminLayout from '../Shared/AdminLayout'
 import Cookies from 'universal-cookie';
+import { countries } from "../Shared/countries/countries"
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
 const { Option } = Select;
 const cookies = new Cookies();
@@ -29,7 +30,7 @@ const Stock = () => {
     }
   }, [stocks])
 
-console.log("stocks",stockData)
+  console.log("stocks", stockData)
   const onFinish = async (values) => {
 
 
@@ -69,7 +70,7 @@ console.log("stocks",stockData)
         return
       }
       const httpReq = http(token);
-      const data = { ...values,values};
+      const data = { ...values, values };
       await httpReq.put(`/api/stock/update/${id._id}`, data);
       toast.success("stock updated successfully");
       form.resetFields();
@@ -108,19 +109,6 @@ console.log("stocks",stockData)
 
   }
 
-  const countries = [
-    { name: "Afghanistan", stock: "AFN", flag: "🇦🇫" },
-    { name: "Tajikistan", stock: "TJS", flag: "🇹🇯" },
-    { name: "Uzbekistan", stock: "UZS", flag: "🇺🇿" },
-    { name: "Kazakhstan", stock: "KZT", flag: "🇰🇿" },
-    { name: "Kyrgyzstan", stock: "KGS", flag: "🇰🇬" },
-    { name: "India", stock: "INR", flag: "🇮🇳" },
-    { name: "Pakistan", stock: "PKR", flag: "🇵🇰" },
-    { name: "United States", stock: "USD", flag: "🇺🇸" },
-    { name: "Eurozone", stock: "EUR", flag: "🇪🇺" },
-    { name: "China", stock: "CNY", flag: "🇨🇳" },
-    { name: "Iran", stock: "IRR", flag: "🇮🇷" },
-  ];
   const columns = [
     {
       title: 'S No',
@@ -140,49 +128,49 @@ console.log("stocks",stockData)
       dataIndex: 'country',
       key: "country"
     },
-     {
+    {
       title: 'Address',
       dataIndex: 'address',
       key: "address"
     },
-     {
+    {
       title: 'Stock Manager',
       dataIndex: 'stockManager',
       key: "stockManager"
     },
 
-   {
-         title: "Edit",
-         key: "edit",
-         width: 90,
-         // fixed: "right",
-         render: (_, record) => ( // ✅ use record (row data)
-           <a
-             onClick={() => handleEdit(record)} // pass full row object
-             className="!text-white w-full !w-[200px] !rounded-full"
-           >
-             <EditOutlined className="w-full  hover:!bg-blue-500  bg-green-500 flex justify-center md:text-lg h-6" />
-           </a>
-         ),
-       },
-       {
-         title: "Delete",
-         key: 'delete',
-         width: 90,
-         // fixed: "right",
-   
-         render: (_, obj) => (
-           <Popconfirm
-             title="Are you sure to delete this purchase record?"
-             description="This action cannot be undone."
-             okText="yes"
-             cancelText="No"
-             onConfirm={async () => handleDelete(obj._id)}
-           >
-             <a className="!text-white w-[20px] !w-[200px] !rounded-full "><DeleteOutlined className="w-full  hover:!bg-blue-500  bg-red-500 flex justify-center md:text-lg h-6" /></a>
-           </Popconfirm>
-         )
-       }
+    {
+      title: "Edit",
+      key: "edit",
+      width: 90,
+      // fixed: "right",
+      render: (_, record) => ( // ✅ use record (row data)
+        <a
+          onClick={() => handleEdit(record)} // pass full row object
+          className="!text-white w-full !w-[200px] !rounded-full"
+        >
+          <EditOutlined className="w-full  hover:!bg-blue-500  bg-green-500 flex justify-center md:text-lg h-6" />
+        </a>
+      ),
+    },
+    {
+      title: "Delete",
+      key: 'delete',
+      width: 90,
+      // fixed: "right",
+
+      render: (_, obj) => (
+        <Popconfirm
+          title="Are you sure to delete this purchase record?"
+          description="This action cannot be undone."
+          okText="yes"
+          cancelText="No"
+          onConfirm={async () => handleDelete(obj._id)}
+        >
+          <a className="!text-white w-[20px] !w-[200px] !rounded-full "><DeleteOutlined className="w-full  hover:!bg-blue-500  bg-red-500 flex justify-center md:text-lg h-6" /></a>
+        </Popconfirm>
+      )
+    }
   ];
 
 
@@ -222,24 +210,14 @@ console.log("stocks",stockData)
                     rules={[{ required: true, message: "Please select a Country!" }]}
                   >
                     <Select
-                      placeholder="Select Country"
-                      className="w-full"
                       showSearch
-                      optionLabelProp="label"
-                      filterOption={(input, option) =>
-                      option?.label?.toLowerCase() // search by country name
-                      }
+                      placeholder="Select a country"
+                      className="w-full"
                     >
                       {countries.map((c) => (
-                        <Option
-                          key={c.stock}
-                          value={c.name} // selected value = stock code
-                        >
-                          <span className="flex items-center gap-2">
-                            <span>{c.name}</span>
-                          </span>
-                        </Option>
+                        <Option key={c.code} value={c.name}></Option>
                       ))}
+
                     </Select>
                   </Form.Item>
                 </div>
@@ -280,19 +258,19 @@ console.log("stocks",stockData)
 
         </div>
         <h1 className='text-xl md:text-2xl ml-4 p-4 font-semibold !text-zinc-800'>Stock List</h1>
-       <div className="text-xs w-[96%] mx-auto">
-         <Table
-          columns={columns}
-          dataSource={stockData}
-          bordered
-          scroll={{ x: 'max-content' }}
-          sticky
-          pagination={{ pageSize: 5 }}
-          className="compact-table"
+        <div className="text-xs w-[96%] mx-auto">
+          <Table
+            columns={columns}
+            dataSource={stockData}
+            bordered
+            scroll={{ x: 'max-content' }}
+            sticky
+            pagination={{ pageSize: 5 }}
+            className="compact-table"
 
-        />
+          />
 
-       </div>
+        </div>
       </div>
 
     </AdminLayout>

@@ -3,7 +3,7 @@ import dayjs from "dayjs"
 
 import { useState, useEffect } from 'react';
 import { Form, Input, Button, Card, Select, Table, Popconfirm, } from "antd"
-import UserLayout from '../../Shared/UserLayout';
+import UserLayout from '../UserLayout';
 import TextArea from 'antd/es/input/TextArea';
 import { DatePicker } from 'antd';
 import { ToastContainer, toast } from "react-toastify";
@@ -11,11 +11,11 @@ import { http, fetcher } from "../../Modules/http";
 import Cookies from "universal-cookie";
 import useSWR, { mutate } from "swr";
 import { CheckOutlined, DeleteOutlined, EditOutlined, PrinterOutlined } from '@ant-design/icons';
-
+import { countries } from "../countries/countries";
 const cookies = new Cookies();
-
+const { Option } = Select;
 import { useDispatch, useSelector } from 'react-redux'
-import { fetchCustomers } from '../../../redux/slices/customerSlice';
+import { fetchSuppleirs } from '../../../redux/slices/supplierSlice';
 import { fetchProducts } from '../../../redux/slices/productSlice';
 import { fetchStock } from '../../../redux/slices/stockSlice';
 import { fetchCompany } from '../../../redux/slices/companySlice';
@@ -24,12 +24,11 @@ import { fetchCurrency } from '../../../redux/slices/currencySlice';
 
 
 
-const Sales = () => {
+const Purchase = () => {
   const dispatch = useDispatch();
 
   const token = cookies.get("authToken")
   const [purchases, setPurchases] = useState([]);
-  const [salesData, setSalesData] = useState([]);
   const [unit, setUnit] = useState("");
   const [qty, setQty] = useState(0);
   const [unitCost, setUnitCost] = useState(0)
@@ -37,41 +36,33 @@ const Sales = () => {
   const [crncy, setCrncy] = useState("")
   const [exchangedAmt, setexchangedAmt] = useState(1)
   const [productQty, setProductQty] = useState(null);
-  const [productSaleQty, setProductSaleQty] = useState(null);
   const [productUnit, setProductUnit] = useState(null);
   const [totalPurchase, setTotalPurchase] = useState([])
   const [edit, setEdit] = useState(false)
-  const [customerData, setcustomerData] = useState(null);
-  const [selectedProduct, setSelectedProduct] = useState("");
-  const [cusId, setcusId] = useState("");
-  const [open, setOpen] = useState(false);
-  const [form] = Form.useForm();
+  const [supplierData, setSupplierData] = useState(null);
 
+  const [purchase, setPurchase] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState("");
+
+  const [form] = Form.useForm();
   //get branding
   const branding = JSON.parse(localStorage.getItem("branding") || "null");
 
   // fetch data from redux:
-  const { customers, loading, error } = useSelector((state) => state.customers);
-  const all = customers?.data || [];
-  const customer = all.map((item) => ({
-    customerName: item.fullname,
-    customerId: item._id,
-    customerAcc: item.accountNo,
-    customerMobile: item.mobile,
-    customerCountry: item.country,
-    customerEmail: item.email,
+  const { suppliers, loading, error } = useSelector((state) => state.suppliers);
+  const allSuppliers = suppliers?.data || [];
+  const supplier = allSuppliers.map((item) => ({
+    supplierName: item.fullname,
+    supplierId: item._id,
+    supplierAcc: item.accountNo,
+    supplierMobile: item.mobile,
+    supplierCountry: item.country,
+    supplierEmail: item.email,
   }))
 
-  const getCustomerById = (customerArray, cusId) => {
-    if (!Array.isArray(customerArray)) return null;
-    return customerArray.find((item) => item.customerId === cusId) || null;
-  };
-  const selectedCustomer = getCustomerById(all, cusId);
-
-
-  const customerOptions = customer.map((s) => ({
-    label: s.customerName,
-    value: s.customerId
+  const supplierOptions = supplier.map((s) => ({
+    label: s.supplierName,
+    value: s.supplierId
   }))
   const { products, prloading, prerror } = useSelector((state) => state.products);
   const allProducts = products?.data || [];
@@ -132,7 +123,7 @@ const Sales = () => {
 
 
   useEffect(() => {
-    dispatch(fetchCustomers())
+    dispatch(fetchSuppleirs())
     dispatch(fetchProducts())
     dispatch(fetchStock())
     dispatch(fetchCompany())
@@ -151,44 +142,37 @@ const Sales = () => {
     }
   }, [purchaseData])
 
-  //fetch sales all data
-  const { data: sales, error: saError } = useSWR("/api/sale/get", fetcher);
-
-  useEffect(() => {
-    if (sales && sales?.data) {
-      setSalesData(sales?.data || null);
-    }
-  }, [sales])
-
 
   //get all supppliers
-  const handleCus = async (id) => {
+  const handleSup = async (id) => {
+
     const httpReq = http();
-    const { data } = await httpReq.get(`/api/customer/get/${id}`);
+    const { data } = await httpReq.get(`/api/supplier/get/${id}`);
     return data;
   }
 
   //print function
   const handlePrint = async (record) => {
-  try {
-    // 1️⃣ Fetch customer data first
-    const customer = await handleCus(record.customerId);
 
-    // 2️⃣ Create a hidden iframe for printing
-    const iframe = document.createElement("iframe");
-    iframe.style.position = "fixed";
-    iframe.style.top = "0";
-    iframe.style.left = "0";
-    iframe.style.width = "0";
-    iframe.style.height = "0";
-    iframe.style.border = "0";
-    document.body.appendChild(iframe);
+    try {
+      // 1️⃣ Fetch supplier data first
+      const supplier = await handleSup(record.supplierId);
 
-    const doc = iframe.contentDocument || iframe.contentWindow.document;
+      // 2️⃣ Create a hidden iframe for printing
+      const iframe = document.createElement("iframe");
+      iframe.style.position = "fixed";
+      iframe.style.top = "0";
+      iframe.style.left = "0";
+      iframe.style.width = "0";
+      iframe.style.height = "0";
+      iframe.style.border = "0";
+      document.body.appendChild(iframe);
+
+      const doc = iframe.contentDocument || iframe.contentWindow.document;
 
 
-    const style = doc.createElement("style");
-    style.textContent = `
+      const style = doc.createElement("style");
+      style.textContent = `
       body {
         font-family: Arial, sans-serif;
         margin: 50px 20px 20px 20px; /* push down content */
@@ -230,10 +214,10 @@ const Sales = () => {
         font-size: 0.9em;
       }
     `;
-    doc.head.appendChild(style);
+      doc.head.appendChild(style);
 
-    // 4️⃣ Add HTML content
-    doc.body.innerHTML = `
+      // 4️⃣ Add HTML content
+      doc.body.innerHTML = `
       <header>
         <!-- LEFT: Company -->
         <div class="company">
@@ -250,10 +234,10 @@ const Sales = () => {
         <!-- RIGHT: Vendor -->
         <div class="vendor">
           <strong>Vendor:</strong><br>
-          Vendor: ${customer.fullname || "-"}<br>
-          Address: ${customer.country || "-"}<br>
-          Phone: ${customer.mobile || "-"}<br>
-          Email: ${customer.email || "-"}<br>
+          Vendor: ${supplier.fullname || "-"}<br>
+          Address: ${supplier.country || "-"}<br>
+          Phone: ${supplier.mobile || "-"}<br>
+          Email: ${supplier.email || "-"}<br>
           Date: ${new Date(record.createdAt).toLocaleDateString()}
         </div>
       </header>
@@ -300,20 +284,20 @@ const Sales = () => {
     `;
 
       iframe.contentWindow.focus();
-    iframe.contentWindow.print();
-
-    
-    setTimeout(() => document.body.removeChild(iframe), 500);
-  } catch (err) {
-    console.error("Failed to fetch customer or print:", err);
-  }
-};
+      iframe.contentWindow.print();
 
 
-  const customerChange = async (id) => {
+      setTimeout(() => document.body.removeChild(iframe), 500);
+    } catch (err) {
+      console.error("Failed to fetch supplier or print:", err);
+    }
+  };
+
+
+  const supplierChange = async (id) => {
     const httpReq = http();
-    const { data } = await httpReq.get(`/api/customer/get/${id}`);
-    return setcustomerData(data);
+    const { data } = await httpReq.get(`/api/supplier/get/${id}`);
+    return setSupplierData(data);
   }
 
   // get userName
@@ -321,37 +305,50 @@ const Sales = () => {
   const userName = userInfo?.fullname || "";
 
 
-
-
   //Delete 
-  const handleDelete = async (id) => {
+  const handleDelete = async (obj) => {
     try {
+      const purchaseId = obj._id;
+
       const httpReq = http(token);
-      await httpReq.delete(`/api/purchase/delete/${id}`);
-      toast.success("Purchase record deleted successfully");
+
+      // // Delete purchase
+      await httpReq.delete(`/api/purchase/delete/${purchaseId}`);
+      toast.success("Purchase record and supplier transaction deleted successfully");
       mutate("/api/purchase/get");
     } catch (err) {
-      toast.error("Failed to delete purchase record", err);
+      console.error("Delete Error:", err);
+      toast.error("Failed to delete purchase record");
     }
-  }
+  };
 
-  const handleEdit = (record) => {
-    form.setFieldsValue(record); // prefill form fields with row data
+  const handleEdit = async (record) => {
+    setSupplierData(record);
+
+    form.setFieldsValue({
+      ...record,
+      supplierId: record.supplierId,
+      purchaseDate:initialPurchaseDate
+    });
+
     setEdit(true); // set edit state with full rec
+
+    const httpReq = http();
+    const { data: purchase } = await httpReq.get(`/api/purchase/get/${record._id}`);
+    return setPurchase(purchase);
 
   };
 
- const handleIspassed=async(id)=>{
-    try{
-      const httpReq=http();
-    await httpReq.put(`/api/sale/update/${id}`,{isPassed:true});
+  const handleIspassed = async (id) => {
+    try {
+      const httpReq = http();
+      await httpReq.put(`/api/purchase/update/${id}`, { isPassed: true });
       toast.success("Purchase marked as passed!");
-      mutate("/api/sale/get");
-    }catch(err){
-      toast.error("Failed to Pass!",err);
+      mutate("/api/purchase/get");
+    } catch (err) {
+      toast.error("Failed to Pass!", err);
     }
   }
-
 
   //Table data
   const columns = [
@@ -364,7 +361,7 @@ const Sales = () => {
     { title: <span className="text-sm md:!text-1xl font-semibold">Item</span>, dataIndex: 'productName', key: 'productName', width: 90 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Qty</span>, dataIndex: 'quantity', key: 'quantity', width: 90 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Unit</span>, dataIndex: 'unit', key: 'unit', width: 80 },
-    { title: <span className="text-sm md:!text-1xl font-semibold">customer</span>, dataIndex: 'customerName', key: 'customer', width: 120 },
+    { title: <span className="text-sm md:!text-1xl font-semibold">Supplier</span>, dataIndex: 'supplierName', key: 'supplier', width: 120 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Belong To</span>, dataIndex: 'companyName', key: 'company', width: 120 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Warehouse</span>, dataIndex: 'warehouseName', key: 'warehouse', width: 120 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Unit Cost</span>, dataIndex: 'unitCost', key: 'unitCost', width: 100 },
@@ -395,7 +392,7 @@ const Sales = () => {
           className="!text-white !w-full !w-[20px] !justify-center !rounded-full cursor-pointer"
           onClick={() => handlePrint(record)}
         >
-          <PrinterOutlined className=" !p-2 bg-zinc-700 flex justify-center h-[20px] !w-[30]   md:!w-[100%]  md:text-[15px]"/>
+          <PrinterOutlined className=" !p-2 bg-zinc-600 flex justify-center h-[20px] !w-[30]  md:!w-[100%]  md:text-[15px]" />
         </span>
       )
     }
@@ -414,7 +411,7 @@ const Sales = () => {
       render: (_, record) => (
         <a
           onClick={() => handleEdit(record)}
-          className="!text-white  !w-[100px] !rounded-full"
+          className="!text-white  !w-[100px] "
         >
           <EditOutlined className=" !p-2 bg-blue-700 flex justify-center h-[20px] !w-[30]   md:!w-[100%]  md:text-[15px]" />
         </a>
@@ -423,15 +420,15 @@ const Sales = () => {
     {
       title: (
         <span className="text-sm md:!text-1xl font-semibold !text-white">
-          Edit
+          Pass
         </span>
       ),
       key: "ispassed",
       width: 20,
       fixed: "right",
       render: (_, record) => (
-        
-         <Popconfirm
+
+        <Popconfirm
           title="Are you sure to Pass this Purchase?"
           description="This action cannot be undone."
           okText="yes"
@@ -439,7 +436,7 @@ const Sales = () => {
           onConfirm={async () => handleIspassed(record._id)}
           className="!text-white  !w-[40px] !rounded-9"
         >
-        
+
           <CheckOutlined className=" !p-2 bg-green-700 flex justify-center h-[20px] !w-[30]   md:!w-[100%]  md:text-[15px]" />
         </Popconfirm>
       ),
@@ -454,10 +451,10 @@ const Sales = () => {
           description="This action cannot be undone."
           okText="yes"
           cancelText="No"
-          onConfirm={async () => handleDelete(obj._id)}
+          onConfirm={async () => handleDelete(obj)}
           className="!text-white w-full !w-[100px] !rounded-full"
         >
-          <a className="!text-white w-full  !rounded-full"><DeleteOutlined className="!p-2 bg-red-700 flex justify-center h-[20px] !w-[30]   md:!w-[100%]  md:text-[15px]" /></a>
+          <a className="!text-white w-full  !rounded-full"><DeleteOutlined className=" !p-2 bg-red-700 flex justify-center h-[20px] !w-[30]   md:!w-[100%]  md:text-[15px]" /></a>
         </Popconfirm>
       )
 
@@ -466,84 +463,136 @@ const Sales = () => {
 
   ];
 
- 
- const dataSource = salesData
-  ?.filter((item) => item.isPassed === false)
-  .map((item) => ({
+  const dataSource = purchaseData?.data.filter(item => item.isPassed === false).map((item) => ({
     ...item,
-    key: item._id,
-  })) || [];
+    key: item._Id
+  }))
+
   //currency change
   const currencyChange = (e) => {
-    // e is the selected currency string, e.g., "AFN"
-    const selectedCurrency = currency.find((i) => i.currencyName === e);
 
+    const selectedCurrency = currency.find((i) => i.currencyName === e);
     if (selectedCurrency) {
-      console.log("Selected currency object:", selectedCurrency);
-      console.log("Rate:", selectedCurrency.rate);
       setCrncy(Number(selectedCurrency.rate))
     } else {
       console.log("Currency not found");
     }
   };
 
-  const onFinish = async (values) => {
-    const httpReq = http(token);
 
+  // const onFinish = async (values) => {
+  //   const httpReq = http(token);
+
+  //   try {
+  //     // Find selected objects from arrays
+  //     const selectedSupplier = supplier.find(s => s.supplierId === values.supplierId);
+  //     const selectedProduct = product.find(p => p.productId === values.productId);
+  //     const selectedCompany = company.find(c => c.companyId === values.companyId);
+  //     const selectedStock = stock.find(s => s.stockId === values.warehouseId);
+  //     const selectedDealer = dealer.find(d => d.dealerId === values.dealerId);
+
+  //     // 2 Prepare formatted values for purchase
+  //     const formattedValues = {
+  //       ...values,
+  //       purchaseDate: values.purchaseDate ? values.purchaseDate.format("DD-MM-YYYY") : null,
+  //       supplierName: selectedSupplier?.supplierName,
+  //       productName: selectedProduct?.productName,
+  //       companyName: selectedCompany?.companyName,
+  //       warehouseName: selectedStock?.stockName,
+  //       dealerName: selectedDealer?.dealerName,
+  //       isPassed: false,
+  //     };
+  //     // Create purchase
+
+  //     await httpReq.post("/api/purchase/create", formattedValues);
+  //     toast.success("Purchase record and transaction added successfully");
+  //     mutate("/api/purchase/get");
+  //     form.resetFields();
+  //     setSupplierData("");
+
+  //   } catch (err) {
+  //     console.error("Error in onFinish:", err);
+  //     toast.error("Failed to register");
+  //   }
+  // };
+const onFinish = async (values) => {
+  const httpReq = http(token);
+
+  try {
+    const selectedSupplier = supplier.find(s => s.supplierId === values.supplierId);
+    const selectedProduct = product.find(p => p.productId === values.productId);
+    const selectedCompany = company.find(c => c.companyId === values.companyId);
+    const selectedStock = stock.find(s => s.stockId === values.warehouseId);
+    const selectedDealer = dealer.find(d => d.dealerId === values.dealerId);
+
+    const formattedValues = {
+      ...values,
+      purchaseDate: values.purchaseDate ? values.purchaseDate.toDate() : null,
+      supplierName: selectedSupplier?.supplierName || "",
+      productName: selectedProduct?.productName || "",
+      companyName: selectedCompany?.companyName || "",
+      warehouseName: selectedStock?.stockName || "",
+      dealerName: selectedDealer?.dealerName || "",
+     totalCost: (Number(values?.quantity) || 0) * (Number(values?.unitCost) || 0),
+      isPassed: false,
+    };
+
+    console.log("Payload to backend:", formattedValues);
+
+    await httpReq.post("/api/purchase/create", formattedValues);
+
+    toast.success("Purchase record and transaction added successfully");
+    mutate("/api/purchase/get");
+    form.resetFields();
+    setSupplierData("");
+
+  } catch (err) {
+    console.error("Error in onFinish:", err.response?.data || err.message);
+    toast.error("Failed to register");
+  }
+};
+
+  const onUpdate = async (values) => {
     try {
-      // Find selected objects from arrays
-      const selectedCustomer = customer.find(s => s.customerId === values.customerId);
+
+      //  Find selected objects from arrays
+      const selectedSupplier = supplier.find(s => s.supplierId === values.supplierId);
       const selectedProduct = product.find(p => p.productId === values.productId);
       const selectedCompany = company.find(c => c.companyId === values.companyId);
       const selectedStock = stock.find(s => s.stockId === values.warehouseId);
       const selectedDealer = dealer.find(d => d.dealerId === values.dealerId);
+      const httpReq = http(token);
 
       const formattedValues = {
         ...values,
-        slesDate: values.salesDate
-          ? values.salesDate.format("MM-DD-YYYY")
-          : null,
+        supplierId: selectedSupplier._id,
+        supplierName: selectedSupplier.supplierName,
+        totalCost: (Number(values?.quantity) || 0) * (Number(values?.unitCost) || 0),
+        productId: selectedProduct?._id || values.productId,
+        productName: selectedProduct?.productName || values.productName,
 
-        customerName: selectedCustomer?.customerName,
-        productName: selectedProduct?.productName,
-        companyName: selectedCompany?.companyName,
-        warehouseName: selectedStock?.stockName,
-        dealerName: selectedDealer?.dealerName,
-        isPassed:false,
+        companyId: selectedCompany?._id || values.companyId,
+        companyName: selectedCompany?.companyName || values.companyName,
+
+        warehouseId: selectedStock?._id || values.warehouseId,
+        warehouseName: selectedStock?.stockName || values.warehouseName,
+
+        dealerId: selectedDealer?._id || values.dealerId,
+        dealerName: selectedDealer?.dealerName || values.dealerName,
       };
 
-      const data = await httpReq.post("/api/sale/create", formattedValues);
-      toast.success("Sale record added successfully");
-      mutate("/api/sale/get");
+      // Update purchase
+      await httpReq.put(`/api/purchase/update/${values._id}`, formattedValues);
+      mutate("/api/purchase/get");
       form.resetFields();
-      return data;
-
+      toast.success("Supplier transaction updated successfully");
+      setSupplierData("");
+      setEdit(false);
     } catch (err) {
-        console.log(err);
-      toast.error( `Failed: ${err?.response?.data?.message || err?.message || "Unknown error"}`);
+      console.error(err);
+      toast.error("Update Failed");
     }
   };
-
-
-  const onUpdate = async (values) => {
-
-    try {
-      const httpReq = http(token);
-      const formattedValues = {
-        ...values,
-        customerId: customerData?._id,
-        customerName: customerData?.fullname,
-      };
-      await httpReq.put(`/api/sale/update/${values._id}`, formattedValues)
-      toast.success("Sale record updated successfully")
-      mutate("/api/sale/get");
-      setEdit(false)
-      form.resetFields();
-    } catch (err) {
-      console.log(err);
-      toast.error("Update Failed", err)
-    }
-  }
 
 
   const units =
@@ -572,161 +621,17 @@ const Sales = () => {
     ]
 
 
-  const country = [
-    { value: 'Afghanistan', label: 'Afghanistan' },
-    { value: 'Albania', label: 'Albania' },
-    { value: 'Algeria', label: 'Algeria' },
-    { value: 'Andorra', label: 'Andorra' },
-    { value: 'Angola', label: 'Angola' },
-    { value: 'Antigua and Barbuda', label: 'Antigua and Barbuda' },
-    { value: 'Argentina', label: 'Argentina' },
-    { value: 'Armenia', label: 'Armenia' },
-    { value: 'Australia', label: 'Australia' },
-    { value: 'Austria', label: 'Austria' },
-    { value: 'Azerbaijan', label: 'Azerbaijan' },
-    { value: 'Bahamas', label: 'Bahamas' },
-    { value: 'Bahrain', label: 'Bahrain' },
-    { value: 'Bangladesh', label: 'Bangladesh' },
-    { value: 'Barbados', label: 'Barbados' },
-    { value: 'Belarus', label: 'Belarus' },
-    { value: 'Belgium', label: 'Belgium' },
-    { value: 'Belize', label: 'Belize' },
-    { value: 'Benin', label: 'Benin' },
-    { value: 'Bhutan', label: 'Bhutan' },
-    { value: 'Bolivia', label: 'Bolivia' },
-    { value: 'Bosnia and Herzegovina', label: 'Bosnia and Herzegovina' },
-    { value: 'Botswana', label: 'Botswana' },
-    { value: 'Brazil', label: 'Brazil' },
-    { value: 'Brunei Darussalam', label: 'Brunei Darussalam' },
-    { value: 'Bulgaria', label: 'Bulgaria' },
-    { value: 'Burkina Faso', label: 'Burkina Faso' },
-    { value: 'Burundi', label: 'Burundi' },
-    { value: 'Cabo Verde', label: 'Cabo Verde' },
-    { value: 'Cambodia', label: 'Cambodia' },
-    { value: 'Cameroon', label: 'Cameroon' },
-    { value: 'Canada', label: 'Canada' },
-    { value: 'Central African Republic', label: 'Central African Republic' },
-    { value: 'Chad', label: 'Chad' },
-    { value: 'Chile', label: 'Chile' },
-    { value: 'China', label: 'China' },
-    { value: 'Colombia', label: 'Colombia' },
-    { value: 'Comoros', label: 'Comoros' },
-    { value: 'Congo (Congo-Brazzaville)', label: 'Congo (Congo-Brazzaville)' },
-    { value: 'Costa Rica', label: 'Costa Rica' },
-    { value: 'Croatia', label: 'Croatia' },
-    { value: 'Cuba', label: 'Cuba' },
-    { value: 'Cyprus', label: 'Cyprus' },
-    { value: 'Czechia (Czech Republic)', label: 'Czechia (Czech Republic)' },
-    { value: 'Denmark', label: 'Denmark' },
-    { value: 'Djibouti', label: 'Djibouti' },
-    { value: 'Dominica', label: 'Dominica' },
-    { value: 'Dominican Republic', label: 'Dominican Republic' },
-    { value: 'Ecuador', label: 'Ecuador' },
-    { value: 'Egypt', label: 'Egypt' },
-    { value: 'El Salvador', label: 'El Salvador' },
-    { value: 'Equatorial Guinea', label: 'Equatorial Guinea' },
-    { value: 'Eritrea', label: 'Eritrea' },
-    { value: 'Estonia', label: 'Estonia' },
-    { value: 'Eswatini', label: 'Eswatini' },
-    { value: 'Ethiopia', label: 'Ethiopia' },
-    { value: 'Fiji', label: 'Fiji' },
-    { value: 'Finland', label: 'Finland' },
-    { value: 'France', label: 'France' },
-    { value: 'Gabon', label: 'Gabon' },
-    { value: 'Gambia', label: 'Gambia' },
-    { value: 'Georgia', label: 'Georgia' },
-    { value: 'Germany', label: 'Germany' },
-    { value: 'Ghana', label: 'Ghana' },
-    { value: 'Greece', label: 'Greece' },
-    { value: 'Grenada', label: 'Grenada' },
-    { value: 'Guatemala', label: 'Guatemala' },
-    { value: 'Guinea', label: 'Guinea' },
-    { value: 'Guinea-Bissau', label: 'Guinea-Bissau' },
-    { value: 'Guyana', label: 'Guyana' },
-    { value: 'Haiti', label: 'Haiti' },
-    { value: 'Honduras', label: 'Honduras' },
-    { value: 'Hungary', label: 'Hungary' },
-    { value: 'Iceland', label: 'Iceland' },
-    { value: 'India', label: 'India' },
-    { value: 'Indonesia', label: 'Indonesia' },
-    { value: 'Iran', label: 'Iran' },
-    { value: 'Iraq', label: 'Iraq' },
-    { value: 'Ireland', label: 'Ireland' },
-    { value: 'Israel', label: 'Israel' },
-    { value: 'Italy', label: 'Italy' },
-    { value: 'Jamaica', label: 'Jamaica' },
-    { value: 'Japan', label: 'Japan' },
-    { value: 'Jordan', label: 'Jordan' },
-    { value: 'Kazakhstan', label: 'Kazakhstan' },
-    { value: 'Kenya', label: 'Kenya' },
-    { value: 'Kiribati', label: 'Kiribati' },
-    { value: 'Korea (North)', label: 'Korea (North)' },
-    { value: 'Korea (South)', label: 'Korea (South)' },
-    { value: 'Kuwait', label: 'Kuwait' },
-    { value: 'Kyrgyzstan', label: 'Kyrgyzstan' },
-    { value: 'Laos', label: 'Laos' },
-    { value: 'Latvia', label: 'Latvia' },
-    { value: 'Lebanon', label: 'Lebanon' },
-    { value: 'Lesotho', label: 'Lesotho' },
-    { value: 'Liberia', label: 'Liberia' },
-    { value: 'Libya', label: 'Libya' },
-    { value: 'Liechtenstein', label: 'Liechtenstein' },
-    { value: 'Lithuania', label: 'Lithuania' },
-    { value: 'Luxembourg', label: 'Luxembourg' },
-    { value: 'Madagascar', label: 'Madagascar' },
-    { value: 'Malawi', label: 'Malawi' },
-    { value: 'Malaysia', label: 'Malaysia' },
-    { value: 'Maldives', label: 'Maldives' },
-    { value: 'Mali', label: 'Mali' },
-    { value: 'Malta', label: 'Malta' },
-    { value: 'Marshall Islands', label: 'Marshall Islands' },
-    { value: 'Mauritania', label: 'Mauritania' },
-    { value: 'Mauritius', label: 'Mauritius' },
-    { value: 'Mexico', label: 'Mexico' },
-    { value: 'Micronesia', label: 'Micronesia' },
-    { value: 'Moldova', label: 'Moldova' },
-    { value: 'Monaco', label: 'Monaco' },
-    { value: 'Mongolia', label: 'Mongolia' },
-    { value: 'Montenegro', label: 'Montenegro' },
-    { value: 'Morocco', label: 'Morocco' },
-    { value: 'Mozambique', label: 'Mozambique' },
-    { value: 'Myanmar', label: 'Myanmar' },
-    { value: 'Namibia', label: 'Namibia' },
-    { value: 'Nauru', label: 'Nauru' },
-    { value: 'Nepal', label: 'Nepal' },
-    { value: 'Netherlands', label: 'Netherlands' },
-    { value: 'New Zealand', label: 'New Zealand' },
-    { value: 'Nicaragua', label: 'Nicaragua' },
-    { value: 'Niger', label: 'Niger' },
-    { value: 'Nigeria', label: 'Nigeria' },
-    { value: 'North Macedonia', label: 'North Macedonia' },
-    { value: 'Norway', label: 'Norway' },
-    { value: 'Oman', label: 'Oman' },
-    { value: 'Pakistan', label: 'Pakistan' },
-    { value: 'Palau', label: 'Palau' },
-    { value: 'Panama', label: 'Panama' },
-    { value: 'Papua New Guinea', label: 'Papua New Guinea' },
-    { value: 'Paraguay', label: 'Paraguay' },
-    { value: 'Peru', label: 'Peru' },
-    { value: 'Philippines', label: 'Philippines' },
-    { value: 'Poland', label: 'Poland' },
-    { value: 'Portugal', label: 'Portugal' },
-    { value: 'Qatar', label: 'Qatar' },
-    { value: 'Romania', label: 'Romania' },
-    { value: 'Russia', label: 'Russia' },
-    { value: 'Rwanda', label: 'Rwanda' },
-    { value: 'Saint Kitts and Nevis', label: 'Saint Kitts and Nevis' },
-    { value: 'Saint Lucia', label: 'Saint Lucia' },
-    { value: 'Saint Vincent and the Grenadines', label: 'Saint Vincent and the Grenadines' },
-  ]
-
-//exchange rate
   useEffect(() => {
-   // Use its rate, 
+
+
+
+    // Use its rate, fallback to 1 if not found
     const rate = crncy || 1;
 
     setExchange(rate);
   }, [crncy, currency]);
+
+
   useEffect(() => {
     setexchangedAmt(Number(unitCost) * exchange);
   }, [qty, unitCost, exchange]); // only recalc when these change
@@ -739,50 +644,37 @@ const Sales = () => {
 
   const handleProductChange = (value) => {
     setSelectedProduct(value);
-//purchase calculation
+
     if (Array.isArray(totalPurchase)) {
-      // filter all matching items (returns an array)
-      const filteredPurchase = totalPurchase.filter((p) => p.productId === value);
-      // sum the quantities
+      const filteredPurchase = totalPurchase.filter((p) => p.productId === value)
       const calculatedQty = filteredPurchase.reduce((sum, item) => sum + item.quantity, 0);
 
-      // get unit from first matched item
       const unit = filteredPurchase.length > 0 ? filteredPurchase[0].unit : null;
-
       setProductUnit(unit);
       setProductQty(calculatedQty);
-    }
-    if (Array.isArray(salesData)) {
-      // filter all matching items (returns an array)
-      const filteredSales = salesData.filter((p) => p.productId === value);
-      // sum the quantities
-      const calculatedSaleQty = filteredSales.reduce((total, item) => total + item.quantity, 0);
-      // get unit from first matched item
-      const unit = filteredSales.length > 0 ? filteredSales[0].unit : null;
-
-      setProductUnit(unit);
-      setProductSaleQty(calculatedSaleQty);
-    
-     } else {
+    } else {
       setProductQty(null);
-      setProductSaleQty(null);
+      setProductUnit(null);
     }
+
 
   }
-  console.log("sales qty",productSaleQty)
-  console.log("purchase qty",productQty)
-  
+
+  const initialPurchaseDate = supplierData?.purchaseDate 
+    ? dayjs(supplierData.purchaseDate, "DD-MM-YYYY") 
+    : null;
+
   return (
     <UserLayout>
       <div>
         <ToastContainer position="top-right" autoClose={3000} />
         <div className="p-4 bg-zinc-100">
-          {/* Sales Form */}
+          {/* Purchase Form */}
           <div className='flex gap-4 items-center '>
-            <h2 className='text-sm  md:text-2xl p-2 font-semibold text-zinc-600'>Record Sales:</h2>
+            <h2 className='text-sm  md:text-2xl p-2 font-semibold text-zinc-600'>Create Purchase Record</h2>
             <div> {productQty && (
               <div className='text-red-500 mt-3 md:text-1xl text-sm mb-2'>
-                Availible Qty: {productQty-productSaleQty},{productUnit || null}
+                Availible Qty: {productQty},{productUnit || null}
               </div>
             )}</div>
           </div>
@@ -791,7 +683,7 @@ const Sales = () => {
               layout="vertical"
               onFinish={edit ? onUpdate : onFinish}
               form={form}
-              initialValues={{ userName: userName }}
+              initialValues={{ userName: userName,purchaseDate: initialPurchaseDate }}
               size='small'
 
 
@@ -836,16 +728,16 @@ const Sales = () => {
                   />
                 </Form.Item>
                 <Form.Item
-                  label="Customer"
-                  name="customerId"
-                  rules={[{ required: true, message: "Please enter customer name" }]}
+                  label="Supplier Name"
+                  name="supplierId"
+                  rules={[{ required: true, message: "Please enter supplier name" }]}
                 >
                   <Select
-                    onChange={(e) => customerChange(e)}
+                    onChange={(e) => supplierChange(e)}
                     showSearch
-                    placeholder="Select a customer"
+                    placeholder="Select a Supplier"
                     optionFilterProp="label"
-                    options={customerOptions}
+                    options={supplierOptions}
                   />
                 </Form.Item>
                 <Form.Item
@@ -855,7 +747,7 @@ const Sales = () => {
                 >
                   <Select
                     showSearch
-                    placeholder="Select a customer"
+                    placeholder="Select a Company"
                     optionFilterProp="label"
                     options={companyOptions}
                   />
@@ -867,7 +759,7 @@ const Sales = () => {
                 >
                   <Select
                     showSearch
-                    placeholder="Select a customer"
+                    placeholder="Select a Supplier"
                     optionFilterProp="label"
                     options={stockOptions}
                   />
@@ -901,12 +793,19 @@ const Sales = () => {
                   name="countryName"
                 >
                   <Select
+                    placeholder="Select a country"
                     showSearch
-                    placeholder="Enter Country"
-                    optionFilterProp="label"
-                    options={country}
-                    rules={[{ required: true, message: "Please Enter country name" }]}
-                  />
+                    optionFilterProp="children"
+                    filterOption={(input, option) =>
+                      option.children.toLowerCase().includes(input.toLowerCase())
+                    }
+                  >
+                    {countries.map((country) => (
+                      <Option key={country.value} value={country.value}>
+                        {country.label}
+                      </Option>
+                    ))}
+                  </Select>
                 </Form.Item>
                 <Form.Item
                   label="Batch No"
@@ -937,10 +836,10 @@ const Sales = () => {
                   />
                 </Form.Item>
                 <Form.Item
-                  label="Sales Date"
-                  name="salesDate"
+                  label="Purchase Date"
+                  name="purchaseDate"
                 >
-                  <DatePicker className="w-full" format="DD/MM/YYYY" />
+                  <DatePicker className="w-full" format="MM/DD/YYYY" />
                 </Form.Item>
                 <Form.Item
                   label="userName"
@@ -963,8 +862,10 @@ const Sales = () => {
                 />
               </Form.Item>
               <Form.Item>
-                <Button type="text" htmlType="submit" className=" !bg-blue-500 !text-white hover:!bg-green-500 hover:!shadow-lg hover:!shadow-zinc-800 hover:!text-white !font-bold">
-                  {`${edit ? "Update Sales" : "Add Sales"}`}
+                <Button type="text" htmlType="submit" className={`md:!w-full md:!h-[30px] !text-white hover:!shadow-lg hover:!shadow-zinc-800 hover:!text-white !font-bold 
+                  ${edit ? "!bg-orange-500 hover:!bg-orange-600" : "!bg-blue-500 hover:!bg-green-500"}
+                `} >
+                  {`${edit ? "Update Purchase" : "Add Purchase"}`}
                 </Button>
               </Form.Item>
             </Form>
@@ -973,15 +874,16 @@ const Sales = () => {
 
         </div>
         <div>
-          <div className='text-zinc-600 md:text-lg text-sm p-4 font-bold'>Sales Records:</div>
+          <div className='text-zinc-600 md:text-lg text-sm p-4 font-bold'>Purchase Records:</div>
         </div>
         <div className="w-full   overflow-x-auto">
 
 
           <div className="text-xs w-[100%] mx-auto px-4">
             <Table
+              rowKey="_id"
               columns={columns}
-              dataSource={dataSource || ""}
+              dataSource={dataSource}
               bordered
               scroll={{ x: 'max-content' }}
               sticky
@@ -1009,4 +911,4 @@ const Sales = () => {
   )
 }
 
-export default Sales;
+export default Purchase;

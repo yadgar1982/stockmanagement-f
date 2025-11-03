@@ -15,7 +15,8 @@ import {
   SettingFilled,
   SettingOutlined,
   ProductOutlined,
-  DashboardOutlined
+  DashboardOutlined,
+  FileImageOutlined
 } from '@ant-design/icons';
 import { Avatar, Button, Layout, Menu, theme } from 'antd';
 const { Header, Sider, Content } = Layout;
@@ -36,6 +37,15 @@ const AdminLayout = ({ children }) => {
           label: (
             <span className='text-zinc-500 font-semibold md:!text-lg'>
               Dashboard
+            </span>
+          ),
+        },
+        {
+          key: 'branding',
+          icon: <FileImageOutlined className='!text-zinc-500 md:!text-2xl ' />,
+          label: (
+            <span className='text-zinc-500 font-semibold md:!text-lg'>
+              Branding
             </span>
           ),
         },
@@ -116,15 +126,7 @@ const AdminLayout = ({ children }) => {
             </span>
           ),
         },
-         {
-          key: 'branding',
-          icon: <LogoutOutlined className='!text-zinc-500 md:!text-2xl ' />,
-          label: (
-            <span className='text-zinc-500 font-semibold md:!text-lg'>
-              Branding
-            </span>
-          ),
-        }
+         
       ],
     },
 

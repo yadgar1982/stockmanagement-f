@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, Divider, Tabs } from "antd";
 import { StockOutlined, PieChartOutlined, AccountBookOutlined } from '@ant-design/icons';
-import UserLayout from '../../Shared/UserLayout';
+import UserLayout from '../UserLayout';
 
 const Inventory = () => {
 

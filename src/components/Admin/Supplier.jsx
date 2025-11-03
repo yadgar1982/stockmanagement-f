@@ -9,9 +9,11 @@ import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
 import {countries} from "../Shared/countries/countries"
 const { Option } = Select;
 const cookies = new Cookies();
+import { useNavigate } from 'react-router-dom';
 
 
 const Supplier = () => {
+   const navigate = useNavigate();
   const [supplier, setSupplier] = useState(null);
   const [formData, setFormData] = useState(null);
     const [edit, setEdit] = useState(false);
@@ -28,12 +30,12 @@ const Supplier = () => {
     }
   }, [suppliers])
 
-console.log("suppliers",supplier)
+
 
   const onFinish = async (values) => {
     try {
       if(!token){
-         toast.error("Your session has been expired please login again ")
+        toast.error("Your session has been expired please login again ")
         setTimeout(() => {
           navigate("/login")
         }, 1000);
