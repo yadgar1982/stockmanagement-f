@@ -145,6 +145,7 @@ const Payments = () => {
 
     const httpReq = http();
     const { data } = await httpReq.get(`/api/customer/get/${id}`);
+
     return data;
   }
 

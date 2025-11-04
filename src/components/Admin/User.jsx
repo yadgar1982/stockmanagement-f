@@ -6,7 +6,7 @@ import { http, fetcher } from '../Modules/http';
 import AdminLayout from '../Shared/AdminLayout'
 import Cookies from 'universal-cookie';
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
-import {countries} from "../Shared/countries/countries"
+import { countries } from "../Shared/countries/countries"
 const { Option } = Select;
 const cookies = new Cookies();
 
@@ -24,7 +24,6 @@ const User = () => {
   };
   const [form] = Form.useForm()
   const token = cookies.get("authToken")
-  console.log(token)
   const { data: users, error: uError } = useSWR("/api/user/get/all", fetcher);
   useEffect(() => {
     if (users && users) {
@@ -36,12 +35,12 @@ const User = () => {
 
   const onFinish = async (values) => {
     try {
-      if(!token){
-         toast.error("Your session has been expired please login again ")
+      if (!token) {
+        toast.error("Your session has been expired please login again ")
         setTimeout(() => {
           navigate("/login")
         }, 1000);
-       return
+        return
       }
       const httpReq = http(token);
       const data = { ...values, role: roles };
@@ -62,12 +61,12 @@ const User = () => {
   const onUpdate = async (values) => {
 
     try {
-      if(!token){
-         toast.error("Your session has been expired please login again ")
+      if (!token) {
+        toast.error("Your session has been expired please login again ")
         setTimeout(() => {
           navigate("/login")
         }, 1000);
-       return
+        return
       }
       const httpReq = http(token);
       const data = { ...values, role: roles };
@@ -85,18 +84,18 @@ const User = () => {
   const handleEdit = (record) => {
     setUserId(record);
     form.setFieldsValue(record);
-      setEdit(true)
+    setEdit(true)
   }
   //delete
   const handleDelete = async (id) => {
 
     try {
-      if(!token){
-         toast.error("Your session has been expired please login again ")
+      if (!token) {
+        toast.error("Your session has been expired please login again ")
         setTimeout(() => {
           navigate("/login")
         }, 1000);
-       return
+        return
       }
       const httpReq = http(token);
       await httpReq.delete(`/api/user/delete/${id}`);
@@ -147,7 +146,7 @@ const User = () => {
 
     },
     {
-      title: "Edit",      
+      title: "Edit",
       key: "edit",
       width: 90,
       // fixed: "right",
@@ -162,7 +161,7 @@ const User = () => {
     },
     {
       title: "Delete",
-       key: 'delete',
+      key: 'delete',
       width: 90,
       // fixed: "right",
 
@@ -182,8 +181,8 @@ const User = () => {
     }
   ];
 
-  
-  
+
+
 
   return (
     <AdminLayout>
@@ -235,12 +234,12 @@ const User = () => {
                       showSearch
                       placeholder="Select a country"
                       className="w-full"
-                    >
-                      {countries.map((c)=>(
-                        <Option key={c.code} value={c.name}></Option>
-                      ))}
-
-                    </Select>
+                      optionFilterProp="label"
+                      filterOption={(input, option) =>
+                        option.label.toLowerCase().includes(input.toLowerCase())
+                      }
+                      options={countries}
+                    />
                   </Form.Item>
                 </div>
                 <div className="w-full md:w-1/2">
@@ -325,6 +324,7 @@ const User = () => {
           columns={columns}
           dataSource={userData}
           bordered
+          rowKey="_id"
           scroll={{ x: 'max-content' }}
           sticky
           pagination={{ pageSize: 5 }}

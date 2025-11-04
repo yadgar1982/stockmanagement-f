@@ -260,6 +260,7 @@ const Branding = () => {
             columns={columns}
             dataSource={brandingData}
             bordered
+             rowKey="_id"
             scroll={{ x: 'max-content' }}
             sticky
             pagination={{ pageSize: 5 }}

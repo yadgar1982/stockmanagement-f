@@ -6,17 +6,17 @@ import { http, fetcher } from '../Modules/http';
 import AdminLayout from '../Shared/AdminLayout'
 import Cookies from 'universal-cookie';
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
-import {countries} from "../Shared/countries/countries"
+import { countries } from "../Shared/countries/countries"
 const { Option } = Select;
 const cookies = new Cookies();
 import { useNavigate } from 'react-router-dom';
 
 
 const Supplier = () => {
-   const navigate = useNavigate();
+  const navigate = useNavigate();
   const [supplier, setSupplier] = useState(null);
   const [formData, setFormData] = useState(null);
-    const [edit, setEdit] = useState(false);
+  const [edit, setEdit] = useState(false);
   const [id, setId] = useState(null);
 
   const [form] = Form.useForm()
@@ -26,7 +26,7 @@ const Supplier = () => {
   useEffect(() => {
     if (suppliers && suppliers) {
       setId(suppliers?.data || suppliers)
-    setSupplier(suppliers?.data)
+      setSupplier(suppliers?.data)
     }
   }, [suppliers])
 
@@ -34,12 +34,12 @@ const Supplier = () => {
 
   const onFinish = async (values) => {
     try {
-      if(!token){
+      if (!token) {
         toast.error("Your session has been expired please login again ")
         setTimeout(() => {
           navigate("/login")
         }, 1000);
-       return
+        return
       }
       const httpReq = http(token);
       const data = { ...values, role: "supplier" };
@@ -60,16 +60,16 @@ const Supplier = () => {
   const onUpdate = async (values) => {
 
     try {
-      if(!token){
-         toast.error("Your session has been expired please login again ")
+      if (!token) {
+        toast.error("Your session has been expired please login again ")
         setTimeout(() => {
           navigate("/login")
         }, 1000);
-       return
+        return
       }
       const httpReq = http(token);
       const data = { ...values };
-      
+
       await httpReq.put(`/api/supplier/update/${id._id}`, data);
       toast.success("Supplier updated successfully");
       form.resetFields();
@@ -119,55 +119,55 @@ const Supplier = () => {
 
     },
     {
-          title: "Edit",
-          key: "edit",
-          width: 90,
-          // fixed: "right",
-          render: (_, record) => ( // ✅ use record (row data)
-            <a
-              onClick={() => handleEdit(record)} // pass full row object
-              className="!text-white w-full !w-[200px] !rounded-full"
-            >
-              <EditOutlined className="w-full  hover:!bg-blue-500  bg-green-500 flex justify-center md:text-lg h-6" />
-            </a>
-          ),
-        },
-        {
-          title: "Delete",
-          key: 'delete',
-          width: 90,
-          // fixed: "right",
-    
-          render: (_, obj) => (
-            <Popconfirm
-              title="Are you sure to delete this purchase record?"
-              description="This action cannot be undone."
-              okText="yes"
-              cancelText="No"
-              onConfirm={async () => handleDelete(obj._id)}
-            >
-              <a className="!text-white w-[20px] !w-[200px] !rounded-full "><DeleteOutlined className="w-full  hover:!bg-blue-500  bg-red-500 flex justify-center md:text-lg h-6" /></a>
-            </Popconfirm>
-          )
-        }
+      title: "Edit",
+      key: "edit",
+      width: 90,
+      // fixed: "right",
+      render: (_, record) => ( // ✅ use record (row data)
+        <a
+          onClick={() => handleEdit(record)} // pass full row object
+          className="!text-white w-full !w-[200px] !rounded-full"
+        >
+          <EditOutlined className="w-full  hover:!bg-blue-500  bg-green-500 flex justify-center md:text-lg h-6" />
+        </a>
+      ),
+    },
+    {
+      title: "Delete",
+      key: 'delete',
+      width: 90,
+      // fixed: "right",
+
+      render: (_, obj) => (
+        <Popconfirm
+          title="Are you sure to delete this purchase record?"
+          description="This action cannot be undone."
+          okText="yes"
+          cancelText="No"
+          onConfirm={async () => handleDelete(obj._id)}
+        >
+          <a className="!text-white w-[20px] !w-[200px] !rounded-full "><DeleteOutlined className="w-full  hover:!bg-blue-500  bg-red-500 flex justify-center md:text-lg h-6" /></a>
+        </Popconfirm>
+      )
+    }
   ];
 
   //Edit
   let handleEdit = (record) => {
     setId(record);
     form.setFieldsValue(record);
-      setEdit(true)
+    setEdit(true)
   }
   //delete
   const handleDelete = async (id) => {
 
     try {
-      if(!token){
-         toast.error("Your session has been expired please login again ")
+      if (!token) {
+        toast.error("Your session has been expired please login again ")
         setTimeout(() => {
           navigate("/login")
         }, 1000);
-       return
+        return
       }
       const httpReq = http(token);
       await httpReq.delete(`/api/supplier/delete/${id}`);
@@ -232,12 +232,12 @@ const Supplier = () => {
                       showSearch
                       placeholder="Select a country"
                       className="w-full"
-                    >
-                      {countries.map((c)=>(
-                        <Option key={c.code} value={c.name}></Option>
-                      ))}
-
-                    </Select>
+                      optionFilterProp="label"
+                      filterOption={(input, option) =>
+                        option.label.toLowerCase().includes(input.toLowerCase())
+                      }
+                      options={countries} // directly pass your array
+                    />
                   </Form.Item>
                 </div>
                 <div className="w-full md:w-1/2">
@@ -245,7 +245,7 @@ const Supplier = () => {
                     label="Acc No"
                     name="accountNo"
                   >
-                   <Input className="w-full" />
+                    <Input className="w-full" />
                   </Form.Item>
                 </div>
               </div>
@@ -286,20 +286,20 @@ const Supplier = () => {
           </Card>
 
         </div>
-         <h1 className='text-xl md:text-2xl ml-4 p-4 font-semibold !text-zinc-800'>Suppliers List</h1>
-       <div className="text-xs w-[96%] mx-auto">
-         <Table
-          columns={columns}
-          dataSource={supplier}
-          bordered
-          scroll={{ x: 'max-content' }}
-          sticky
-          pagination={{ pageSize: 5 }}
-          className="compact-table"
+        <h1 className='text-xl md:text-2xl ml-4 p-4 font-semibold !text-zinc-800'>Suppliers List</h1>
+        <div className="text-xs w-[96%] mx-auto">
+          <Table
+            columns={columns}
+            dataSource={supplier}
+            bordered
+            scroll={{ x: 'max-content' }}
+            sticky
+            pagination={{ pageSize: 5 }}
+            className="compact-table"
 
-        />
+          />
 
-       </div>
+        </div>
       </div>
 
     </AdminLayout>

@@ -41,7 +41,7 @@ const Sales = () => {
   const [productUnit, setProductUnit] = useState(null);
   const [totalPurchase, setTotalPurchase] = useState([])
   const [edit, setEdit] = useState(false)
-  const [customerData, setcustomerData] = useState(null);
+  const [customerData, setCustomerData] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState("");
   const [cusId, setcusId] = useState("");
   const [open, setOpen] = useState(false);
@@ -322,7 +322,7 @@ const Sales = () => {
   const customerChange = async (id) => {
     const httpReq = http();
     const { data } = await httpReq.get(`/api/customer/get/${id}`);
-    return setcustomerData(data);
+    return setCustomerData(data);
   }
 
   // get userName
@@ -333,22 +333,27 @@ const Sales = () => {
 
 
   //Delete 
-  const handleDelete = async (id) => {
+  const handleDelete = async (obj) => {
     try {
+       const salesId = obj._id;
       const httpReq = http(token);
-      await httpReq.delete(`/api/purchase/delete/${id}`);
+      await httpReq.delete(`/api/sale/delete/${salesId}`);
       toast.success("Purchase record deleted successfully");
-      mutate("/api/purchase/get");
+      mutate("/api/sale/get");
     } catch (err) {
       toast.error("Failed to delete purchase record", err);
     }
   }
+const handleEdit = async (record) => {
+    setCustomerData(record);
 
-  const handleEdit = (record) => {
-    form.setFieldsValue(record); // prefill form fields with row data
-    setEdit(true); // set edit state with full rec
-
-  };
+    form.setFieldsValue({
+      ...record,
+      customerId: record.customerId,
+      salesDate:initialSalesDate,
+    });
+     setEdit(true);
+};
 
  const handleIspassed=async(id)=>{
     try{
@@ -463,7 +468,7 @@ const Sales = () => {
           description="This action cannot be undone."
           okText="yes"
           cancelText="No"
-          onConfirm={async () => handleDelete(obj._id)}
+          onConfirm={async () => handleDelete(obj)}
           className="!text-white w-full !w-[100px] !rounded-full"
         >
           <a className="!text-white w-full  !rounded-full"><DeleteOutlined className="!p-2 bg-red-700 flex justify-center h-[20px] !w-[30]   md:!w-[100%]  md:text-[15px]" /></a>
@@ -509,10 +514,8 @@ const Sales = () => {
 
       const formattedValues = {
         ...values,
-        slesDate: values.salesDate
-          ? values.salesDate.format("MM-DD-YYYY")
-          : null,
-
+      
+        salesDate: values.salesDate ? values.salesDate.toDate() : null,
         customerName: selectedCustomer?.customerName,
         productName: selectedProduct?.productName,
         companyName: selectedCompany?.companyName,
@@ -634,6 +637,9 @@ const Sales = () => {
 
   }
 
+  const initialSalesDate = customerData?.salesDate 
+      ? dayjs(customerData?.salesDate, "DD-MM-YYYY") 
+      : null;
   
   return (
     <UserLayout>
@@ -654,7 +660,7 @@ const Sales = () => {
               layout="vertical"
               onFinish={edit ? onUpdate : onFinish}
               form={form}
-              initialValues={{ userName: userName }}
+              initialValues={{ userName: userName,salesDate: initialSalesDate }}
               size='small'
 
 

@@ -32,22 +32,26 @@ const SupplierPayment = () => {
   const [unit, setUnit] = useState("");
   const [amount, setAmount] = useState(0);
   const [exchange, setExchange] = useState(0)
-  const [crncy, setCrncy] = useState("")
+  const [crncy, setCrncy] = useState("") // this is for currency state for payment data entry 
+  const [cr, setCr] = useState("") // this is for Due amount showing currency
   const [exchangedAmt, setexchangedAmt] = useState(1)
   const [productamount, setProductamount] = useState(null);
   const [productUnit, setProductUnit] = useState(null);
   const [totalpayment, setTotalpayment] = useState([])
   const [edit, setEdit] = useState(false)
   const [supplierData, setSupplierData] = useState(null);
- 
- //for supplier financial calculation states
+
+  //for supplier financial calculation states
   const [payment, setpayment] = useState(null);
   const [totalPaid, setTotalPaid] = useState(0);
-  const [totalPurchasedAmount,setTotalPurchasedAmt]=useState(0);
+  const [totalxPaid, setTotalxPaid] = useState(0);
+  const [totalPurchasedAmount, setTotalPurchasedAmt] = useState(0);
+  const [totalxPurchasedAmount, setTotalxPurchasedAmt] = useState(0);
   const [supplierId, setSupplierId] = useState("");
 
-  
-   const [form] = Form.useForm();
+
+
+  const [form] = Form.useForm();
   //get branding
   const branding = JSON.parse(localStorage.getItem("branding") || "null");
 
@@ -85,7 +89,7 @@ const SupplierPayment = () => {
     label: com.companyName,
     value: com.companyId
   }))
-  
+
   const { currencies, crloading, crerror } = useSelector((state) => state.currencies);
   const allCurrencies = currencies?.data || [];
   const currency = allCurrencies.map((item) => ({
@@ -118,64 +122,77 @@ const SupplierPayment = () => {
     }
   }, [paymentData])
 
- 
-  
+
+
   //get all supppliers
   const handleSup = async (id) => {
-       const httpReq = http();
+    const httpReq = http();
     const { data } = await httpReq.get(`/api/supplier/get/${id}`);
     setSupplierId(data)
- return data;
+    return data;
   }
 
- const supplierChange = async (id) => {
-  await handleSup(id);
+  const supplierChange = async (id) => {
+    await handleSup(id);
 
-  const httpReq = http();
-  const { data } = await httpReq.get(`/api/supplier/get/${id}`);
+    const httpReq = http();
+    const { data } = await httpReq.get(`/api/supplier/get/${id}`);
 
-  const supplierPayments = totalpayment.filter(i => i.supplierId === id);
-   const totalPaid = supplierPayments.reduce((sum, item) => sum + (item.amount || 0), 0);
- 
-  setTotalPaid(totalPaid|| 0)
-    const supplierPurchase=purchase.filter(i=>i.supplierId==id);
-  const totalPurchaseAmount= supplierPurchase.reduce((sum,item)=> sum +(item.totalCost || 0),0)
-  setTotalPurchasedAmt(totalPurchaseAmount)  
-  setSupplierData(data);
-};
+    const supplierPayments = totalpayment.filter(i => i.supplierId === id);
+    const totalPaid = supplierPayments.reduce((sum, item) => sum + (item.amount || 0), 0);
+    const totalExPaid = supplierPayments.reduce((sum, item) => sum + (item.exchangedAmt || 0), 0);
+    const mycurrency = purchase.find(cr => cr.supplierId === id);
+    const myNewCrncy = mycurrency?.currency
+
+    setCr(myNewCrncy)
+    console.log("my cur", cr)
+    setTotalPaid(totalPaid || 0)
+    setTotalxPaid(totalExPaid || 0)
+    const supplierPurchase = purchase.filter(i => i.supplierId == id);
+    const totalPurchaseAmount = supplierPurchase.reduce((sum, item) => sum + (item.totalCost || 0), 0)
+    const totalxPurchaseAmount = supplierPurchase.reduce((sum, item) => sum + (item.quantity * item.exchangedAmt || 0), 0)
+    setTotalPurchasedAmt(totalPurchaseAmount)
+    setTotalxPurchasedAmt(totalxPurchaseAmount)
+    setSupplierData(data);
+  };
 
 
   // calculation of payments
- const amt=amount||0;
- const totalPaidtoSupplier=totalPaid||0
- const totalSupplierPurchase=totalPurchasedAmount ||0
- const total=Number(amt)+Number(totalPaidtoSupplier)
- console.log("total",total)
+  const amt = amount || 0;
+  const totalPaidtoSupplier = totalPaid || 0
+  const totalSupplierPurchase = totalPurchasedAmount || 0
+  const totalDueAmount = Number(amt) + Number(totalPaidtoSupplier) - Number(totalSupplierPurchase)
+
+  const exAmt = exchangedAmt || 0;
+  const totalExPaidtoSupplier = totalPaid || 0
+  const totalSupplierExPurchase = totalxPurchasedAmount || 0
+  const totalExDueAmount = Number(exAmt) + Number(totalExPaidtoSupplier) - Number(totalSupplierExPurchase)
 
 
 
-  
-  
+
+
+
   //print function
 
-const handlePrint = async (record) => {
-  try {
-    // 1️⃣ Fetch supplier data
-    const supplier = await handleSup(record.supplierId);
+  const handlePrint = async (record) => {
+    try {
+      // 1️⃣ Fetch supplier data
+      const supplier = await handleSup(record.supplierId);
 
-    // 2️⃣ Open a new tab/window
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      alert("Please allow pop-ups for this site to view the receipt.");
-      return;
-    }
+      // 2️⃣ Open a new tab/window
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        alert("Please allow pop-ups for this site to view the receipt.");
+        return;
+      }
 
-    // 3️⃣ Build HTML content
-    const branding = [{ name: "Your Company Name", address: "Address", mobile: "+1 555 555 5555", email: "info@example.com" }];
-    const doc = printWindow.document;
+      // 3️⃣ Build HTML content
+      const branding = [{ name: "Your Company Name", address: "Address", mobile: "+1 555 555 5555", email: "info@example.com" }];
+      const doc = printWindow.document;
 
-    doc.open();
-    doc.write(`
+      doc.open();
+      doc.write(`
       <html>
       <head>
         <title>Supplier Payment Receipt - ${record._id}</title>
@@ -347,11 +364,11 @@ const handlePrint = async (record) => {
       </html>
     `);
 
-    doc.close();
-  } catch (error) {
-    console.error("Error printing:", error);
-  }
-};
+      doc.close();
+    } catch (error) {
+      console.error("Error printing:", error);
+    }
+  };
 
 
   // get userName
@@ -413,14 +430,15 @@ const handlePrint = async (record) => {
       render: (text, record, index) => index + 1,
     },
     { title: <span className="text-sm md:!text-1xl font-semibold">Supplier</span>, dataIndex: 'supplierName', key: 'productName', width: 90 },
+    { title: <span className="text-sm md:!text-1xl font-semibold">Pay #</span>, dataIndex: 'paymentNo', key: 'paymentNo', width: 90 },
     {
       title: <span className="text-sm md:!text-1xl font-semibold">Pur-Date</span>, dataIndex: 'createdAt', key: 'createdAt', width: 110,
-      render: (date) => date ? dayjs(date).format("MM/DD/YYYY") : "-", 
+      render: (date) => date ? dayjs(date).format("MM/DD/YYYY") : "-",
     },
     { title: <span className="text-sm md:!text-1xl font-semibold">Amount</span>, dataIndex: 'amount', key: 'amount', width: 80 },
-     { title: <span className="text-sm md:!text-1xl font-semibold">Belong To</span>, dataIndex: 'companyName', key: 'company', width: 120 },
+    { title: <span className="text-sm md:!text-1xl font-semibold">Belong To</span>, dataIndex: 'companyName', key: 'company', width: 120 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Currency</span>, dataIndex: 'currency', key: 'currency', width: 100 },
-    { title: <span className="text-sm md:!text-1xl font-semibold">Exched Amt</span>, dataIndex: 'exchangedAmt', key: 'exchangedAmt', width: 100 },  
+    { title: <span className="text-sm md:!text-1xl font-semibold">Exched Amt</span>, dataIndex: 'exchangedAmt', key: 'exchangedAmt', width: 100 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Description</span>, dataIndex: 'description', key: 'description', width: 150 },
 
     // print
@@ -541,7 +559,7 @@ const handlePrint = async (record) => {
       // 2 Prepare formatted values for payment
       const formattedValues = {
         ...values,
-        paymentDate: values.paymentDate ? values.paymentDate.format("DD-MM-YYYY") : null,
+        purchaseDate: values.purchaseDate ? values.purchaseDate.toDate() : null,
         supplierName: selectedSupplier?.supplierName,
         // productName: selectedProduct?.productName,
         companyName: selectedCompany?.companyName,
@@ -578,7 +596,7 @@ const handlePrint = async (record) => {
       const formattedValues = {
         ...values,
         supplierId: selectedSupplier?._id || values.supplierId,
-        supplierName: selectedSupplier.supplierName ||values.supplierName,
+        supplierName: selectedSupplier.supplierName || values.supplierName,
         // productId: selectedProduct?._id || values.productId,
         // productName: selectedProduct?.productName || values.productName,
 
@@ -610,7 +628,7 @@ const handlePrint = async (record) => {
 
   useEffect(() => {
 
-   // Use its rate, fallback to 1 if not found
+    // Use its rate, fallback to 1 if not found
     const rate = crncy || 1;
 
     setExchange(rate);
@@ -632,7 +650,7 @@ const handlePrint = async (record) => {
 
     if (Array.isArray(totalpayment)) {
       const filteredpayment = totalpayment.filter((p) => p.supplierId === value)
-      
+
       const calculatedamount = filteredpayment.reduce((sum, item) => sum + item.amount, 0);
 
       const unit = filteredpayment.length > 0 ? filteredpayment[0].unit : null;
@@ -649,8 +667,6 @@ const handlePrint = async (record) => {
   const initialpaymentDate = supplierData?.paymentDate
     ? dayjs(supplierData.paymentDate, "DD-MM-YYYY")
     : null;
-
-    console.log("supplierData",supplierData)
   return (
     <UserLayout>
       <div>
@@ -659,9 +675,9 @@ const handlePrint = async (record) => {
           {/* SupplierPayment Form */}
           <div className='flex gap-4 items-center '>
             <h2 className='text-sm  md:text-2xl p-2 font-semibold text-zinc-600'>Make Payment to Supplier</h2>
-            <div> {totalPaidtoSupplier && (
-              <div className=' mt-3 md:text-1xl text-white text-sm mb-2 bg-blue-800 p-2'>Due Amount:
-                <span className='font-bold text-yellow-400'> {totalSupplierPurchase } USD </span> <span className='text-white font-semibold'> and total Paid Amount to { supplierData.fullname } is: <span className='font-bold text-yellow-400's>{totalPaidtoSupplier} USD.</span> Do you want to pay more? </span>
+            <div> {supplierData && (
+              <div className=' mt-3 md:text-1xl text-white text-sm mb-2 bg-blue-800 p-2'>Total due Amount:
+                <span className='font-bold text-yellow-400'> {totalDueAmount} USD  {totalExDueAmount} {cr}</span>
               </div>
             )}</div>
           </div>
@@ -679,16 +695,6 @@ const handlePrint = async (record) => {
                 <Form.Item name="_id" hidden>
                   <Input />
                 </Form.Item>
-
-                <Form.Item
-                  label="Amount"
-                  name="amount"
-                  rules={[{ required: true, message: "Please enter amount" }]}
-                 >
-                  <Input placeholder="Enter item amount"
-                    onChange={(e) => setAmount(Number(e.target.value))} />
-                </Form.Item>
-
                 <Form.Item
                   label="Supplier Name"
                   name="supplierId"
@@ -702,6 +708,23 @@ const handlePrint = async (record) => {
                     options={supplierOptions}
                   />
                 </Form.Item>
+                <Form.Item
+                  label="Amount"
+                  name="amount"
+                  rules={[{ required: true, message: "Please enter amount" }]}
+                >
+                  <Input placeholder="Enter item amount"
+                    onChange={(e) => setAmount(Number(e.target.value))} />
+                </Form.Item>
+                <Form.Item
+                  label="P-No"
+                  name="paymentNo"
+                  rules={[{ required: true, message: "Please enter Number" }]}
+                >
+                  <Input placeholder="Enter item payment Number" />
+                </Form.Item>
+
+
                 <Form.Item
                   label="company"
                   name="companyId"
@@ -750,9 +773,9 @@ const handlePrint = async (record) => {
                     ))}
                   </Select>
                 </Form.Item>
-               
-            
-               
+
+
+
                 <Form.Item
                   label="Payment Date"
                   name="paymentDate"

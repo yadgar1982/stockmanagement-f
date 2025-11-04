@@ -19,7 +19,6 @@ const Customer = () => {
 
   const [form] = Form.useForm()
   const token = cookies.get("authToken")
-  console.log(token)
   const { data: customers, error: uError } = useSWR("/api/customer/get/all", fetcher);
   useEffect(() => {
     if (customers && customers) {
@@ -228,12 +227,12 @@ console.log("custer",custData)
                       showSearch
                       placeholder="Select a country"
                       className="w-full"
-                    >
-                      {countries.map((c)=>(
-                        <Option key={c.code} value={c.name}></Option>
-                      ))}
-
-                    </Select>
+                      optionFilterProp="label"
+                      filterOption={(input, option) =>
+                        option.label.toLowerCase().includes(input.toLowerCase())
+                      }
+                      options={countries}
+                    />
                   </Form.Item>
                 </div>
                 <div className="w-full md:w-1/2">
@@ -288,6 +287,7 @@ console.log("custer",custData)
           columns={columns}
           dataSource={custData}
           bordered
+           rowKey="_id"
           scroll={{ x: 'max-content' }}
           sticky
           pagination={{ pageSize: 5 }}

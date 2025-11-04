@@ -21,7 +21,6 @@ const Stock = () => {
 
   const [form] = Form.useForm()
   const token = cookies.get("authToken")
-  console.log(token)
   const { data: stocks, error: stError } = useSWR("/api/stock/get/all", fetcher);
   useEffect(() => {
     if (stocks && stocks) {
@@ -30,8 +29,7 @@ const Stock = () => {
     }
   }, [stocks])
 
-  console.log("stocks", stockData)
-  const onFinish = async (values) => {
+    const onFinish = async (values) => {
 
 
     try {
@@ -213,12 +211,12 @@ const Stock = () => {
                       showSearch
                       placeholder="Select a country"
                       className="w-full"
-                    >
-                      {countries.map((c) => (
-                        <Option key={c.code} value={c.name}></Option>
-                      ))}
-
-                    </Select>
+                      optionFilterProp="label"
+                      filterOption={(input, option) =>
+                        option.label.toLowerCase().includes(input.toLowerCase())
+                      }
+                      options={countries}
+                    />
                   </Form.Item>
                 </div>
               </div>
@@ -265,6 +263,7 @@ const Stock = () => {
             bordered
             scroll={{ x: 'max-content' }}
             sticky
+            rowKey="_id"
             pagination={{ pageSize: 5 }}
             className="compact-table"
 

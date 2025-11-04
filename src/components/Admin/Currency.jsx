@@ -20,7 +20,6 @@ const Currency = () => {
 
   const [form] = Form.useForm()
   const token = cookies.get("authToken")
-  console.log(token)
   const { data: currencys, error: curError } = useSWR("/api/currency/get/all", fetcher);
   useEffect(() => {
     if (currencys && currencys) {
@@ -261,6 +260,7 @@ const Currency = () => {
                   columns={columns}
                   dataSource={currencyData}
                   bordered
+                   rowKey="_id"
                   scroll={{ x: 'max-content' }}
                   sticky
                   pagination={{ pageSize: 5 }}

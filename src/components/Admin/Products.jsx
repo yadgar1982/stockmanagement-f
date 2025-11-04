@@ -9,12 +9,90 @@ import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
 
 const { Option } = Select;
 const cookies = new Cookies();
-
 const categories = [
+  // Grains & Cereals
+  { name: "Rice" },
   { name: "Wheat" },
-  { name: "Dates" },
-];
+  { name: "Dry Fruites" },
+  { name: "Barley" },
+  { name: "Corn" },
 
+
+  // Fruits
+  { name: "Apples" },
+  { name: "Bananas" },
+  { name: "Oranges" },
+  { name: "Mangoes" },
+  { name: "Dates" },
+  { name: "Berries" },
+  { name: "Grapes" },
+  { name: "Pineapples" },
+
+  // Vegetables
+  { name: "Potatoes" },
+  { name: "Tomatoes" },
+  { name: "Onions" },
+  { name: "Carrots" },
+  { name: "Cabbage" },
+  { name: "Spinach" },
+  { name: "Broccoli" },
+  { name: "Garlic" },
+
+  // Dairy
+  { name: "Milk" },
+  { name: "Cheese" },
+  { name: "Butter" },
+  { name: "Yogurt" },
+
+  // Meat & Poultry
+  { name: "Beef" },
+  { name: "Chicken" },
+  { name: "Mutton" },
+  { name: "Fish" },
+  { name: "Eggs" },
+
+  // Legumes & Nuts
+  { name: "Lentils" },
+  { name: "Beans" },
+  { name: "Chickpeas" },
+  { name: "Peanuts" },
+  { name: "Almonds" },
+  { name: "Cashews" },
+
+  // Beverages
+  { name: "Tea" },
+  { name: "Coffee" },
+  { name: "Juices" },
+  { name: "Water" },
+
+  // Spices & Condiments
+  { name: "Salt" },
+  { name: "Sugar" },
+  { name: "Black Pepper" },
+  { name: "Cumin" },
+  { name: "Turmeric" },
+  { name: "Chili Powder" },
+  { name: "Cinnamon" },
+
+  // Bakery & Snacks
+  { name: "Bread" },
+  { name: "Biscuits" },
+  { name: "Cakes" },
+  { name: "Pasta" },
+  { name: "Noodles" },
+
+  // Oils & Fats
+  { name: "Olive Oil" },
+  { name: "Vegetable Oil" },
+  { name: "Ghee" },
+  { name: "Butter" },
+
+  // Frozen & Packaged Foods
+  { name: "Frozen Vegetables" },
+  { name: "Ice Cream" },
+  { name: "Sauces" },
+  { name: "Pickles" },
+];
 
 const Products = () => {
   const [product, setProduct] = useState(null);
@@ -24,7 +102,6 @@ const Products = () => {
 
   const [form] = Form.useForm()
   const token = cookies.get("authToken")
-  console.log(token)
   const { data: products, error: uError } = useSWR("/api/product/get/all", fetcher);
  
   useEffect(() => {
@@ -236,11 +313,11 @@ console.log("id",id)
                   <Form.Item
                     label="Category"
                     name="category"
-                    rules={[{ required: true, message: 'Please input your country!' }]}
+                    // rules={[{ required: true, message: 'Please input your country!' }]}
                   >
                     <Select
                       showSearch
-                      placeholder="Select a country"
+                      placeholder="Select a category"
                       className="w-full"
                     >
                       {categories.map((c)=>(

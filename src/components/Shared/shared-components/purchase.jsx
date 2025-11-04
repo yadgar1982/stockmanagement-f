@@ -480,41 +480,6 @@ const Purchase = () => {
   };
 
 
-  // const onFinish = async (values) => {
-  //   const httpReq = http(token);
-
-  //   try {
-  //     // Find selected objects from arrays
-  //     const selectedSupplier = supplier.find(s => s.supplierId === values.supplierId);
-  //     const selectedProduct = product.find(p => p.productId === values.productId);
-  //     const selectedCompany = company.find(c => c.companyId === values.companyId);
-  //     const selectedStock = stock.find(s => s.stockId === values.warehouseId);
-  //     const selectedDealer = dealer.find(d => d.dealerId === values.dealerId);
-
-  //     // 2 Prepare formatted values for purchase
-  //     const formattedValues = {
-  //       ...values,
-  //       purchaseDate: values.purchaseDate ? values.purchaseDate.format("DD-MM-YYYY") : null,
-  //       supplierName: selectedSupplier?.supplierName,
-  //       productName: selectedProduct?.productName,
-  //       companyName: selectedCompany?.companyName,
-  //       warehouseName: selectedStock?.stockName,
-  //       dealerName: selectedDealer?.dealerName,
-  //       isPassed: false,
-  //     };
-  //     // Create purchase
-
-  //     await httpReq.post("/api/purchase/create", formattedValues);
-  //     toast.success("Purchase record and transaction added successfully");
-  //     mutate("/api/purchase/get");
-  //     form.resetFields();
-  //     setSupplierData("");
-
-  //   } catch (err) {
-  //     console.error("Error in onFinish:", err);
-  //     toast.error("Failed to register");
-  //   }
-  // };
 const onFinish = async (values) => {
   const httpReq = http(token);
 

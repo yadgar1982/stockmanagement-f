@@ -19,7 +19,6 @@ const Dealer = () => {
 
   const [form] = Form.useForm()
   const token = cookies.get("authToken")
-  console.log(token)
   const { data: dealers, error: uError } = useSWR("/api/dealer/get/all", fetcher);
   useEffect(() => {
     if (dealers && dealers) {
@@ -224,16 +223,16 @@ const Dealer = () => {
                     name="country"
                     rules={[{ required: true, message: 'Please input your country!' }]}
                   >
-                    <Select
+                     <Select
                       showSearch
                       placeholder="Select a country"
                       className="w-full"
-                    >
-                      {countries.map((c)=>(
-                        <Option key={c.code} value={c.name}></Option>
-                      ))}
-
-                    </Select>
+                      optionFilterProp="label"
+                      filterOption={(input, option) =>
+                        option.label.toLowerCase().includes(input.toLowerCase())
+                      }
+                      options={countries} 
+                    />
                   </Form.Item>
                 </div>
                 <div className="w-full md:w-1/2">
@@ -289,6 +288,7 @@ const Dealer = () => {
           dataSource={dealerData}
           bordered
           scroll={{ x: 'max-content' }}
+           rowKey="_id"
           sticky
           pagination={{ pageSize: 5 }}
           className="compact-table"

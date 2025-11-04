@@ -225,16 +225,16 @@ const Company = () => {
                     name="country"
                     rules={[{ required: true, message: 'Please input your country!' }]}
                   >
-                    <Select
+                     <Select
                       showSearch
                       placeholder="Select a country"
                       className="w-full"
-                    >
-                      {countries.map((c)=>(
-                        <Option key={c.code} value={c.name}></Option>
-                      ))}
-
-                    </Select>
+                      optionFilterProp="label"
+                      filterOption={(input, option) =>
+                        option.label.toLowerCase().includes(input.toLowerCase())
+                      }
+                      options={countries} 
+                    />
                   </Form.Item>
                 </div>
                 <div className="w-full md:w-1/2">
@@ -290,6 +290,7 @@ const Company = () => {
           columns={columns}
           dataSource={companyData}
           bordered
+           rowKey="_id"
           scroll={{ x: 'max-content' }}
           sticky
           pagination={{ pageSize: 5 }}
