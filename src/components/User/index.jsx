@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 import { Card, Divider, Tabs } from "antd";
-import { StockOutlined, PieChartOutlined, AccountBookOutlined } from '@ant-design/icons';
+import { StockOutlined,  AccountBookOutlined } from '@ant-design/icons';
 import UserLayout from '../Shared/UserLayout'
 import Statements from '../Shared/Reports/Statements';
 const User = () => {
@@ -16,10 +16,11 @@ const User = () => {
     },
     {
       key: "2",
-      label: "Stock",
+      label: "Stock Statements",
       icon: <StockOutlined />,
       children: <div className='bg-white w-full'> Stock Coponent</div>, // component inside Tab 1
     },
+   
    
   ];
 
@@ -37,7 +38,6 @@ const User = () => {
             size={size}
             style={{ marginBottom: 32 }}
             items={items}
-
           />
         </div>
 
