@@ -88,7 +88,7 @@ const Statements = () => {
       credit: 0,
       debit: p?.amount || 0,
       localCredit: 0,
-      localDebit: p?.totalLocalCost || 0,
+      localDebit: p?.exchangedAmt || 0,
       currency: p.currency,
     }));
 
