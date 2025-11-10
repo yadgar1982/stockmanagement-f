@@ -30,7 +30,7 @@ const UserLayout = ({ children }) => {
       <Layout>
         <Header style={{ padding: 0, background: colorBgContainer }} className='!bg-[#1192c7] !text-blue-500 !shadow-sm !shadow-black z-1 flex justify-between items-center !px-5'>
           <Avatar className='!text-2xl !bg-white !text-orange-500 !font-bold' size={60}
-            src="./logo.jpg"
+            src="./logo.png"
           >
 
           </Avatar>

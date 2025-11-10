@@ -4,6 +4,8 @@ import './App.css';
 import "react-toastify/dist/ReactToastify.css";
 import { Provider } from "react-redux";
 import { store } from "./redux/store";
+import { ToastContainer } from "react-toastify";
+
 
 // Lazy loaded components
 const Home = lazy(() => import("./components/Home"));
@@ -28,6 +30,7 @@ const NotFound = lazy(() => import("./components/Home/pages/NotFound"));
 function App() {
   return (
     <Provider store={store}>
+      <ToastContainer position="top-right" autoClose={3000} />
       <Router>
         {/* Suspense fallback shows while lazy components load */}
         <Suspense fallback={<div style={{textAlign:'center', marginTop:'50px'}}>Loading...</div>}>

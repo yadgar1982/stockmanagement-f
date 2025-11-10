@@ -131,7 +131,7 @@ const UserLayout = ({ children }) => {
         <div className="demo-logo-vertical" />
         <div className='w-full flex items-center !shadow-sm !shadow-black justify-center !z-10 p-0.5 bg-purple-400'>
           <Avatar className='!text-2xl !bg-white !text-purple-500 !font-bold' size={60}
-            src={avatar ? avatar : "./logo.jpg"}
+            src={avatar ? avatar : "./logo.png"}
           >
 
           </Avatar>

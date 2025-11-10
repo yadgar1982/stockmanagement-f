@@ -498,7 +498,8 @@ const onFinish = async (values) => {
       companyName: selectedCompany?.companyName || "",
       warehouseName: selectedStock?.stockName || "",
       dealerName: selectedDealer?.dealerName || "",
-     totalCost: (Number(values?.quantity) || 0) * (Number(values?.unitCost) || 0),
+      totalCost: (Number(values?.quantity) || 0) * (Number(values?.unitCost) || 0),
+      totalLocalCost: (Number(values?.quantity) || 0) * (Number(values?.exchangedAmt) || 0),
       isPassed: false,
     };
 
@@ -530,9 +531,10 @@ const onFinish = async (values) => {
 
       const formattedValues = {
         ...values,
-        supplierId: selectedSupplier._id,
+        supplierId: selectedSupplier.supplierId,
         supplierName: selectedSupplier.supplierName,
         totalCost: (Number(values?.quantity) || 0) * (Number(values?.unitCost) || 0),
+        totalLocalCost: (Number(values?.quantity) || 0) * (Number(values?.exchangedAmt) || 0),
         productId: selectedProduct?._id || values.productId,
         productName: selectedProduct?.productName || values.productName,
 

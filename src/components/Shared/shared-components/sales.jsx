@@ -522,6 +522,7 @@ const handleEdit = async (record) => {
         warehouseName: selectedStock?.stockName,
         dealerName: selectedDealer?.dealerName,
         totalCost: (Number(values?.quantity) || 0) * (Number(values?.unitCost) || 0),
+        totalLocalCost: (Number(values?.quantity) || 0) * (Number(values?.exchangedAmt) || 0),
         isPassed:false,
       };
 
@@ -547,6 +548,7 @@ const handleEdit = async (record) => {
         customerId: customerData?._id,
         customerName: customerData?.fullname,
         totalCost: (Number(values?.quantity) || 0) * (Number(values?.unitCost) || 0),
+        totalLocalCost: (Number(values?.quantity) || 0) * (Number(values?.exchangedAmt) || 0),
       };
       await httpReq.put(`/api/sale/update/${values._id}`, formattedValues)
       toast.success("Sale record updated successfully")
