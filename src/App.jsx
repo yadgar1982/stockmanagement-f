@@ -5,6 +5,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { Provider } from "react-redux";
 import { store } from "./redux/store";
 import { ToastContainer } from "react-toastify";
+import CompanyPayment from './components/Shared/shared-components/payments/otherPayments';
 
 
 // Lazy loaded components
@@ -13,7 +14,10 @@ const Login = lazy(() => import('./components/Home/Login'));
 const Inventory = lazy(() => import('./components/Shared/shared-components/inventory'));
 const Sales = lazy(() => import("./components/Shared/shared-components/sales"));
 const Purchase = lazy(() => import('./components/Shared/shared-components/purchase'));
-const SupPayments = lazy(() => import('./components/Shared/shared-components/supplierPayments'));
+const SupPayments = lazy(() => import('./components/Shared/shared-components/payments/supplierPayments'));
+const CusPayment = lazy(() => import('./components/Shared/shared-components/payments/customerPayments'));
+const OtherPayments = lazy(() => import('./components/Shared/shared-components/payments/otherPayments'));
+const DelPayment = lazy(() => import('./components/Shared/shared-components/payments/dealerPayment'));
 const User = lazy(() => import('./components/User/index'));
 const Admin = lazy(() => import('./components/Admin/index'));
 const UserRegister = lazy(() => import("./components/Admin/User"));
@@ -30,7 +34,7 @@ const NotFound = lazy(() => import("./components/Home/pages/NotFound"));
 function App() {
   return (
     <Provider store={store}>
-      <ToastContainer position="top-right" autoClose={3000} />
+      <ToastContainer position="top-center" autoClose={1500} />
       <Router>
         {/* Suspense fallback shows while lazy components load */}
         <Suspense fallback={<div style={{textAlign:'center', marginTop:'50px'}}>Loading...</div>}>
@@ -44,7 +48,12 @@ function App() {
             <Route path='/inventory' element={<Inventory />} />
             <Route path='/purchase' element={<Purchase />} />
             <Route path='/sales' element={<Sales />} />
+            {/* Payments routes */}
             <Route path='/supplierPayments' element={<SupPayments />} />
+            <Route path='/customerPayments' element={<CusPayment />} />
+            <Route path='/dealerPayments' element={<DelPayment />} />
+            <Route path='/otherPayments' element={<OtherPayments />} />
+            
             <Route path='/user' element={<User />} />
             <Route path='/admin' element={<Admin />} />
 

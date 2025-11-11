@@ -15,7 +15,7 @@ import {
   StockOutlined,
 
 } from '@ant-design/icons';
-import { Avatar, Button, Layout, Menu, theme } from 'antd';
+import { Avatar, Button, Divider, Layout, Menu, theme } from 'antd';
 const { Header, Sider, Content } = Layout;
 
 const UserLayout = ({ children }) => {
@@ -48,70 +48,74 @@ const UserLayout = ({ children }) => {
   const items = [
     {
       key: 'inventory',
-      icon: <StockOutlined className='md:!text-xl !text-purple-500 !font-semibold' />,
-      label: <span className='md:!text-lg !text-purple-500 font-semibold'>Inventory</span>,
+      icon: <StockOutlined className='md:!text-xl !text-yellow-600 !font-semibold' />,
+      label: <span className='md:!text-lg !text-yellow-600 font-semibold'>Inventory</span>,
     },
     {
-      type: 'divider', // This will render a divider
-      key: 'divider-1', // unique key for the divider
+      type: 'divider', 
+      key: 'divider-1', 
     },
     {
       key: 'purchase',
-      icon: < ShoppingCartOutlined className='md:!text-xl !text-purple-500 font-semibold' />,
-      label: <span className='md:!text-lg !text-purple-500 font-semibold'>Purchase</span>,
+      icon: < ShoppingCartOutlined className='md:!text-xl !text-yellow-600 font-semibold' />,
+      label: <span className='md:!text-lg !text-yellow-600 font-semibold'>Purchase</span>,
     },
     {
       key: 'sales',
-      icon: < ShopOutlined className='md:!text-xl !text-purple-500 font-semibold' />,
-      label: <span className='md:!text-lg !text-purple-500 font-semibold'>Sales</span>,
+      icon: < ShopOutlined className='md:!text-xl !text-yellow-600 font-semibold' />,
+      label: <span className='md:!text-lg !text-yellow-600 font-semibold'>Sales</span>,
     },
     {
-      type: 'divider', // This will render a divider
-      key: 'divider-2', // unique key for the divider
+      type: 'divider', 
+      key: 'divider-2', 
     },
     {
       key: 'user',
-      icon: < AuditOutlined className='md:!text-xl !text-purple-500 font-semibold' />,
-      label: <span className='md:!text-lg !text-purple-500 font-semibold'>Reports</span>,
+      icon: < AuditOutlined className='md:!text-xl !text-yellow-600 font-semibold' />,
+      label: <span className='md:!text-lg !text-yellow-600 font-semibold'>Reports</span>,
+    },
+     {
+      type: 'divider', 
+      key: 'divider-2', 
     },
     {
       key: '1',
-      icon: < PayCircleOutlined className='md:!text-2xl !text-zinc-800' />,
-      label: <span className='!text-zinc-800 md:!text-lg !font-semibold'>Payments</span>,
+      icon: < PayCircleOutlined className='md:!text-2xl !text-yellow-600' />,
+      label: <span className='!text-yellow-600 md:!text-lg !font-semibold'>Payments</span>,
       children: [
         {
           key: 'supplierPayments',
-          icon: <DollarOutlined className='!text-zinc-500 md:!text-2xl' />,
+          icon: <DollarOutlined className='!text-zinc-500 md:!text-xl' />,
           label: (
             <span className='text-zinc-500 font-semibold md:!text-lg'>
-              Supplier Payments
+              Supplier 
             </span>
           ),
         },
         {
           key: 'customerPayments',
-          icon: <DollarOutlined className='!text-zinc-500 md:!text-2xl' />,
+          icon: <DollarOutlined className='!text-zinc-500 md:!text-xl' />,
           label: (
             <span className='text-zinc-500 font-semibold md:!text-lg'>
-              Customer Payments
+              Customer 
             </span>
           ),
         },
         {
           key: 'dealerPayments',
-          icon: <DollarOutlined className='!text-zinc-500 md:!text-2xl' />,
+          icon: <DollarOutlined className='!text-zinc-500 md:!text-xl' />,
           label: (
             <span className='text-zinc-500 font-semibold md:!text-lg'>
-              Dealer Payments
+              Dealer 
             </span>
           ),
         },
         {
           key: 'otherPayments',
-          icon: <DollarOutlined className='!text-zinc-500 md:!text-2xl' />,
+          icon: <DollarOutlined className='!text-zinc-500 md:!text-xl' />,
           label: (
             <span className='text-zinc-500 font-semibold md:!text-lg'>
-              Other Payments
+              Other 
             </span>
           ),
         }
@@ -129,8 +133,8 @@ const UserLayout = ({ children }) => {
     <Layout className='h-screen'>
       <Sider trigger={null} collapsible collapsed={collapsed} className='!bg-zinc-100 !border-r !border-zinc-200 !border-sm'>
         <div className="demo-logo-vertical" />
-        <div className='w-full flex items-center !shadow-sm !shadow-black justify-center !z-10 p-0.5 bg-purple-400'>
-          <Avatar className='!text-2xl !bg-white !text-purple-500 !font-bold' size={60}
+        <div className='w-full flex items-center !shadow-sm !shadow-black justify-center !z-10 p-0.5 bg-yellow-600'>
+          <Avatar className='!text-2xl !bg-white !text-yellow-600 !font-bold' size={60}
             src={avatar ? avatar : "./logo.png"}
           >
 

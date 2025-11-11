@@ -8,6 +8,7 @@ import dealerReducer from "./slices/dealerSlice"
 import currencyReducer from "./slices/currencySlice"
 import brandingReducer from "./slices/brandingSlice"
 import purchaseReducer from "./slices/purchaseSlice"
+import saleReducer from "./slices/salesSlice"
 import paymentReducer from "./slices/paymentSlice"
 
 
@@ -22,6 +23,7 @@ export const store=configureStore({
     currencies:currencyReducer,
     brandings:brandingReducer,
     purchase:purchaseReducer,
+    sale:saleReducer,
     payments:paymentReducer,
 
   }

@@ -524,6 +524,8 @@ const handleEdit = async (record) => {
         totalCost: (Number(values?.quantity) || 0) * (Number(values?.unitCost) || 0),
         totalLocalCost: (Number(values?.quantity) || 0) * (Number(values?.exchangedAmt) || 0),
         isPassed:false,
+        totalComission:(Number(values?.comission ||0)*(Number(values?.quantity) || 0)),
+         totalExComission: ((Number(values?.comission) || 0) * (Number(values?.quantity) || 0) * (Number(exchange) || 1))
       };
 
       const data = await httpReq.post("/api/sale/create", formattedValues);
@@ -549,6 +551,8 @@ const handleEdit = async (record) => {
         customerName: customerData?.fullname,
         totalCost: (Number(values?.quantity) || 0) * (Number(values?.unitCost) || 0),
         totalLocalCost: (Number(values?.quantity) || 0) * (Number(values?.exchangedAmt) || 0),
+        totalComission:(Number(values?.comission ||0)*(Number(values?.quantity) || 0)),
+         totalExComission: ((Number(values?.comission) || 0) * (Number(values?.quantity) || 0) * (Number(exchange) || 1))
       };
       await httpReq.put(`/api/sale/update/${values._id}`, formattedValues)
       toast.success("Sale record updated successfully")

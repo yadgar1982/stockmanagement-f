@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, Divider, Tabs } from "antd";
 import { StockOutlined,  AccountBookOutlined } from '@ant-design/icons';
 import UserLayout from '../Shared/UserLayout'
-import Statements from '../Shared/Reports/Statements';
+import Statements from '../Shared/Reports/Statements/supplier';
 const User = () => {
   const [size, setSize] = useState('small');
 

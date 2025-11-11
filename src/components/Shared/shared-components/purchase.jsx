@@ -35,6 +35,7 @@ const Purchase = () => {
   const [exchange, setExchange] = useState(0)
   const [crncy, setCrncy] = useState("")
   const [exchangedAmt, setexchangedAmt] = useState(1)
+  const [exComission, setExComission] = useState(1)
   const [productQty, setProductQty] = useState(null);
   const [productUnit, setProductUnit] = useState(null);
   const [totalPurchase, setTotalPurchase] = useState([])
@@ -501,6 +502,8 @@ const onFinish = async (values) => {
       totalCost: (Number(values?.quantity) || 0) * (Number(values?.unitCost) || 0),
       totalLocalCost: (Number(values?.quantity) || 0) * (Number(values?.exchangedAmt) || 0),
       isPassed: false,
+      totalComission:(Number(values?.comission ||0)*(Number(values?.quantity) || 0)),
+       totalExComission: ((Number(values?.comission) || 0) * (Number(values?.quantity) || 0) * (Number(exchange) || 1))
     };
 
     console.log("Payload to backend:", formattedValues);
@@ -546,6 +549,8 @@ const onFinish = async (values) => {
 
         dealerId: selectedDealer?._id || values.dealerId,
         dealerName: selectedDealer?.dealerName || values.dealerName,
+        totalComission:(Number(values?.comission ||0)*(Number(values?.quantity) || 0)),
+         totalExComission: ((Number(values?.comission) || 0) * (Number(values?.quantity) || 0) * (Number(exchange) || 1))
       };
 
       // Update purchase
@@ -601,7 +606,7 @@ const onFinish = async (values) => {
 
   useEffect(() => {
     setexchangedAmt(Number(unitCost) * exchange);
-  }, [qty, unitCost, exchange]); // only recalc when these change
+  }, [qty, unitCost, exchange]); 
 
   useEffect(() => {
     form.setFieldsValue({ exchangedAmt: exchangedAmt });

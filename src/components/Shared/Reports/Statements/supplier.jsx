@@ -138,8 +138,8 @@ const Statements = () => {
 
   const handleData = () => {
     // if (!mySupplierData) return message.error("No supplier selected!");
-    if (!mySupplierData) return toast.error("No supplier selected!");
-    if (!selectedCurrency) return toast.error("Please select your currency");
+    if (!mySupplierData) return toast.error("Select a supplier first to get statetment!");
+    if (!selectedCurrency) return toast.error("Select Currency");
 
     // Decide which data to use based on selected currency
     let dataToPrint = filteredStatement.length ? filteredStatement : statementWithBalance;
@@ -208,7 +208,7 @@ const Statements = () => {
     <!-- Left-aligned logo -->
     <div style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%);">
       <img 
-        src="https://stockmanagement-f.vercel.app/logo.jpg" 
+        src="https://stockmanagement-f.vercel.app/logo.png" 
         alt="${branding[0].name} Logo" 
         style="height: 65px; width: auto; object-fit: contain;"
       />
@@ -238,7 +238,7 @@ const Statements = () => {
   </p>
   <p><strong>Mobile:</strong> ${mySupplierData.mobile}
   </p>
-  <p><strong>Currency:</strong> ${selectedCurrency}</p>
+  <p><strong>Currency: ${selectedCurrency}</strong></p>
 </div>
 </header>
    
