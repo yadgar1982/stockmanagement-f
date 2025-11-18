@@ -3,8 +3,8 @@ import { Button, Form, Select, DatePicker, Modal, notification } from "antd";
 import { useDispatch, useSelector } from 'react-redux';
 import dayjs from "dayjs";
 import { PrinterOutlined } from '@ant-design/icons';
-import { fetchSuppleirs } from '../../../../redux/slices/supplierSlice';
-import { fetchPurchase } from '../../../../redux/slices/purchaseSlice';
+import { fetchCustomers } from '../../../../redux/slices/customerSlice';
+import { fetchSales } from '../../../../redux/slices/salesSlice';
 import { fetchPayment } from '../../../../redux/slices/paymentSlice';
 
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
@@ -22,8 +22,8 @@ const Statements = () => {
   const dispatch = useDispatch();
 
   const [sId, setSId] = useState(null);
-  const [mySupplierData, setMySupplierData] = useState(null);
-  const [myPurchaseData, setMyPurchaseData] = useState([]);
+  const [myCustomerData, setMyCustomerData] = useState(null);
+  const [mySaleData, setMySaleData] = useState([]);
   const [myPaymentData, setMyPaymentData] = useState([]);
   const [dateRange, setDateRange] = useState([]);
   const [filteredStatement, setFilteredStatement] = useState([]);
@@ -32,18 +32,18 @@ const Statements = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
 
-  const { suppliers } = useSelector(state => state.suppliers);
-  const allSuppliers = suppliers?.data || [];
-  const { purchase: purchases } = useSelector(state => state.purchase);
-  const allPurchase = purchases || [];
+  const { customers } = useSelector(state => state.customers);
+  const allCustomers = customers?.data || [];
+  const { sale: sales } = useSelector(state => state.sale);
+  const allSales = sales || [];
   const { payment: payments } = useSelector(state => state.payments);
   const allPayment = payments || [];
 
 
   // Fetch data
   useEffect(() => {
-    dispatch(fetchSuppleirs());
-    dispatch(fetchPurchase());
+    dispatch(fetchCustomers());
+    dispatch(fetchSales());
     dispatch(fetchPayment());
   }, [dispatch]);
 
@@ -53,25 +53,25 @@ const Statements = () => {
     setSId(value);
   };
 
-  // Prepare supplier purchase/payment data
+  // Prepare supplier sale/payment data
   useEffect(() => {
     if (!sId) return;
-    const supplierData = allSuppliers.find(s => s._id === sId);
-    setMySupplierData(supplierData);
+    const supplierData = allCustomers.find(s => s._id === sId);
+    setMyCustomerData(supplierData);
 
-    setMyPurchaseData(allPurchase.filter(p => p.supplierId === sId));
-    setMyPaymentData(allPayment.filter(p => p.supplierId === sId));
+    setMySaleData(allSales.filter(p => p.customerId === sId));
+    setMyPaymentData(allPayment.filter(p => p.customerId === sId));
 
     // Reset filter
     setFilteredStatement([]);
     setDateRange([]);
-  }, [sId, allSuppliers, allPurchase, allPayment]);
+  }, [sId, allCustomers, allSales, allPayment]);
 
   // Statement with running balance
   const statementWithBalance = useMemo(() => {
-    const purchaseEntries = myPurchaseData.map(p => ({
-      date: new Date(p.purchaseDate || p.createdAt),
-      description: p.description || "Purchase",
+    const saleEntries = mySaleData.map(p => ({
+      date: new Date(p.saleDate || p.createdAt),
+      description: p.description || "sale",
       credit: p.totalCost || 0,
       debit: 0,
       localCredit: p?.totalLocalCost || 0,
@@ -91,7 +91,7 @@ const Statements = () => {
       currency: p.currency,
     }));
 
-    const allEntries = [...purchaseEntries, ...paymentEntries].sort((a, b) => a.date - b.date);
+    const allEntries = [...saleEntries, ...paymentEntries].sort((a, b) => a.date - b.date);
 
     //sort currency
     const currencies = [...new Set(allEntries.map((item) => item.currency))];
@@ -106,7 +106,7 @@ const Statements = () => {
     });
 
 
-  }, [myPurchaseData, myPaymentData]);
+  }, [mySaleData, myPaymentData]);
 
   // Date filter
   useEffect(() => {
@@ -136,7 +136,7 @@ const Statements = () => {
   // data to print
 
   const handleData = () => {
-    if (!mySupplierData) return toast.error("Select a supplier first to get statement!");
+    if (!myCustomerData) return toast.error("Select a supplier first to get statement!");
     if (!selectedCurrency) return toast.error("Select Currency");
 
     // Use filtered statement if exists, otherwise full statement
@@ -186,7 +186,7 @@ const Statements = () => {
     );
     const closingBalance = totalCredit - totalDebit;
 
-    newWindow.document.title = `Statement - ${mySupplierData.fullname}`;
+    newWindow.document.title = `Statement - ${myCustomerData.fullname}`;
 
     newWindow.document.body.innerHTML = `
     <div style="font-family: Arial; padding: 10px; background: white; color: #212529;">
@@ -234,11 +234,11 @@ const Statements = () => {
   <!-- Statement Title -->
   <div style="margin-top: 5px; text-align: left;">
   <h1 style="margin: 0; text-align: center; font-size: 24px; color: #5a5b5cff;">Financial Statement</h1>
-  <p><strong>Name:</strong> ${mySupplierData.fullname}
+  <p><strong>Name:</strong> ${myCustomerData.fullname}
   </p>
-  <p><strong>Account No:</strong> ${mySupplierData.accountNo}
+  <p><strong>Account No:</strong> ${myCustomerData.accountNo}
   </p>
-  <p><strong>Mobile:</strong> ${mySupplierData.mobile}
+  <p><strong>Mobile:</strong> ${myCustomerData.mobile}
   </p>
   <p><strong>Currency: ${selectedCurrency}</strong></p>
 </div>
@@ -322,7 +322,7 @@ const Statements = () => {
 
   const handleUSDData = () => {
 
-    if (!mySupplierData) return toast.error("Select a supplier first to get statement!");
+    if (!myCustomerData) return toast.error("Select a supplier first to get statement!");
     if (!selectedCurrency) return toast.error("Select Currency");
 
     // Use filtered statement if exists, otherwise full statement
@@ -353,7 +353,7 @@ const Statements = () => {
     );
     const closingBalance = totalCredit - totalDebit;
 
-    newWindow.document.title = `Statement - ${mySupplierData.fullname}`;
+    newWindow.document.title = `Statement - ${myCustomerData.fullname}`;
 
     newWindow.document.body.innerHTML = `
     <div style="font-family: Arial; padding: 10px; background: white; color: #212529;">
@@ -401,11 +401,11 @@ const Statements = () => {
   <!-- Statement Title -->
   <div style="margin-top: 5px; text-align: left;">
   <h1 style="margin: 0; text-align: center; font-size: 24px; color: #5a5b5cff;">Financial Statement</h1>
-  <p><strong>Name:</strong> ${mySupplierData.fullname}
+  <p><strong>Name:</strong> ${myCustomerData.fullname}
   </p>
-  <p><strong>Account No:</strong> ${mySupplierData.accountNo}
+  <p><strong>Account No:</strong> ${myCustomerData.accountNo}
   </p>
-  <p><strong>Mobile:</strong> ${mySupplierData.mobile}
+  <p><strong>Mobile:</strong> ${myCustomerData.mobile}
   </p>
   <p><strong>Currency: USD</strong></p>
 </div>
@@ -494,18 +494,18 @@ const Statements = () => {
   return (
     <div className="p-0 w-screen h-screen p-4 bg-cover bg-center bg-no-repeat bg-[url('/statement.jpg')]">
       <div className=' flex flex-col gap-4 p-2'>
-        <br></br>
-        <h1 className='md:text-2xl text-zinc-700 font-bold'>Supplier Financial Statements:</h1>
         <br />
+         <h1 className='md:text-2xl text-zinc-700 font-bold'>Customer Financial Statements:</h1>
+         <br />
         <Button
-                  type="text"
-                  className='!bg-orange-400 !text-white md:!w-25  md:!text-lg hover:!bg-green-500 !font-bold !shadow-lg !shadow-black'
-                  onClick={showModal}
-                >
-                  <PrinterOutlined className='!font-bold md:!text-2xl' />
-                </Button>
+          type="text"
+          className='!bg-orange-400 !text-white md:!w-25  md:!text-lg hover:!bg-green-500 !font-bold !shadow-lg !shadow-black'
+          onClick={showModal}
+        >
+          <PrinterOutlined className='!font-bold md:!text-2xl' />
+        </Button>
         <Modal
-          title="Print Supplier Statement"
+          title="Print Customer Statement"
           footer={null}
           // closable={{ 'aria-label': 'Custom Close Button' }}
           open={isModalOpen}
@@ -515,7 +515,7 @@ const Statements = () => {
           <Form layout="vertical">
             <Form.Item
               label="Supplier Name"
-              name="supplierId"
+              name="customerId"
               rules={[{ required: true, message: "Please select a supplier" }]}
             >
               <Select
@@ -523,7 +523,7 @@ const Statements = () => {
                 showSearch
                 placeholder="Select a Supplier"
                 optionFilterProp="label"
-                options={allSuppliers.map(s => ({ label: `${s.fullname}  ( Acc No: ${s.accountNo} )`, value: s._id }))}
+                options={allCustomers.map(s => ({ label: `${s.fullname}  ( Acc No: ${s.accountNo} )`, value: s._id }))}
               />
             </Form.Item>
             <Form.Item
@@ -578,10 +578,7 @@ const Statements = () => {
           </Form>
 
         </Modal>
-
-
       </div>
-
     </div>
   );
 };

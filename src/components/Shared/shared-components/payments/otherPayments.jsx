@@ -19,6 +19,7 @@ import { useDispatch, useSelector } from 'react-redux'
 
 import { fetchCompany } from '../../../../redux/slices/companySlice';
 import { fetchCurrency } from '../../../../redux/slices/currencySlice';
+import ExchangeCalculator from '../exchangeCalc';
 
 
 const OtherPayments = () => {
@@ -39,7 +40,7 @@ const OtherPayments = () => {
 
   //for customer financial calculation states
   const [payment, setpayment] = useState(null);
- 
+
 
 
   const [form] = Form.useForm();
@@ -47,8 +48,8 @@ const OtherPayments = () => {
   const branding = JSON.parse(localStorage.getItem("branding") || "null");
 
   // fetch data from redux:
- 
-  
+
+
   const { companys, cloading, cerror } = useSelector((state) => state.company);
   const allCompanies = companys?.data || [];
   const company = allCompanies.map((item) => ({
@@ -75,21 +76,21 @@ const OtherPayments = () => {
   useEffect(() => {
     dispatch(fetchCompany())
     dispatch(fetchCurrency())
-   }, [])
+  }, [])
 
-  const transactionType=[
-  { value: 'cash', label: 'Cash' },
-  { value: 'bank_transfer', label: 'Bank Transfer' },
-  { value: 'credit_card', label: 'Credit Card' },
-  { value: 'cheque', label: 'Cheque' },
-  { value: 'mobile_payment', label: 'Mobile Payment' },
-  { value: 'other', label: 'Other' },
+  const transactionType = [
+    { value: 'cash', label: 'Cash' },
+    { value: 'bank_transfer', label: 'Bank Transfer' },
+    { value: 'credit_card', label: 'Credit Card' },
+    { value: 'cheque', label: 'Cheque' },
+    { value: 'mobile_payment', label: 'Mobile Payment' },
+    { value: 'other', label: 'Other' },
   ]
 
-   const paymentType = [
-  { value: 'cr', label: 'Credit' },
-  { value: 'dr', label: 'Debit' },
- ];
+  const paymentType = [
+    { value: 'cr', label: 'Credit' },
+    { value: 'dr', label: 'Debit' },
+  ];
   //fetch payment all data
   const { data: paymentData, error: pError } = useSWR("/api/payment/get", fetcher);
 
@@ -102,26 +103,26 @@ const OtherPayments = () => {
 
 
   //get all supppliers
- 
 
- 
+
+
 
   // calculation of payments
   const amt = amount || 0;
 
 
   const exAmt = exchangedAmt || 0;
-  
 
- 
+
+
   // get userName
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
   const userName = userInfo?.fullname || "";
 
   //print function
-    const handlePrint = async (record) => {
+  const handlePrint = async (record) => {
     try {
-      
+
 
       // Open a new blank window
       const printWindow = window.open('', '_blank', 'width=800,height=900');
@@ -286,10 +287,10 @@ const OtherPayments = () => {
       toast.error("Failed to delete payment record");
     }
   };
-  
+
   const handleEdit = async (record) => {
     setCustomerData(record);
-
+    setAmount(Number(record.amount));
     form.setFieldsValue({
       ...record,
       customerId: record.customerId,
@@ -332,18 +333,20 @@ const OtherPayments = () => {
     { title: <span className="text-sm md:!text-1xl font-semibold">Amount</span>, dataIndex: 'amount', key: 'amount', width: 80 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Currency</span>, dataIndex: 'currency', key: 'currency', width: 20 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Exched Amt</span>, dataIndex: 'exchangedAmt', key: 'exchangedAmt', width: 60 },
-    { title: <span className="text-sm md:!text-1xl font-semibold">Trans-Type</span>, dataIndex: 'paymentType', key: 'p-type', width: 60 ,
-       render: (text) => (
-    <span
-      style={{
-        color: text.toLowerCase() === 'dr' ? 'red' : 'inherit', // red if 'dr', default otherwise
-        fontWeight: 'bold',
-      }}>
-      {text}
-    </span>
-    )},
+    {
+      title: <span className="text-sm md:!text-1xl font-semibold">Trans-Type</span>, dataIndex: 'paymentType', key: 'p-type', width: 60,
+      render: (text) => (
+        <span
+          style={{
+            color: text.toLowerCase() === 'dr' ? 'red' : 'inherit', // red if 'dr', default otherwise
+            fontWeight: 'bold',
+          }}>
+          {text}
+        </span>
+      )
+    },
     { title: <span className="text-sm md:!text-1xl font-semibold">Belong To</span>, dataIndex: 'companyName', key: 'company', width: 60 },
-    
+
     { title: <span className="text-sm md:!text-1xl font-semibold">Description</span>, dataIndex: 'description', key: 'description', width: 150 },
 
     // print
@@ -437,11 +440,11 @@ const OtherPayments = () => {
   ];
 
   const dataSource = paymentData?.data
-  .filter(item => item.isPassed === false && item.entity === 'other')
-  .map(item => ({
-    ...item,
-    key: item._id, 
-  }));
+    .filter(item => item.isPassed === false && item.entity === 'other')
+    .map(item => ({
+      ...item,
+      key: item._id,
+    }));
   //currency change
   const currencyChange = (e) => {
 
@@ -459,9 +462,9 @@ const OtherPayments = () => {
     const httpReq = http(token);
 
     try {
-      
+
       const selectedCompany = company.find(c => c.companyId === values.companyId);
-     
+
       // 2 Prepare formatted values for payment
       const formattedValues = {
         ...values,
@@ -469,7 +472,7 @@ const OtherPayments = () => {
         companyName: selectedCompany?.companyName,
         companyId: selectedCompany?._id || values.companyId,
         isPassed: false,
-        transBy:userName,
+        transBy: userName,
       };
       // Create payment
 
@@ -489,17 +492,17 @@ const OtherPayments = () => {
   const onUpdate = async (values) => {
     try {
 
-     
+
       const selectedCompany = company.find(c => c.companyId === values.companyId);
-        const httpReq = http(token);
+      const httpReq = http(token);
 
       const formattedValues = {
         ...values,
         entity: "other",
-        transBy:userName,
+        transBy: userName,
         companyId: selectedCompany?._id || values.companyId,
         companyName: selectedCompany?.companyName || values.companyName,
-       };
+      };
 
       // Update payment
       await httpReq.put(`/api/payment/update/${values._id}`, formattedValues);
@@ -566,7 +569,7 @@ const OtherPayments = () => {
           {/* OtherPayments Form */}
           <div className='flex gap-4 items-center '>
             <h2 className='text-sm  md:text-2xl p-2 font-semibold text-zinc-600'>Make Payment to customer</h2>
-            
+
           </div>
           <Card className="mb-0 shadow-md !rounded-none ">
             <Form
@@ -582,15 +585,7 @@ const OtherPayments = () => {
                 <Form.Item name="_id" hidden>
                   <Input />
                 </Form.Item>
-                
-                <Form.Item
-                  label="Amount"
-                  name="amount"
-                  rules={[{ required: true, message: "Please enter amount" }]}
-                >
-                  <Input placeholder="Enter item amount"
-                    onChange={(e) => setAmount(Number(e.target.value))} />
-                </Form.Item>
+
                 <Form.Item
                   label="P-No"
                   name="paymentNo"
@@ -625,6 +620,14 @@ const OtherPayments = () => {
                     onChange={(value) => currencyChange(value)}
                   />
                 </Form.Item>
+                <Form.Item
+                  label="Amount"
+                  name="amount"
+                  rules={[{ required: true, message: "Please enter amount" }]}
+                >
+                  <Input placeholder="Enter item amount"
+                    onChange={(e) => setAmount(Number(e.target.value))} />
+                </Form.Item>
                 <Form.Item label="Exch Amt" name="exchangedAmt">
                   <Input readOnly
                   />
@@ -657,7 +660,7 @@ const OtherPayments = () => {
                 >
                   <DatePicker className="w-full" format="MM/DD/YYYY" />
                 </Form.Item>
-                 <Form.Item
+                <Form.Item
                   label="Trns Type"
                   name="transactionType"
                   rules={[{ required: true, message: "Please Enter company name" }]}
@@ -692,7 +695,12 @@ const OtherPayments = () => {
                     className='!text-red-600'
                   />
                 </Form.Item>
-                
+                <Form.Item className='!flex !justify-center  !w-full !items-center'>
+
+                  <div>
+                    <ExchangeCalculator/>
+                  </div>
+                </Form.Item>
               </div>
 
               <Form.Item

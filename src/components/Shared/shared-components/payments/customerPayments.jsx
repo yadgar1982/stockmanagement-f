@@ -22,6 +22,7 @@ import { fetchSales } from '../../../../redux/slices/salesSlice';
 import { fetchCompany } from '../../../../redux/slices/companySlice';
 // import { fetchDealer } from '../../../redux/slices/dealerSlice';
 import { fetchCurrency } from '../../../../redux/slices/currencySlice';
+import ExchangeCalculator from '../exchangeCalc';
 
 
 
@@ -34,7 +35,7 @@ const CustomerPayment = () => {
   const [exchange, setExchange] = useState(0)
   const [crncy, setCrncy] = useState("") // this is for currency state for payment data entry 
   const [cr, setCr] = useState("") // this is for Due amount showing currency
-  const [exchangedAmt, setexchangedAmt] = useState(1)
+  const [exchangedAmt, setExchangedAmt] = useState(1)
   const [productamount, setProductamount] = useState(null);
   const [productUnit, setProductUnit] = useState(null);
   const [totalpayment, setTotalpayment] = useState([])
@@ -360,6 +361,7 @@ const CustomerPayment = () => {
   
   const handleEdit = async (record) => {
     setCustomerData(record);
+    setAmount(Number(record.amount));
 
     form.setFieldsValue({
       ...record,
@@ -621,8 +623,8 @@ const CustomerPayment = () => {
 
 
   useEffect(() => {
-    setexchangedAmt(Number(amount) * exchange);
-  }, [amount, exchange]); // only recalc when these change
+    setExchangedAmt(Number(amount) * exchange);
+  }, [amount, exchange,crncy]); // only recalc when these change
 
   useEffect(() => {
     form.setFieldsValue({ exchangedAmt: exchangedAmt });
@@ -694,14 +696,6 @@ const CustomerPayment = () => {
                   />
                 </Form.Item>
                 <Form.Item
-                  label="Amount"
-                  name="amount"
-                  rules={[{ required: true, message: "Please enter amount" }]}
-                >
-                  <Input placeholder="Enter item amount"
-                    onChange={(e) => setAmount(Number(e.target.value))} />
-                </Form.Item>
-                <Form.Item
                   label="P-No"
                   name="paymentNo"
                   rules={[{ required: true, message: "Please enter Number" }]}
@@ -734,6 +728,14 @@ const CustomerPayment = () => {
                     options={currencyOptions}
                     onChange={(value) => currencyChange(value)}
                   />
+                </Form.Item>
+                <Form.Item
+                  label="Amount"
+                  name="amount"
+                  rules={[{ required: true, message: "Please enter amount" }]}
+                >
+                  <Input placeholder="Enter item amount"
+                    onChange={(e) => setAmount(Number(e.target.value))} />
                 </Form.Item>
                 <Form.Item label="Exch Amt" name="exchangedAmt">
                   <Input readOnly
@@ -802,7 +804,12 @@ const CustomerPayment = () => {
                     className='!text-red-600'
                   />
                 </Form.Item>
-                
+                 <Form.Item className='!flex !justify-center  !w-full !items-center'>
+
+                  <div>
+                    <ExchangeCalculator />
+                  </div>
+                </Form.Item>
               </div>
 
               <Form.Item

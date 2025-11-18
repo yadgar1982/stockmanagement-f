@@ -22,6 +22,7 @@ import { fetchSales } from '../../../../redux/slices/salesSlice';
 import { fetchCompany } from '../../../../redux/slices/companySlice';
 import { fetchPurchase } from '../../../../redux/slices/purchaseSlice';
 import { fetchCurrency } from '../../../../redux/slices/currencySlice';
+import ExchangeCalculator from '../exchangeCalc';
 
 
 
@@ -250,7 +251,7 @@ const DealerPayment = () => {
         </style>
       </head>
       <body>
-        <header style="width: 100%; text-align: center; margin-bottom: 20px;">
+  <header style="width: 100%; text-align: center; margin-bottom: 20px;">
   <div style="
     display: flex;
     align-items: center;
@@ -379,7 +380,7 @@ const DealerPayment = () => {
   
   const handleEdit = async (record) => {
     setdealerData(record);
-
+    setAmount(Number(record.amount));
     form.setFieldsValue({
       ...record,
       dealerId: record.dealerId,
@@ -712,14 +713,7 @@ const DealerPayment = () => {
                     options={dealerOptions}
                   />
                 </Form.Item>
-                <Form.Item
-                  label="Amount"
-                  name="amount"
-                  rules={[{ required: true, message: "Please enter amount" }]}
-                >
-                  <Input placeholder="Enter item amount"
-                    onChange={(e) => setAmount(Number(e.target.value))} />
-                </Form.Item>
+               
                 <Form.Item
                   label="P-No"
                   name="paymentNo"
@@ -727,7 +721,6 @@ const DealerPayment = () => {
                 >
                   <Input placeholder="Enter item payment Number" />
                 </Form.Item>
-
 
                 <Form.Item
                   label="company"
@@ -753,6 +746,14 @@ const DealerPayment = () => {
                     options={currencyOptions}
                     onChange={(value) => currencyChange(value)}
                   />
+                </Form.Item>
+                 <Form.Item
+                  label="Amount"
+                  name="amount"
+                  rules={[{ required: true, message: "Please enter amount" }]}
+                >
+                  <Input placeholder="Enter item amount"
+                    onChange={(e) => setAmount(Number(e.target.value))} />
                 </Form.Item>
                 <Form.Item label="Exch Amt" name="exchangedAmt">
                   <Input readOnly
@@ -821,7 +822,12 @@ const DealerPayment = () => {
                     className='!text-red-600'
                   />
                 </Form.Item>
-                
+                <Form.Item className='!flex !justify-center  !w-full !items-center'>
+
+                  <div>
+                    <ExchangeCalculator />
+                  </div>
+                </Form.Item>
               </div>
 
               <Form.Item
@@ -839,6 +845,7 @@ const DealerPayment = () => {
                   {`${edit ? "Update DealerPayment" : "Add DealerPayment"}`}
                 </Button>
               </Form.Item>
+              
             </Form>
           </Card>
 

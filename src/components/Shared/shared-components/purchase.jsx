@@ -21,6 +21,7 @@ import { fetchStock } from '../../../redux/slices/stockSlice';
 import { fetchCompany } from '../../../redux/slices/companySlice';
 import { fetchDealer } from '../../../redux/slices/dealerSlice';
 import { fetchCurrency } from '../../../redux/slices/currencySlice';
+import ExchangeCalculator from './exchangeCalc';
 
 
 
@@ -34,7 +35,7 @@ const Purchase = () => {
   const [unitCost, setUnitCost] = useState(0)
   const [exchange, setExchange] = useState(0)
   const [crncy, setCrncy] = useState("")
-  const [exchangedAmt, setexchangedAmt] = useState(1)
+  const [exchangedAmt, setExchangedAmt] = useState(1)
   const [exComission, setExComission] = useState(1)
   const [productQty, setProductQty] = useState(null);
   const [productUnit, setProductUnit] = useState(null);
@@ -329,7 +330,7 @@ const Purchase = () => {
     form.setFieldsValue({
       ...record,
       supplierId: record.supplierId,
-      purchaseDate:initialPurchaseDate
+      purchaseDate: initialPurchaseDate
     });
 
     setEdit(true); // set edit state with full rec
@@ -360,21 +361,81 @@ const Purchase = () => {
       render: (text, record, index) => index + 1,
     },
     { title: <span className="text-sm md:!text-1xl font-semibold">Item</span>, dataIndex: 'productName', key: 'productName', width: 90 },
-    { title: <span className="text-sm md:!text-1xl font-semibold">Qty</span>, dataIndex: 'quantity', key: 'quantity', width: 90 },
-    { title: <span className="text-sm md:!text-1xl font-semibold">Unit</span>, dataIndex: 'unit', key: 'unit', width: 80 },
+    {
+      title: <span className="text-sm md:!text-1xl font-semibold">Qty</span>,
+      dataIndex: 'quantity',
+      key: 'quantity',
+      width: 90,
+      render: (_, record) => (
+        <span>{record.quantity} {record.unit}</span>
+      )
+    },
+
     { title: <span className="text-sm md:!text-1xl font-semibold">Supplier</span>, dataIndex: 'supplierName', key: 'supplier', width: 120 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Belong To</span>, dataIndex: 'companyName', key: 'company', width: 120 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Warehouse</span>, dataIndex: 'warehouseName', key: 'warehouse', width: 120 },
-    { title: <span className="text-sm md:!text-1xl font-semibold">Unit Cost</span>, dataIndex: 'unitCost', key: 'unitCost', width: 100 },
-    { title: <span className="text-sm md:!text-1xl font-semibold">Currency</span>, dataIndex: 'currency', key: 'currency', width: 100 },
-    { title: <span className="text-sm md:!text-1xl font-semibold">Exch Amt</span>, dataIndex: 'exchangedAmt', key: 'exchangedAmt', width: 100 },
+    { title: <span className="text-sm md:!text-1xl font-semibold">Unit Cost $</span>, dataIndex: 'unitCost', key: 'unitCost',
+      render:(_,record)=>(
+      <span className='w-full flex justify-between px-1 gap-1'>
+        <span>{Number(record.unitCost).toLocaleString(undefined,{
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+         })}
+          </span>
+         <span className='!text-blue-500'> USD</span>
+      </span>  
+      ),
+    },
+    {
+      title: "Total Amt $",
+      dataIndex: "totalCost",
+      key: "totalCost",
+      render: (_, record) => (
+        <span className="w-full flex justify-between px-1 gap-1">
+          <span>{Number(record.totalCost).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          })}</span>
+          <span className='!text-blue-500'> USD</span>
+        </span>
+      ),
+    },
+     {
+      title: "Unit Cost",
+      dataIndex: "to",
+      key: "exchangedAmt",
+      render: (_, record) => (
+        <span className="w-full flex justify-between px-1 gap-1">
+          <span>{Number(record.exchangedAmt).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          })}</span>
+          <span className='!text-blue-500'>{record.currency}</span>
+        </span>
+      ),
+    },
+    {
+      title: "Total Amt",
+      dataIndex: "to",
+      key: "exchangedAmt",
+      render: (_, record) => (
+        <span className="w-full flex justify-between px-1 gap-1">
+          <span>{Number(record.totalLocalCost).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          })}</span>
+          <span className='!text-blue-500'>{record.currency}</span>
+        </span>
+      ),
+    },
+    { title: <span className="text-sm md:!text-1xl font-semibold">Total Amt</span>, dataIndex: 'totalLocalCost', key: 'totalLocalCost', width: 100 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Country</span>, dataIndex: 'countryName', key: 'country', width: 120 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Batch No</span>, dataIndex: 'batch', key: 'batch', width: 120 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Dealer</span>, dataIndex: 'dealerName', key: 'dealer', width: 120 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Fees</span>, dataIndex: 'comission', key: 'comission', width: 90 },
     {
       title: <span className="text-sm md:!text-1xl font-semibold">Pur-Date</span>, dataIndex: 'createdAt', key: 'createdAt', width: 110,
-      render: (date) => date ? dayjs(date).format("MM/DD/YYYY") : "-", // format date
+      render: (date) => date ? dayjs(date).format("DD/MM/YYYY") : "-", // format date
     },
     { title: <span className="text-sm md:!text-1xl font-semibold">Description</span>, dataIndex: 'description', key: 'description', width: 150 },
 
@@ -481,45 +542,45 @@ const Purchase = () => {
   };
 
 
-const onFinish = async (values) => {
-  const httpReq = http(token);
+  const onFinish = async (values) => {
+    const httpReq = http(token);
 
-  try {
-    const selectedSupplier = supplier.find(s => s.supplierId === values.supplierId);
-    const selectedProduct = product.find(p => p.productId === values.productId);
-    const selectedCompany = company.find(c => c.companyId === values.companyId);
-    const selectedStock = stock.find(s => s.stockId === values.warehouseId);
-    const selectedDealer = dealer.find(d => d.dealerId === values.dealerId);
+    try {
+      const selectedSupplier = supplier.find(s => s.supplierId === values.supplierId);
+      const selectedProduct = product.find(p => p.productId === values.productId);
+      const selectedCompany = company.find(c => c.companyId === values.companyId);
+      const selectedStock = stock.find(s => s.stockId === values.warehouseId);
+      const selectedDealer = dealer.find(d => d.dealerId === values.dealerId);
 
-    const formattedValues = {
-      ...values,
-      purchaseDate: values.purchaseDate ? values.purchaseDate.toDate() : null,
-      supplierName: selectedSupplier?.supplierName || "",
-      productName: selectedProduct?.productName || "",
-      companyName: selectedCompany?.companyName || "",
-      warehouseName: selectedStock?.stockName || "",
-      dealerName: selectedDealer?.dealerName || "",
-      totalCost: (Number(values?.quantity) || 0) * (Number(values?.unitCost) || 0),
-      totalLocalCost: (Number(values?.quantity) || 0) * (Number(values?.exchangedAmt) || 0),
-      isPassed: false,
-      totalComission:(Number(values?.comission ||0)*(Number(values?.quantity) || 0)),
-       totalExComission: ((Number(values?.comission) || 0) * (Number(values?.quantity) || 0) * (Number(exchange) || 1))
-    };
+      const formattedValues = {
+        ...values,
+        purchaseDate: values.purchaseDate ? values.purchaseDate.toDate() : null,
+        supplierName: selectedSupplier?.supplierName || "",
+        productName: selectedProduct?.productName || "",
+        companyName: selectedCompany?.companyName || "",
+        warehouseName: selectedStock?.stockName || "",
+        dealerName: selectedDealer?.dealerName || "",
+        totalCost: (Number(values?.quantity) || 0) * (Number(values?.unitCost) || 0),
+        totalLocalCost: (Number(values?.quantity) || 0) * (Number(values?.exchangedAmt) || 0),
+        isPassed: false,
+        totalComission: (Number(values?.comission || 0) * (Number(values?.quantity) || 0)),
+        totalExComission: ((Number(values?.comission) || 0) * (Number(values?.quantity) || 0) * (Number(exchange) || 1))
+      };
 
-    console.log("Payload to backend:", formattedValues);
+      console.log("Payload to backend:", formattedValues);
 
-    await httpReq.post("/api/purchase/create", formattedValues);
+      await httpReq.post("/api/purchase/create", formattedValues);
 
-    toast.success("Purchase record and transaction added successfully");
-    mutate("/api/purchase/get");
-    form.resetFields();
-    setSupplierData("");
+      toast.success("Purchase record and transaction added successfully");
+      mutate("/api/purchase/get");
+      form.resetFields();
+      setSupplierData("");
 
-  } catch (err) {
-    console.error("Error in onFinish:", err.response?.data || err.message);
-    toast.error("Failed to register");
-  }
-};
+    } catch (err) {
+      console.error("Error in onFinish:", err.response?.data || err.message);
+      toast.error("Failed to register");
+    }
+  };
 
   const onUpdate = async (values) => {
     try {
@@ -549,8 +610,8 @@ const onFinish = async (values) => {
 
         dealerId: selectedDealer?._id || values.dealerId,
         dealerName: selectedDealer?.dealerName || values.dealerName,
-        totalComission:(Number(values?.comission ||0)*(Number(values?.quantity) || 0)),
-         totalExComission: ((Number(values?.comission) || 0) * (Number(values?.quantity) || 0) * (Number(exchange) || 1))
+        totalComission: (Number(values?.comission || 0) * (Number(values?.quantity) || 0)),
+        totalExComission: ((Number(values?.comission) || 0) * (Number(values?.quantity) || 0) * (Number(exchange) || 1))
       };
 
       // Update purchase
@@ -605,8 +666,8 @@ const onFinish = async (values) => {
 
 
   useEffect(() => {
-    setexchangedAmt(Number(unitCost) * exchange);
-  }, [qty, unitCost, exchange]); 
+    setExchangedAmt(Number(unitCost) * exchange);
+  }, [qty, unitCost, exchange]);
 
   useEffect(() => {
     form.setFieldsValue({ exchangedAmt: exchangedAmt });
@@ -632,8 +693,8 @@ const onFinish = async (values) => {
 
   }
 
-  const initialPurchaseDate = supplierData?.purchaseDate 
-    ? dayjs(supplierData.purchaseDate, "DD-MM-YYYY") 
+  const initialPurchaseDate = supplierData?.purchaseDate
+    ? dayjs(supplierData.purchaseDate, "DD-MM-YYYY")
     : null;
 
   return (
@@ -642,8 +703,12 @@ const onFinish = async (values) => {
         <ToastContainer position="top-right" autoClose={3000} />
         <div className="p-4 bg-zinc-100">
           {/* Purchase Form */}
-          <div className='flex gap-4 items-center '>
-            <h2 className='text-sm  md:text-2xl p-2 font-semibold text-zinc-600'>Create Purchase Record</h2>
+          <div className='flex w-full gap-4 items-center flex item-center justify-between bg-zinc-200'>
+            <h2 className="text-sm md:text-4xl p-2 text-white font-bold [text-shadow:2px_2px_4px_rgba(0,0,0,0.5)]">Create Purchase Record</h2>       
+           <div className='mb-4 w-[50%] flex justify-end '>
+              <ExchangeCalculator/>
+          </div>
+               
             <div> {productQty && (
               <div className='text-red-500 mt-3 md:text-1xl text-sm mb-2'>
                 Availible Qty: {productQty},{productUnit || null}
@@ -655,7 +720,7 @@ const onFinish = async (values) => {
               layout="vertical"
               onFinish={edit ? onUpdate : onFinish}
               form={form}
-              initialValues={{ userName: userName,purchaseDate: initialPurchaseDate }}
+              initialValues={{ userName: userName, purchaseDate: initialPurchaseDate }}
               size='small'
 
 
@@ -756,7 +821,7 @@ const onFinish = async (values) => {
                     onChange={(value) => currencyChange(value)}
                   />
                 </Form.Item>
-                <Form.Item label="Exch Amt" name="exchangedAmt">
+                <Form.Item  name="exchangedAmt" label={<span style={{ color: 'red' }}>Exch Amt</span>}>
                   <Input readOnly
                   />
                 </Form.Item>
@@ -834,8 +899,8 @@ const onFinish = async (values) => {
                 />
               </Form.Item>
               <Form.Item>
-                <Button type="text" htmlType="submit" className={`md:!w-full md:!h-[30px] !text-white hover:!shadow-lg hover:!shadow-zinc-800 hover:!text-white !font-bold 
-                  ${edit ? "!bg-orange-500 hover:!bg-orange-600" : "!bg-blue-500 hover:!bg-green-500"}
+                <Button type="text" htmlType="submit" className={`w-[200px] md:!h-[30px] !text-white hover:!shadow-lg hover:!shadow-zinc-800 hover:!text-white !font-bold 
+                  ${edit ? "!bg-orange-500 hover:!bg-orange-600" : "!bg-blue-700 hover:!bg-green-500"}
                 `} >
                   {`${edit ? "Update Purchase" : "Add Purchase"}`}
                 </Button>

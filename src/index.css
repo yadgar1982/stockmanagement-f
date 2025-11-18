@@ -81,3 +81,11 @@ body {
 .custom-tabs .ant-tabs-tab:hover .anticon {
   color: white;
 }
+
+.ant-tabs,
+.ant-tabs-content,
+.ant-tabs-content-holder,
+.ant-tabs-tabpane {
+  height: 100% !important;
+  width: 80% !important;
+}

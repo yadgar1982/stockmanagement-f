@@ -12,7 +12,7 @@ import { http, fetcher } from "../../Modules/http";
 import Cookies from "universal-cookie";
 import useSWR, { mutate } from "swr";
 import { CheckOutlined, DeleteOutlined, EditOutlined, PrinterOutlined } from '@ant-design/icons';
-import {countries} from '../../Shared/countries/countries.js'
+import { countries } from '../../Shared/countries/countries.js'
 const cookies = new Cookies();
 
 import { useDispatch, useSelector } from 'react-redux'
@@ -22,7 +22,8 @@ import { fetchStock } from '../../../redux/slices/stockSlice';
 import { fetchCompany } from '../../../redux/slices/companySlice';
 import { fetchDealer } from '../../../redux/slices/dealerSlice';
 import { fetchCurrency } from '../../../redux/slices/currencySlice';
-
+import ExchangeCalculator from './exchangeCalc/index.jsx';
+const logo = import.meta.env.VITE_LOGO_URL;
 
 const Sales = () => {
   const dispatch = useDispatch();
@@ -161,7 +162,7 @@ const Sales = () => {
   }, [sales])
 
 
-  //get all supppliers
+  //get all customer
   const handleCus = async (id) => {
     const httpReq = http();
     const { data } = await httpReq.get(`/api/customer/get/${id}`);
@@ -170,154 +171,305 @@ const Sales = () => {
 
 
   //print function
- const handlePrint = async (record) => {
-      const createdDate = new Date(record.createdAt);
+  //  const handlePrint = async (record) => {
 
-      // Add 1 month
+  //       const createdDate = new Date(record.createdAt);
+
+  //       // Add 1 month
+  //       const nextMonthDate = new Date(createdDate);
+  //       nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
+  //       const formattedDate = nextMonthDate.toLocaleDateString();
+  //     try {
+  //       //  Fetch customer data first
+  //       const customer = await handleCus(record.customerId);
+
+  //       // Create a hidden iframe for printing
+  //       const iframe = document.createElement("iframe");
+  //       iframe.style.position = "fixed";
+  //       iframe.style.top = "0";
+  //       iframe.style.left = "0";
+  //       iframe.style.width = "0";
+  //       iframe.style.height = "0";
+  //       iframe.style.border = "0";
+  //       document.body.appendChild(iframe);
+
+  //       const doc = iframe.contentDocument || iframe.contentWindow.document;
+
+
+  //       const style = doc.createElement("style");
+  //       style.textContent = `
+  //       body {
+  //         font-family: Arial, sans-serif;
+  //         margin: 50px 20px 20px 20px; /* push down content */
+  //       }
+  //       header {
+  //         display: flex;
+  //         justify-content: space-between;
+  //         margin-bottom: 40px;
+  //       }
+  //       .company, .vendor {
+  //         width: 48%;
+  //       }
+  //       .company img {
+  //         max-width: 100px;
+  //         margin-bottom: 10px;
+  //       }
+  //       h1 {
+  //         text-align: center;
+  //         margin-bottom: 20px;
+  //       }
+  //       table {
+  //         width: 100%;
+  //         border-collapse: collapse;
+  //         margin-bottom: 20px;
+  //       }
+  //       th, td {
+  //         border: 1px solid #000;
+  //         padding: 8px;
+  //         text-align: left;
+  //       }
+  //       th {
+  //         background-color: #f0f0f0;
+  //       }
+  //       tfoot td {
+  //         font-weight: bold;
+  //       }
+  //       .footer {
+  //         margin-top: 30px;
+  //         font-size: 0.9em;
+  //       }
+  //     `;
+  //       doc.head.appendChild(style);
+
+  //      // Add HTML content
+  //       doc.body.innerHTML = `
+
+  //       <header>
+  //          <!-- LEFT: Company -->
+  //         <div class="company">
+  //           <img src="${logo}"  width="40" crossorigin="anonymous" />
+  //           <br>
+  //            <strong>Company Details::</strong><br>
+  //           Seller:<strong>${branding[0]?.name}</strong><br>
+  //           Address: ${branding[0]?.address || "-"}<br>
+  //           Phone: ${branding[0]?.mobile || "-"}<br>
+  //           Email: ${branding[0]?.email || "-"}<br>
+  //           Invoice Date: ${record?.createdAt ? new Date(record.createdAt).toLocaleDateString() : "-"}<br>
+  //           Last Due Date: ${formattedDate}<br>
+  //           PO #: ${record._id}
+  //           <img src="${logo}"  width="40" crossorigin="anonymous" />
+  //         </div>
+
+  //         <!-- RIGHT: Customer -->
+  //         <div class="vendor">
+  //           <strong>Customer Details:</strong><br>
+  //           Buyer: ${customer.fullname || "-"}<br>
+  //           Address: ${customer.country || "-"}<br>
+  //           Phone: ${customer.mobile || "-"}<br>
+  //           Email: ${customer.email || "-"}<br>
+
+  //         </div>
+  //       </header>
+
+  //       <h1>Invoice — ${record.productName}</h1>
+
+  //       <table>
+  //         <thead>
+  //           <tr>
+  //             <th>No</th>
+  //             <th>Details</th>
+  //             <th>Qty</th>
+  //             <th>Unit</th>
+  //             <th>Unit-Price USD</th>
+  //             <th>Exch Price (${record.currency})</th>
+  //             <th>Belong-To</th>
+  //             <th>Total USD</th>
+  //           </tr>
+  //         </thead>
+  //         <tbody>
+  //           <tr>
+  //             <td>1</td>
+  //             <td>${record.productName}</td>
+  //             <td>${record.quantity}</td>
+  //             <td>${record.unit}</td>
+  //             <td>${record.unitCost}</td>
+  //             <td>${record.exchangedAmt}</td>
+  //             <td>${record.companyName}</td>
+  //             <td>${record.quantity * record.unitCost}</td>
+  //           </tr>
+  //         </tbody>
+  //         <tfoot>
+  //           <tr>
+  //             <td colspan="7">Subtotal</td>
+  //             <td>${record.quantity * record.unitCost}</td>
+  //           </tr>
+  //         </tfoot>
+  //       </table>
+
+  //       <div>Created by: ${record.userName}</div>
+  //       <div class="footer">
+  //         If you have any questions about this order, please contact the receiver.
+  //       </div>
+  //     `;
+
+  //       iframe.contentWindow.focus();
+  //       iframe.contentWindow.print();
+
+
+  //       setTimeout(() => document.body.removeChild(iframe), 500);
+  //     } catch (err) {
+  //       console.error("Failed to fetch customer or print:", err);
+  //     }
+  //   };
+  const handlePrint = async (record) => {
+    try {
+      const createdDate = new Date(record.createdAt);
       const nextMonthDate = new Date(createdDate);
       nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
       const formattedDate = nextMonthDate.toLocaleDateString();
-    try {
-      //  Fetch customer data first
+
+      // Fetch customer
       const customer = await handleCus(record.customerId);
 
-      // Create a hidden iframe for printing
-      const iframe = document.createElement("iframe");
-      iframe.style.position = "fixed";
-      iframe.style.top = "0";
-      iframe.style.left = "0";
-      iframe.style.width = "0";
-      iframe.style.height = "0";
-      iframe.style.border = "0";
-      document.body.appendChild(iframe);
+      // Open print popup window
+      const printWindow = window.open('', '_blank', 'width=800,height=900');
+      if (!printWindow) {
+        alert("Please allow pop-ups to print the invoice.");
+        return;
+      }
 
-      const doc = iframe.contentDocument || iframe.contentWindow.document;
+      // Create iframe inside popup
+      const iframe = printWindow.document.createElement('iframe');
+      iframe.style.width = '100%';
+      iframe.style.height = '100%';
+      iframe.style.border = 'none';
+      printWindow.document.body.appendChild(iframe);
 
+      const htmlContent = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Invoice - ${record._id}</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; box-sizing: border-box; }
+    header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; width: 100%; }
+    .company, .vendor { width: 48%; }
+    .company-logo { width: 70px; height: 70px; border-radius: 8px; background:white; border:1px solid #ddd; display:flex; align-items:center; justify-content:center; padding:5px; }
+    .company-info { font-size: 12px; line-height:1.4; color:#444; }
+    .company-info .name { font-weight:bold; font-size:14px; color:#111; }
+    h1 { text-align: center; margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    th, td { border: 1px solid #000; padding: 8px; text-align: left; }
+    th { background: #f0f0f0; }
+    tfoot td { font-weight: bold; }
+    .footer { margin-top: 30px; font-size: 0.9em; }
+    .invoice-info { display:flex; justify-content: space-between; width: 100%; margin-bottom: 20px; }
+  </style>
+</head>
 
-      const style = doc.createElement("style");
-      style.textContent = `
-      body {
-        font-family: Arial, sans-serif;
-        margin: 50px 20px 20px 20px; /* push down content */
-      }
-      header {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 40px;
-      }
-      .company, .vendor {
-        width: 48%;
-      }
-      .company img {
-        max-width: 100px;
-        margin-bottom: 10px;
-      }
-      h1 {
-        text-align: center;
-        margin-bottom: 20px;
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 20px;
-      }
-      th, td {
-        border: 1px solid #000;
-        padding: 8px;
-        text-align: left;
-      }
-      th {
-        background-color: #f0f0f0;
-      }
-      tfoot td {
-        font-weight: bold;
-      }
-      .footer {
-        margin-top: 30px;
-        font-size: 0.9em;
-      }
-    `;
-      doc.head.appendChild(style);
+<body>
 
-     // Add HTML content
-      doc.body.innerHTML = `
-      
-      <header>
-         <!-- LEFT: Company -->
-        <div class="company">
-          <img src="./logo.jpg" alt="Company Logo" width="55" />
-          <br>
-           <strong>Company Details::</strong><br>
-          Seller:<strong>${branding[0]?.name}</strong><br>
-          Address: ${branding[0]?.address || "-"}<br>
-          Phone: ${branding[0]?.mobile || "-"}<br>
-          Email: ${branding[0]?.email || "-"}<br>
-          Invoice Date: ${record?.createdAt ? new Date(record.createdAt).toLocaleDateString() : "-"}<br>
-          Last Due Date: ${formattedDate}<br>
-          PO #: ${record._id}
-        </div>
-
-        <!-- RIGHT: Customer -->
-        <div class="vendor">
-          <strong>Customer Details:</strong><br>
-          Buyer: ${customer.fullname || "-"}<br>
-          Address: ${customer.country || "-"}<br>
-          Phone: ${customer.mobile || "-"}<br>
-          Email: ${customer.email || "-"}<br>
-         
-        </div>
-      </header>
-
-      <h1>Invoice — ${record.productName}</h1>
-
-      <table>
-        <thead>
-          <tr>
-            <th>No</th>
-            <th>Details</th>
-            <th>Qty</th>
-            <th>Unit</th>
-            <th>Unit-Price USD</th>
-            <th>Exch Price (${record.currency})</th>
-            <th>Belong-To</th>
-            <th>Total USD</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>1</td>
-            <td>${record.productName}</td>
-            <td>${record.quantity}</td>
-            <td>${record.unit}</td>
-            <td>${record.unitCost}</td>
-            <td>${record.exchangedAmt}</td>
-            <td>${record.companyName}</td>
-            <td>${record.quantity * record.unitCost}</td>
-          </tr>
-        </tbody>
-        <tfoot>
-          <tr>
-            <td colspan="7">Subtotal</td>
-            <td>${record.quantity * record.unitCost}</td>
-          </tr>
-        </tfoot>
-      </table>
-
-      <div>Created by: ${record.userName}</div>
-      <div class="footer">
-        If you have any questions about this order, please contact the receiver.
+  <!-- Header: Company + Customer -->
+  <header>
+    <!-- Company Info -->
+    <div class="company" style="display:flex; gap:12px; align-items:center;">
+      <div class="company-logo">
+        <img src="${logo}" width="60" style="object-fit:contain;" crossorigin="anonymous" />
       </div>
-    `;
+      <div class="company-info">
+        <div class="name">${branding[0]?.name}</div>
+        <div>${branding[0]?.address || "-"}</div>
+        <div>${branding[0]?.mobile || "-"}</div>
+        <div>
+          <a href="mailto:${branding[0]?.email}" style="color:#0077b6; text-decoration:none;">
+            ${branding[0]?.email}
+          </a>
+        </div>
+      </div>
+    </div>
 
-      iframe.contentWindow.focus();
-      iframe.contentWindow.print();
+    <!-- Customer Info -->
+    <div class="vendor" style="text-align:right;">
+      <strong>Customer Details:</strong><br>
+      Buyer: ${customer.fullname || "-"}<br>
+      Address: ${customer.country || "-"}<br>
+      Phone: ${customer.mobile || "-"}<br>
+      Email: ${customer.email || "-"}<br>
+    </div>
+  </header>
 
+  <!-- Invoice Info (Full Width) -->
+  <div class="invoice-info">
+    <div>
+      <div>Invoice Date: ${new Date(record.createdAt).toLocaleDateString()}</div>
+      <div>Last Due Date: ${formattedDate}</div>
+      <div>PO #: ${record._id}</div>
+    </div>
+   
+  </div>
 
-      setTimeout(() => document.body.removeChild(iframe), 500);
+  <!-- Invoice Title -->
+  <h1>Invoice — ${record.productName}</h1>
+
+  <!-- Table -->
+  <table>
+    <thead>
+      <tr>
+        <th>No</th>
+        <th>Details</th>
+        <th>Qty</th>
+        <th>Unit</th>
+        <th>Unit-Price USD</th>
+        <th>Exch Price (${record.currency})</th>
+        <th>Belongs To</th>
+        <th>Total (${record.currency})</th>
+        <th>Total USD</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>${record.productName}</td>
+        <td>${record.quantity}</td>
+        <td>${record.unit}</td>
+        <td>${record.unitCost}</td>
+        <td>${record.exchangedAmt}</td>
+        <td>${record.companyName}</td>
+        <td>${record.totalLocalCost}</td>
+                <td>${Number(record.quantity * record.unitCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="7">Subtotal</td>
+        <td>${Number(record.quantity * record.exchangedAmt).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        <td>${Number(record.quantity * record.unitCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <!-- Footer -->
+  <div>Created by: ${record.userName}</div>
+  <div class="footer">
+    If you have any questions about this order, please contact the receiver.
+  </div>
+
+  <script>
+    window.onload = () => window.print();
+  </script>
+
+</body>
+</html>
+`;
+
+      iframe.srcdoc = htmlContent;
+
     } catch (err) {
-      console.error("Failed to fetch customer or print:", err);
+      console.error("Invoice print error:", err);
     }
   };
+
 
   const customerChange = async (id) => {
     const httpReq = http();
@@ -335,7 +487,7 @@ const Sales = () => {
   //Delete 
   const handleDelete = async (obj) => {
     try {
-       const salesId = obj._id;
+      const salesId = obj._id;
       const httpReq = http(token);
       await httpReq.delete(`/api/sale/delete/${salesId}`);
       toast.success("Purchase record deleted successfully");
@@ -344,25 +496,25 @@ const Sales = () => {
       toast.error("Failed to delete purchase record", err);
     }
   }
-const handleEdit = async (record) => {
+  const handleEdit = async (record) => {
     setCustomerData(record);
 
     form.setFieldsValue({
       ...record,
       customerId: record.customerId,
-      salesDate:initialSalesDate,
+      salesDate: initialSalesDate,
     });
-     setEdit(true);
-};
+    setEdit(true);
+  };
 
- const handleIspassed=async(id)=>{
-    try{
-      const httpReq=http();
-    await httpReq.put(`/api/sale/update/${id}`,{isPassed:true});
+  const handleIspassed = async (id) => {
+    try {
+      const httpReq = http();
+      await httpReq.put(`/api/sale/update/${id}`, { isPassed: true });
       toast.success("Purchase marked as passed!");
       mutate("/api/sale/get");
-    }catch(err){
-      toast.error("Failed to Pass!",err);
+    } catch (err) {
+      toast.error("Failed to Pass!", err);
     }
   }
 
@@ -376,21 +528,82 @@ const handleEdit = async (record) => {
       render: (text, record, index) => index + 1,
     },
     { title: <span className="text-sm md:!text-1xl font-semibold">Item</span>, dataIndex: 'productName', key: 'productName', width: 90 },
-    { title: <span className="text-sm md:!text-1xl font-semibold">Qty</span>, dataIndex: 'quantity', key: 'quantity', width: 90 },
-    { title: <span className="text-sm md:!text-1xl font-semibold">Unit</span>, dataIndex: 'unit', key: 'unit', width: 80 },
-    { title: <span className="text-sm md:!text-1xl font-semibold">customer</span>, dataIndex: 'customerName', key: 'customer', width: 120 },
+    {
+      title: <span className="text-sm md:!text-1xl font-semibold">Qty</span>,
+      dataIndex: 'quantity',
+      key: 'quantity',
+      width: 90,
+      render: (_, record) => (
+        <span>{record.quantity} {record.unit}</span>
+      )
+    },
+
+    { title: <span className="text-sm md:!text-1xl font-semibold">Customer</span>, dataIndex: 'customerName', key: 'customer', width: 120 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Belong To</span>, dataIndex: 'companyName', key: 'company', width: 120 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Warehouse</span>, dataIndex: 'warehouseName', key: 'warehouse', width: 120 },
-    { title: <span className="text-sm md:!text-1xl font-semibold">Unit Cost</span>, dataIndex: 'unitCost', key: 'unitCost', width: 100 },
-    { title: <span className="text-sm md:!text-1xl font-semibold">Currency</span>, dataIndex: 'currency', key: 'currency', width: 100 },
-    { title: <span className="text-sm md:!text-1xl font-semibold">Exch Amt</span>, dataIndex: 'exchangedAmt', key: 'exchangedAmt', width: 100 },
+    {
+      title: <span className="text-sm md:!text-1xl font-semibold">Unit Cost $</span>, dataIndex: 'unitCost', key: 'unitCost',
+      render: (_, record) => (
+        <span className='w-full flex justify-between px-1 gap-1'>
+          <span>{Number(record.unitCost).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          })}
+          </span>
+          <span className='!text-blue-500'> USD</span>
+        </span>
+      ),
+    },
+    {
+      title: "Total Amt $",
+      dataIndex: "totalCost",
+      key: "totalCost",
+      render: (_, record) => (
+        <span className="w-full flex justify-between px-1 gap-1">
+          <span>{Number(record.totalCost).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          })}</span>
+          <span className='!text-blue-500'> USD</span>
+        </span>
+      ),
+    },
+    {
+      title: "Unit Cost",
+      dataIndex: "to",
+      key: "exchangedAmt",
+      render: (_, record) => (
+        <span className="w-full flex justify-between px-1 gap-1">
+          <span>{Number(record.exchangedAmt).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          })}</span>
+          <span className='!text-blue-500'>{record.currency}</span>
+        </span>
+      ),
+    },
+    {
+      title: "Total Amt",
+      dataIndex: "to",
+      key: "exchangedAmt",
+      render: (_, record) => (
+        <span className="w-full flex justify-between px-1 gap-1">
+          <span>{Number(record.totalLocalCost).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          })}</span>
+          <span className='!text-blue-500'>{record.currency}</span>
+        </span>
+      ),
+    },
+    { title: <span className="text-sm md:!text-1xl font-semibold">Total Amt</span>, dataIndex: 'totalLocalCost', key: 'totalLocalCost', width: 100 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Country</span>, dataIndex: 'countryName', key: 'country', width: 120 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Batch No</span>, dataIndex: 'batch', key: 'batch', width: 120 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Dealer</span>, dataIndex: 'dealerName', key: 'dealer', width: 120 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Fees</span>, dataIndex: 'comission', key: 'comission', width: 90 },
     {
       title: <span className="text-sm md:!text-1xl font-semibold">Pur-Date</span>, dataIndex: 'createdAt', key: 'createdAt', width: 110,
-      render: (date) => date ? dayjs(date).format("MM/DD/YYYY") : "-", // format date
+      render: (date) => date ? dayjs(date).format("DD/MM/YYYY") : "-", // format date
     },
     { title: <span className="text-sm md:!text-1xl font-semibold">Description</span>, dataIndex: 'description', key: 'description', width: 150 },
 
@@ -409,7 +622,7 @@ const handleEdit = async (record) => {
           className="!text-white !w-full !w-[20px] !justify-center !rounded-full cursor-pointer"
           onClick={() => handlePrint(record)}
         >
-          <PrinterOutlined className=" !p-2 bg-zinc-700 flex justify-center h-[20px] !w-[30]   md:!w-[100%]  md:text-[15px]"/>
+          <PrinterOutlined className=" !p-2 bg-zinc-600 flex justify-center h-[20px] !w-[30]  md:!w-[100%]  md:text-[15px]" />
         </span>
       )
     }
@@ -428,7 +641,7 @@ const handleEdit = async (record) => {
       render: (_, record) => (
         <a
           onClick={() => handleEdit(record)}
-          className="!text-white  !w-[100px] !rounded-full"
+          className="!text-white  !w-[100px] "
         >
           <EditOutlined className=" !p-2 bg-blue-700 flex justify-center h-[20px] !w-[30]   md:!w-[100%]  md:text-[15px]" />
         </a>
@@ -437,15 +650,15 @@ const handleEdit = async (record) => {
     {
       title: (
         <span className="text-sm md:!text-1xl font-semibold !text-white">
-          Edit
+          Pass
         </span>
       ),
       key: "ispassed",
       width: 20,
       fixed: "right",
       render: (_, record) => (
-        
-         <Popconfirm
+
+        <Popconfirm
           title="Are you sure to Pass this Purchase?"
           description="This action cannot be undone."
           okText="yes"
@@ -453,7 +666,7 @@ const handleEdit = async (record) => {
           onConfirm={async () => handleIspassed(record._id)}
           className="!text-white  !w-[40px] !rounded-9"
         >
-        
+
           <CheckOutlined className=" !p-2 bg-green-700 flex justify-center h-[20px] !w-[30]   md:!w-[100%]  md:text-[15px]" />
         </Popconfirm>
       ),
@@ -471,7 +684,7 @@ const handleEdit = async (record) => {
           onConfirm={async () => handleDelete(obj)}
           className="!text-white w-full !w-[100px] !rounded-full"
         >
-          <a className="!text-white w-full  !rounded-full"><DeleteOutlined className="!p-2 bg-red-700 flex justify-center h-[20px] !w-[30]   md:!w-[100%]  md:text-[15px]" /></a>
+          <a className="!text-white w-full  !rounded-full"><DeleteOutlined className=" !p-2 bg-red-700 flex justify-center h-[20px] !w-[30]   md:!w-[100%]  md:text-[15px]" /></a>
         </Popconfirm>
       )
 
@@ -480,13 +693,14 @@ const handleEdit = async (record) => {
 
   ];
 
- 
- const dataSource = salesData
-  ?.filter((item) => item.isPassed === false)
-  .map((item) => ({
-    ...item,
-    key: item._id,
-  })) || [];
+
+
+  const dataSource = salesData
+    ?.filter((item) => item.isPassed === false)
+    .map((item) => ({
+      ...item,
+      key: item._id,
+    })) || [];
   //currency change
   const currencyChange = (e) => {
     // e is the selected currency string, e.g., "AFN"
@@ -502,6 +716,7 @@ const handleEdit = async (record) => {
   };
 
   const onFinish = async (values) => {
+
     const httpReq = http(token);
 
     try {
@@ -514,18 +729,19 @@ const handleEdit = async (record) => {
 
       const formattedValues = {
         ...values,
-      
+
         salesDate: values.salesDate ? values.salesDate.toDate() : null,
         customerName: selectedCustomer?.customerName,
+        customerId: selectedCustomer?.customerId,
         productName: selectedProduct?.productName,
         companyName: selectedCompany?.companyName,
         warehouseName: selectedStock?.stockName,
         dealerName: selectedDealer?.dealerName,
         totalCost: (Number(values?.quantity) || 0) * (Number(values?.unitCost) || 0),
         totalLocalCost: (Number(values?.quantity) || 0) * (Number(values?.exchangedAmt) || 0),
-        isPassed:false,
-        totalComission:(Number(values?.comission ||0)*(Number(values?.quantity) || 0)),
-         totalExComission: ((Number(values?.comission) || 0) * (Number(values?.quantity) || 0) * (Number(exchange) || 1))
+        isPassed: false,
+        totalComission: (Number(values?.comission || 0) * (Number(values?.quantity) || 0)),
+        totalExComission: ((Number(values?.comission) || 0) * (Number(values?.quantity) || 0) * (Number(exchange) || 1))
       };
 
       const data = await httpReq.post("/api/sale/create", formattedValues);
@@ -535,8 +751,8 @@ const handleEdit = async (record) => {
       return data;
 
     } catch (err) {
-        console.log(err);
-      toast.error( `Failed: ${err?.response?.data?.message || err?.message || "Unknown error"}`);
+      console.log(err);
+      toast.error(`Failed: ${err?.response?.data?.message || err?.message || "Unknown error"}`);
     }
   };
 
@@ -551,8 +767,8 @@ const handleEdit = async (record) => {
         customerName: customerData?.fullname,
         totalCost: (Number(values?.quantity) || 0) * (Number(values?.unitCost) || 0),
         totalLocalCost: (Number(values?.quantity) || 0) * (Number(values?.exchangedAmt) || 0),
-        totalComission:(Number(values?.comission ||0)*(Number(values?.quantity) || 0)),
-         totalExComission: ((Number(values?.comission) || 0) * (Number(values?.quantity) || 0) * (Number(exchange) || 1))
+        totalComission: (Number(values?.comission || 0) * (Number(values?.quantity) || 0)),
+        totalExComission: ((Number(values?.comission) || 0) * (Number(values?.quantity) || 0) * (Number(exchange) || 1))
       };
       await httpReq.put(`/api/sale/update/${values._id}`, formattedValues)
       toast.success("Sale record updated successfully")
@@ -592,9 +808,9 @@ const handleEdit = async (record) => {
     ]
 
 
-//exchange rate
+  //exchange rate
   useEffect(() => {
-   // Use its rate, 
+    // Use its rate, 
     const rate = crncy || 1;
 
     setExchange(rate);
@@ -612,7 +828,7 @@ const handleEdit = async (record) => {
   const handleProductChange = (value) => {
 
     setSelectedProduct(value);
-//purchase calculation
+    //purchase calculation
     if (Array.isArray(totalPurchase)) {
       // filter all matching items (returns an array)
       const filteredPurchase = totalPurchase.filter((p) => p.productId === value);
@@ -635,29 +851,33 @@ const handleEdit = async (record) => {
 
       setProductUnit(unit);
       setProductSaleQty(calculatedSaleQty)
-      
-     } else {
+
+    } else {
       setProductQty(null);
       setProductSaleQty(null);
     }
 
   }
 
-  const initialSalesDate = customerData?.salesDate 
-      ? dayjs(customerData?.salesDate, "DD-MM-YYYY") 
-      : null;
-  
+  const initialSalesDate = customerData?.salesDate
+    ? dayjs(customerData?.salesDate, "DD-MM-YYYY")
+    : null;
+
   return (
     <UserLayout>
       <div>
         <ToastContainer position="top-right" autoClose={3000} />
         <div className="p-4 bg-zinc-100">
           {/* Sales Form */}
-          <div className='flex gap-4 items-center '>
-            <h2 className='text-sm  md:text-2xl p-2 font-semibold text-zinc-600'>Record Sales:</h2>
+          <div className='flex w-full gap-4 items-center flex item-center justify-between bg-zinc-200'>
+            <h2 className='text-sm md:text-4xl p-2 text-white font-bold [text-shadow:2px_2px_4px_rgba(0,0,0,0.5)]'>Create Sale Record</h2>
+
+            <div className='mb-4 w-[50%] flex justify-end '>
+              <ExchangeCalculator/>
+          </div>
             <div> {productQty && (
               <div className='text-red-500 mt-3 md:text-1xl text-sm mb-2'>
-                Availible Qty: {productQty-productSaleQty},{productUnit || null}
+                Availible Qty: {productQty - productSaleQty},{productUnit || null}
               </div>
             )}</div>
           </div>
@@ -666,7 +886,7 @@ const handleEdit = async (record) => {
               layout="vertical"
               onFinish={edit ? onUpdate : onFinish}
               form={form}
-              initialValues={{ userName: userName,salesDate: initialSalesDate }}
+              initialValues={{ userName: userName, salesDate: initialSalesDate }}
               size='small'
 
 
@@ -767,7 +987,7 @@ const handleEdit = async (record) => {
                     onChange={(value) => currencyChange(value)}
                   />
                 </Form.Item>
-                <Form.Item label="Exch Amt" name="exchangedAmt">
+                <Form.Item  label={<span style={{ color: 'red' }}>Exch Amt</span>} name="exchangedAmt">
                   <Input readOnly
                   />
                 </Form.Item>
@@ -775,7 +995,7 @@ const handleEdit = async (record) => {
                   label="Country"
                   name="countryName"
                 >
-                   <Select
+                  <Select
                     placeholder="Select a country"
                     showSearch
                     optionFilterProp="children"
@@ -845,10 +1065,10 @@ const handleEdit = async (record) => {
                 />
               </Form.Item>
               <Form.Item>
-                <Button type="text" htmlType="submit" className={`md:!w-full md:!h-[30px] !text-white hover:!shadow-lg hover:!shadow-zinc-800 hover:!text-white !font-bold 
-                  ${edit ? "!bg-orange-500 hover:!bg-orange-600" : "!bg-blue-500 hover:!bg-green-500"}
+                <Button type="text" htmlType="submit" className={`w-[200px] md:!h-[30px] !text-white hover:!shadow-lg hover:!shadow-zinc-800 hover:!text-white !font-bold 
+                  ${edit ? "!bg-orange-500 hover:!bg-orange-600" : "!bg-blue-700 hover:!bg-green-500"}
                 `} >
-                  {`${edit ? "Update" : "Submit"}`}
+                  {`${edit ? "Update Sale" : "Add Sale"}`}
                 </Button>
               </Form.Item>
             </Form>

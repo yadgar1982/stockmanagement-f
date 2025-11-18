@@ -119,6 +119,7 @@ const Currency = () => {
     { name: "Eurozone", currency: "EUR", flag: "🇪🇺" },
     { name: "China", currency: "CNY", flag: "🇨🇳" },
     { name: "Iran", currency: "IRR", flag: "🇮🇷" },
+    { name: "All in USD", currency: "All", flag: "US" },
   ];
   const columns = [
     {

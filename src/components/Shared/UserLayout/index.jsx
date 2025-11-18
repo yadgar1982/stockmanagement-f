@@ -48,8 +48,8 @@ const UserLayout = ({ children }) => {
   const items = [
     {
       key: 'inventory',
-      icon: <StockOutlined className='md:!text-xl !text-yellow-600 !font-semibold' />,
-      label: <span className='md:!text-lg !text-yellow-600 font-semibold'>Inventory</span>,
+      icon: <StockOutlined className='md:!text-xl !text-zinc-500 !font-semibold' />,
+      label: <span className='md:!text-lg !text-zinc-500 font-semibold'>Inventory</span>,
     },
     {
       type: 'divider', 
@@ -57,13 +57,13 @@ const UserLayout = ({ children }) => {
     },
     {
       key: 'purchase',
-      icon: < ShoppingCartOutlined className='md:!text-xl !text-yellow-600 font-semibold' />,
-      label: <span className='md:!text-lg !text-yellow-600 font-semibold'>Purchase</span>,
+      icon: < ShoppingCartOutlined className='md:!text-xl !text-zinc-500 font-semibold' />,
+      label: <span className='md:!text-lg !text-zinc-500 font-semibold'>Purchase</span>,
     },
     {
       key: 'sales',
-      icon: < ShopOutlined className='md:!text-xl !text-yellow-600 font-semibold' />,
-      label: <span className='md:!text-lg !text-yellow-600 font-semibold'>Sales</span>,
+      icon: < ShopOutlined className='md:!text-xl !text-zinc-500 font-semibold' />,
+      label: <span className='md:!text-lg !text-zinc-500 font-semibold'>Sales</span>,
     },
     {
       type: 'divider', 
@@ -71,17 +71,17 @@ const UserLayout = ({ children }) => {
     },
     {
       key: 'user',
-      icon: < AuditOutlined className='md:!text-xl !text-yellow-600 font-semibold' />,
-      label: <span className='md:!text-lg !text-yellow-600 font-semibold'>Reports</span>,
+      icon: < AuditOutlined className='md:!text-xl !text-zinc-500 font-semibold' />,
+      label: <span className='md:!text-lg !text-zinc-500 font-semibold'>Reports</span>,
     },
      {
       type: 'divider', 
-      key: 'divider-2', 
+      key: 'divider-3', 
     },
     {
       key: '1',
-      icon: < PayCircleOutlined className='md:!text-2xl !text-yellow-600' />,
-      label: <span className='!text-yellow-600 md:!text-lg !font-semibold'>Payments</span>,
+      icon: < PayCircleOutlined className='md:!text-2xl !text-zinc-500' />,
+      label: <span className='!text-zinc-500 md:!text-lg !font-semibold'>Payments</span>,
       children: [
         {
           key: 'supplierPayments',
@@ -133,15 +133,15 @@ const UserLayout = ({ children }) => {
     <Layout className='h-screen'>
       <Sider trigger={null} collapsible collapsed={collapsed} className='!bg-zinc-100 !border-r !border-zinc-200 !border-sm'>
         <div className="demo-logo-vertical" />
-        <div className='w-full flex items-center !shadow-sm !shadow-black justify-center !z-10 p-0.5 bg-yellow-600'>
-          <Avatar className='!text-2xl !bg-white !text-yellow-600 !font-bold' size={60}
+        <div className='w-full flex items-center !shadow-sm !shadow-black justify-center !z-10 p-0.5 bg-[#B8860B]'>
+          <Avatar className='!text-2xl !bg-white !text-zinc-500 !font-bold' size={60}
             src={avatar ? avatar : "./logo.png"}
           >
 
           </Avatar>
         </div>
         <Menu
-          className='!bg-zinc-100 '
+          className='!bg-zinc-200 '
           mode="inline"
           defaultSelectedKeys={['1']}
           items={items}
@@ -157,7 +157,7 @@ const UserLayout = ({ children }) => {
           boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
           zIndex: 20,
         }}
-          className='!bg-blue-900'>
+          className='!bg-[#B8860B]'>
           <Button
             type="text"
             icon={collapsed ? <MenuUnfoldOutlined className='!text-blue-100 !text-2xl' /> : <MenuFoldOutlined className='!text-blue-100 !text-2xl' />}
@@ -169,8 +169,11 @@ const UserLayout = ({ children }) => {
             }}
           />
           <Button
-            className="!bg-blue-500 !border-none !text-white !text-2xl !w-30 !h-8 !rounded-full !font-bold"
-            onClick={() => navigate('/')}
+            className="px-4 py-2 rounded-lg text-black font-bold 
+         bg-gradient-to-r from-[#D4AF37] to-[#F7E27A] 
+         hover:from-[#F7E27A] hover:to-[#D4AF37] 
+         transition-all duration-300"
+            onClick={logout}
           >
             <span className='!text-lg'>Logout</span>
             <LogoutOutlined />

@@ -3,8 +3,9 @@ import dayjs from "dayjs"
 
 
 import { useState, useEffect } from 'react';
-import { Form, Input, Button, Card, Select, Table, Popconfirm, } from "antd"
+import { Form, Input, Button, Card, Select, Table, Popconfirm, Modal } from "antd"
 import UserLayout from '../../UserLayout';
+import ExchangeCalculator from '../exchangeCalc/index'
 import TextArea from 'antd/es/input/TextArea';
 import { DatePicker } from 'antd';
 import { ToastContainer, toast } from "react-toastify";
@@ -22,6 +23,7 @@ import { fetchPurchase } from '../../../../redux/slices/purchaseSlice';
 import { fetchCompany } from '../../../../redux/slices/companySlice';
 // import { fetchDealer } from '../../../redux/slices/dealerSlice';
 import { fetchCurrency } from '../../../../redux/slices/currencySlice';
+
 
 
 
@@ -49,6 +51,11 @@ const SupplierPayment = () => {
   const [totalxPurchasedAmount, setTotalxPurchasedAmt] = useState(0);
   const [supplierId, setSupplierId] = useState("");
 
+  //calculator modal
+  const [opencalc, setOpenCalc] = useState(false)
+  const [firstNumber, setFirstName] = useState(0)
+  const [secondNumber, setSecondNumber] = useState(0)
+  const [result, setResult] = useState(0)
 
 
   const [form] = Form.useForm();
@@ -112,19 +119,19 @@ const SupplierPayment = () => {
 
   }, [])
 
-  const transactionType=[
-  { value: 'cash', label: 'Cash' },
-  { value: 'bank_transfer', label: 'Bank Transfer' },
-  { value: 'credit_card', label: 'Credit Card' },
-  { value: 'cheque', label: 'Cheque' },
-  { value: 'mobile_payment', label: 'Mobile Payment' },
-  { value: 'other', label: 'Other' },
+  const transactionType = [
+    { value: 'cash', label: 'Cash' },
+    { value: 'bank_transfer', label: 'Bank Transfer' },
+    { value: 'credit_card', label: 'Credit Card' },
+    { value: 'cheque', label: 'Cheque' },
+    { value: 'mobile_payment', label: 'Mobile Payment' },
+    { value: 'other', label: 'Other' },
   ]
 
-   const paymentType = [
-  { value: 'cr', label: 'Credit' },
-  { value: 'dr', label: 'Debit' },
- ];
+  const paymentType = [
+    { value: 'cr', label: 'Credit' },
+    { value: 'dr', label: 'Debit' },
+  ];
   //fetch payment all data
   const { data: paymentData, error: pError } = useSWR("/api/payment/get", fetcher);
 
@@ -185,7 +192,7 @@ const SupplierPayment = () => {
   const userName = userInfo?.fullname || "";
 
   //print function
-    const handlePrint = async (record) => {
+  const handlePrint = async (record) => {
     try {
       const supplier = await handleSup(record.supplierId);
 
@@ -279,7 +286,7 @@ const SupplierPayment = () => {
         <table>
           <thead>
             <tr>
-              <th>No</th><th>Payment Type</th><th>Transaction Type</th>
+              <th>No</th><th>Payment Type</th><th>Tr-Type</th>
               <th>Currency</th><th>Amount</th><th>Exchanged Amount (${record.currency})</th>
               <th>Belongs To</th><th>Description</th>
             </tr>
@@ -357,10 +364,10 @@ const SupplierPayment = () => {
       toast.error("Failed to delete payment record");
     }
   };
-  
+
   const handleEdit = async (record) => {
     setSupplierData(record);
-
+    setAmount(Number(record.amount));
     form.setFieldsValue({
       ...record,
       supplierId: record.supplierId,
@@ -403,18 +410,20 @@ const SupplierPayment = () => {
     { title: <span className="text-sm md:!text-1xl font-semibold">Amount</span>, dataIndex: 'amount', key: 'amount', width: 80 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Currency</span>, dataIndex: 'currency', key: 'currency', width: 20 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Exched Amt</span>, dataIndex: 'exchangedAmt', key: 'exchangedAmt', width: 60 },
-    { title: <span className="text-sm md:!text-1xl font-semibold">Trans-Type</span>, dataIndex: 'paymentType', key: 'p-type', width: 60 ,
-       render: (text) => (
-    <span
-      style={{
-        color: text.toLowerCase() === 'dr' ? 'red' : 'inherit', // red if 'dr', default otherwise
-        fontWeight: 'bold',
-      }}>
-      {text}
-    </span>
-    )},
+    {
+      title: <span className="text-sm md:!text-1xl font-semibold">Trans-Type</span>, dataIndex: 'paymentType', key: 'p-type', width: 60,
+      render: (text) => (
+        <span
+          style={{
+            color: text.toLowerCase() === 'dr' ? 'red' : 'inherit', // red if 'dr', default otherwise
+            fontWeight: 'bold',
+          }}>
+          {text}
+        </span>
+      )
+    },
     { title: <span className="text-sm md:!text-1xl font-semibold">Belong To</span>, dataIndex: 'companyName', key: 'company', width: 60 },
-    
+
     { title: <span className="text-sm md:!text-1xl font-semibold">Description</span>, dataIndex: 'description', key: 'description', width: 150 },
 
     // print
@@ -507,12 +516,12 @@ const SupplierPayment = () => {
 
   ];
 
- const dataSource = paymentData?.data
-  .filter(item => item.isPassed === false && item.entity === 'supplier')
-  .map(item => ({
-    ...item,
-    key: item._id, 
-  }));
+  const dataSource = paymentData?.data
+    .filter(item => item.isPassed === false && item.entity === 'supplier')
+    .map(item => ({
+      ...item,
+      key: item._id,
+    }));
   //currency change
   const currencyChange = (e) => {
 
@@ -582,17 +591,8 @@ const SupplierPayment = () => {
         supplierName: selectedSupplier.supplierName || values.supplierName,
         transBy: selectedSupplier?.supplierName,
         entity: "supplier",
-        // productId: selectedProduct?._id || values.productId,
-        // productName: selectedProduct?.productName || values.productName,
-
         companyId: selectedCompany?._id || values.companyId,
         companyName: selectedCompany?.companyName || values.companyName,
-
-        // warehouseId: selectedStock?._id || values.warehouseId,
-        // warehouseName: selectedStock?.stockName || values.warehouseName,
-
-        // dealerId: selectedDealer?._id || values.dealerId,
-        // dealerName: selectedDealer?.dealerName || values.dealerName,
       };
 
       // Update payment
@@ -607,8 +607,6 @@ const SupplierPayment = () => {
       toast.error("Update Failed");
     }
   };
-
-
 
 
   useEffect(() => {
@@ -627,9 +625,6 @@ const SupplierPayment = () => {
   useEffect(() => {
     form.setFieldsValue({ exchangedAmt: exchangedAmt });
   }, [exchangedAmt, form]);
-
-
-
   const handleAmount = (value) => {
     setSelectAmount(value);
 
@@ -652,6 +647,9 @@ const SupplierPayment = () => {
   const initialpaymentDate = supplierData?.paymentDate
     ? dayjs(supplierData.paymentDate, "DD-MM-YYYY")
     : null;
+
+
+
   return (
     <UserLayout>
       <div>
@@ -693,14 +691,7 @@ const SupplierPayment = () => {
                     options={supplierOptions}
                   />
                 </Form.Item>
-                <Form.Item
-                  label="Amount"
-                  name="amount"
-                  rules={[{ required: true, message: "Please enter amount" }]}
-                >
-                  <Input placeholder="Enter item amount"
-                    onChange={(e) => setAmount(Number(e.target.value))} />
-                </Form.Item>
+
                 <Form.Item
                   label="P-No"
                   name="paymentNo"
@@ -708,7 +699,6 @@ const SupplierPayment = () => {
                 >
                   <Input placeholder="Enter item payment Number" />
                 </Form.Item>
-
 
                 <Form.Item
                   label="company"
@@ -734,6 +724,14 @@ const SupplierPayment = () => {
                     options={currencyOptions}
                     onChange={(value) => currencyChange(value)}
                   />
+                </Form.Item>
+                <Form.Item
+                  label="Amount"
+                  name="amount"
+                  rules={[{ required: true, message: "Please enter amount" }]}
+                >
+                  <Input placeholder="Enter item amount"
+                    onChange={(e) => setAmount(Number(e.target.value))} />
                 </Form.Item>
                 <Form.Item label="Exch Amt" name="exchangedAmt">
                   <Input readOnly
@@ -767,8 +765,8 @@ const SupplierPayment = () => {
                 >
                   <DatePicker className="w-full" format="MM/DD/YYYY" />
                 </Form.Item>
-                 <Form.Item
-                  label="Transaction Type"
+                <Form.Item
+                  label="Tr-Type"
                   name="transactionType"
                   rules={[{ required: true, message: "Please Enter company name" }]}
                 >
@@ -802,7 +800,13 @@ const SupplierPayment = () => {
                     className='!text-red-600'
                   />
                 </Form.Item>
-                
+
+                <Form.Item className='!flex !justify-center  !w-full !items-center'>
+
+                  <div>
+                    <ExchangeCalculator />
+                  </div>
+                </Form.Item>
               </div>
 
               <Form.Item
@@ -821,6 +825,7 @@ const SupplierPayment = () => {
                 </Button>
               </Form.Item>
             </Form>
+
           </Card>
 
 
@@ -857,7 +862,11 @@ const SupplierPayment = () => {
 
 
       </div>
+
+      {/* calculation modal */}
+
     </UserLayout>
+
 
 
   )

@@ -243,7 +243,7 @@ const Branding = () => {
                 </div>
               </div>
 
-              {/* ✅ File Upload Field */}
+              {/*  File Upload Field */}
               <div className="flex flex-col md:flex-row gap-2 p-1">
                 <div className="w-full md:w-1/2">
                   <Form.Item label="Brand Logo">
@@ -258,7 +258,7 @@ const Branding = () => {
                     </Upload>
                     {edit && id.logo && !file && (
                       <img
-                        src={`${EPI_URL}${logo}${id.logo}`}
+                        src={`${EPI_URL}/uploads/${id.logo}`}
                         alt="Current Logo"
                         style={{ width: 50, height: 50, marginTop: 10 }}
                       />
