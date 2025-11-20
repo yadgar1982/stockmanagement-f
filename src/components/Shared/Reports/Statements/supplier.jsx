@@ -492,10 +492,10 @@ const Statements = () => {
     setIsModalOpen(true);
   };
   return (
-    <div className="p-0 w-screen h-screen p-4 bg-cover bg-center bg-no-repeat bg-[url('/statement.jpg')]">
+    <div className="p-0 w-[100%] md:w-screen h-screen p-4 bg-cover bg-center bg-no-repeat bg-[url('/statement.jpg')]">
       <div className=' flex flex-col gap-4 p-2'>
         <br></br>
-        <h1 className='md:text-2xl text-zinc-700 font-bold'>Supplier Financial Statements:</h1>
+        <h1 className='md:text-2xl text-zinc-200 font-bold'>Supplier Financial Statements:</h1>
         <br />
         <Button
                   type="text"

@@ -22,6 +22,16 @@ const UserLayout = ({ children }) => {
   const dispatch = useDispatch()
 
 
+const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+useEffect(() => {
+  const handleResize = () => setIsMobile(window.innerWidth < 768);
+  window.addEventListener('resize', handleResize);
+  return () => window.removeEventListener('resize', handleResize);
+}, []);
+
+
+
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const {
@@ -52,8 +62,8 @@ const UserLayout = ({ children }) => {
       label: <span className='md:!text-lg !text-zinc-500 font-semibold'>Inventory</span>,
     },
     {
-      type: 'divider', 
-      key: 'divider-1', 
+      type: 'divider',
+      key: 'divider-1',
     },
     {
       key: 'purchase',
@@ -66,17 +76,17 @@ const UserLayout = ({ children }) => {
       label: <span className='md:!text-lg !text-zinc-500 font-semibold'>Sales</span>,
     },
     {
-      type: 'divider', 
-      key: 'divider-2', 
+      type: 'divider',
+      key: 'divider-2',
     },
     {
       key: 'user',
       icon: < AuditOutlined className='md:!text-xl !text-zinc-500 font-semibold' />,
       label: <span className='md:!text-lg !text-zinc-500 font-semibold'>Reports</span>,
     },
-     {
-      type: 'divider', 
-      key: 'divider-3', 
+    {
+      type: 'divider',
+      key: 'divider-3',
     },
     {
       key: '1',
@@ -88,7 +98,7 @@ const UserLayout = ({ children }) => {
           icon: <DollarOutlined className='!text-zinc-500 md:!text-xl' />,
           label: (
             <span className='text-zinc-500 font-semibold md:!text-lg'>
-              Supplier 
+              Supplier
             </span>
           ),
         },
@@ -97,7 +107,7 @@ const UserLayout = ({ children }) => {
           icon: <DollarOutlined className='!text-zinc-500 md:!text-xl' />,
           label: (
             <span className='text-zinc-500 font-semibold md:!text-lg'>
-              Customer 
+              Customer
             </span>
           ),
         },
@@ -106,7 +116,7 @@ const UserLayout = ({ children }) => {
           icon: <DollarOutlined className='!text-zinc-500 md:!text-xl' />,
           label: (
             <span className='text-zinc-500 font-semibold md:!text-lg'>
-              Dealer 
+              Dealer
             </span>
           ),
         },
@@ -115,7 +125,7 @@ const UserLayout = ({ children }) => {
           icon: <DollarOutlined className='!text-zinc-500 md:!text-xl' />,
           label: (
             <span className='text-zinc-500 font-semibold md:!text-lg'>
-              Other 
+              Other
             </span>
           ),
         }
@@ -125,7 +135,7 @@ const UserLayout = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem("userInfo");
-    navigate("/login");
+    navigate("/");
   }
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
   const avatar = userInfo.avatar;
@@ -179,17 +189,22 @@ const UserLayout = ({ children }) => {
             <LogoutOutlined />
           </Button>
         </Header>
-        <Content
-          style={{
-            margin: '0px 0px',
-            padding: 1,
-            minHeight: 280,
-            background: colorBgContainer,
-
-          }}
-        >
-          {children}
-        </Content>
+       <Content
+  style={{
+    margin: 0,
+    padding: 0,
+    minHeight: '100vh',
+    width: collapsed ? 'calc(100vw - 80px)' : 'calc(100vw - 200px)',
+    backgroundImage: isMobile ? "url('/statement.jpg')" : 'none',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
+    transition: 'width 0.2s',
+  }}
+>
+  {children}
+</Content>
+         
       </Layout>
     </Layout>
   );

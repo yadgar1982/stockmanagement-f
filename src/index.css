@@ -88,4 +88,16 @@ body {
 .ant-tabs-tabpane {
   height: 100% !important;
   width: 80% !important;
+  background-color: transparent !important;
+}
+
+.small-tabs .ant-tabs-tab {
+  padding: 4px 12px !important;   /* Reduces height */
+  height: 32px !important;         /* Set desired height */
+}
+
+.small-tabs .ant-tabs-tab-btn {
+  font-size: 13px;     
+  justify-content: center !important;
+  align-items: center !important;            /* Optional: smaller text */
 }
