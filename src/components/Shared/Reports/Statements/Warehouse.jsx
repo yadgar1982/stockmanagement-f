@@ -143,6 +143,7 @@ const Statements = () => {
       dayjs(e.date).isSameOrBefore(end, "day")
   );
 
+<<<<<<< HEAD
   // Date range selected but no matches
   if (filtered.length === 0) {
     setFilteredStatement(null);     // IMPORTANT CHANGE
@@ -150,6 +151,13 @@ const Statements = () => {
   }
 
   // Matches found
+=======
+  if (filtered.length === 0) {
+    setFilteredStatement(null);
+    return;
+  }
+
+>>>>>>> branch7
   setFilteredStatement(filtered);
 }, [dateRange, statementWithBalance]);
 
@@ -284,7 +292,7 @@ const Statements = () => {
        padding: 8px 0;
        border-top: 1px solid #dee2e6;
      ">
-       Generated on ${dayjs().format("DD/MM/YYYY HH:mm")}<br/>
+       Generated on ${dayjs().format("DD/MM/YYYY")}<br/>
        Powered by ${branding[0].name}
      </footer>
  </div>
