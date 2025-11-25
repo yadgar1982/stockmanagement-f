@@ -57,14 +57,14 @@ const Statements = () => {
     if (!selectedCurrency) return toast.error("Select Currency to get report");
 
     // Use filtered statement if exists, otherwise full statement
+    if (filteredStatement === null) return toast.error("No data found for selected date range!");
     let dataToPrint = filteredStatement.length ? filteredStatement : statementWithBalance;
-    console.log("data to print",dataToPrint)
     // Filter by selected currency — USD or any other
     dataToPrint = dataToPrint.filter(
       r => String(r.currency).toUpperCase() === String(selectedCurrency).toUpperCase()
     );
 
-    if (!dataToPrint.length) return toast.alert("No data to print for selected currency!");
+    if (!dataToPrint.length) return toast.error("No data to print for selected currency!");
 
     // Totals (use localCredit/localDebit)
     const totalCredit = dataToPrint.reduce((sum, r) => sum + (r.localCredit || 0), 0);
@@ -128,18 +128,31 @@ const Statements = () => {
   }, [myPurchaseData, mySaleData]);
 
   // Date filter
-  useEffect(() => {
-    if (!dateRange || dateRange.length !== 2 || !dateRange[0] || !dateRange[1]) {
-      setFilteredStatement(statementWithBalance);
-      return;
-    }
+ useEffect(() => {
+  // No date range → show all data
+  if (!dateRange || dateRange.length !== 2 || !dateRange[0] || !dateRange[1]) {
+    setFilteredStatement(statementWithBalance);
+    return;
+  }
 
-    const [start, end] = dateRange;
-    const filtered = statementWithBalance.filter(
-      e => dayjs(e.date).isSameOrAfter(start, "day") && dayjs(e.date).isSameOrBefore(end, "day")
-    );
-    setFilteredStatement(filtered);
-  }, [dateRange, statementWithBalance]);
+  const [start, end] = dateRange;
+
+  const filtered = statementWithBalance.filter(
+    e =>
+      dayjs(e.date).isSameOrAfter(start, "day") &&
+      dayjs(e.date).isSameOrBefore(end, "day")
+  );
+
+  // Date range selected but no matches
+  if (filtered.length === 0) {
+    setFilteredStatement(null);     // IMPORTANT CHANGE
+    return;
+  }
+
+  // Matches found
+  setFilteredStatement(filtered);
+}, [dateRange, statementWithBalance]);
+
 
   const handleCurrencyStatement = (e) => {
 
@@ -287,9 +300,10 @@ const Statements = () => {
     if (!selectedCurrency) return toast.error("Select Currency");
 
     // Use filtered statement if exists, otherwise full statement
+    if (filteredStatement === null) return toast.error("No data found for selected date range!");
     let dataToPrint = filteredStatement.length ? filteredStatement : statementWithBalance;
-
-    handleUSDStatement(dataToPrint);
+  
+  handleUSDStatement(dataToPrint);
   };
 
   const handleUSDStatement = (dataToPrint) => {

@@ -22,7 +22,7 @@ import { Avatar, Button, Layout, Menu, theme } from 'antd';
 const { Header, Sider, Content } = Layout;
 
 const AdminLayout = ({ children }) => {
-  const logo = import.meta.env.VITE_LOGO_URL;
+
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const siderWidth = 200; // default Sider width
@@ -168,7 +168,7 @@ const AdminLayout = ({ children }) => {
           <Avatar
             className="!text-2xl !bg-white !text-orange-500 !font-bold"
             size={60}
-            src={logo}
+            // src="/logo.pngd"
             icon={<UserOutlined />}
           />
         </div>

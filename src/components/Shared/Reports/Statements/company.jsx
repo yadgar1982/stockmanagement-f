@@ -32,7 +32,7 @@ const Statements = () => {
   const [selectedCurrency, setSelectedCurrency] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const {companys } = useSelector(state => state.company);
+  const { companys } = useSelector(state => state.company);
   const allCompany = companys?.data || [];
 
   const { purchase: purchases } = useSelector(state => state.purchase);
@@ -56,11 +56,12 @@ const Statements = () => {
   const handlecompanystatement = (value) => {
     setCoId(value);
   };
- const handleData = () => {
+  const handleData = () => {
     if (!myCompanyData) return toast.error("Select a Company first to get statement!");
     if (!selectedCurrency) return toast.error("Select Currency to get Data");
 
     // Use filtered statement if exists, otherwise full statement
+    if (filteredStatement === null) return toast.error("No data found for selected date range!");
     let dataToPrint = filteredStatement.length ? filteredStatement : statementWithBalance;
 
     // Filter by selected currency — USD or any other
@@ -72,7 +73,7 @@ const Statements = () => {
 
     // Totals (use localCredit/localDebit)
     const totalCredit = dataToPrint.reduce((sum, r) => sum + (r.localCredit || 0), 0);
-     const totalDebit = dataToPrint.reduce((sum, r) => sum + (r.localDebit || 0), 0);
+    const totalDebit = dataToPrint.reduce((sum, r) => sum + (r.localDebit || 0), 0);
     const closingBalance = totalCredit - totalDebit;
 
     handlePrintStatement(dataToPrint);
@@ -146,11 +147,18 @@ const Statements = () => {
       setFilteredStatement(statementWithBalance);
       return;
     }
-
     const [start, end] = dateRange;
+
     const filtered = statementWithBalance.filter(
-      e => dayjs(e.date).isSameOrAfter(start, "day") && dayjs(e.date).isSameOrBefore(end, "day")
+      e =>
+        dayjs(e.date).isSameOrAfter(start, "day") &&
+        dayjs(e.date).isSameOrBefore(end, "day")
     );
+
+    if (filtered.length === 0) {
+      setFilteredStatement(null);
+      return;
+    }
     setFilteredStatement(filtered);
   }, [dateRange, statementWithBalance]);
 
@@ -158,22 +166,22 @@ const Statements = () => {
     setSelectedCurrency(e);
   }
 
- const handlePrintStatement = (dataToPrint) => {
-     if (!selectedCurrency) return;
- 
-     const newWindow = window.open("", "_blank");
-     if (!newWindow) return;
-     const totalCredit = dataToPrint.reduce((sum, r) => sum + (r.localCredit || 0), 0);
-     const totalDebit = dataToPrint.reduce((sum, r) => sum + (r.localDebit || 0), 0);
-     const totalQty = dataToPrint.reduce((sum, r) => sum + (r.quantity || 0), 0);
-     const uniqueUnits = [...new Set(dataToPrint.map(e => e.unit).filter(Boolean))];
+  const handlePrintStatement = (dataToPrint) => {
+    if (!selectedCurrency) return;
+
+    const newWindow = window.open("", "_blank");
+    if (!newWindow) return;
+    const totalCredit = dataToPrint.reduce((sum, r) => sum + (r.localCredit || 0), 0);
+    const totalDebit = dataToPrint.reduce((sum, r) => sum + (r.localDebit || 0), 0);
+    const totalQty = dataToPrint.reduce((sum, r) => sum + (r.quantity || 0), 0);
+    const uniqueUnits = [...new Set(dataToPrint.map(e => e.unit).filter(Boolean))];
     const unit = uniqueUnits.length === 1 ? uniqueUnits[0] : "";
-     const closingBalance = totalCredit - totalDebit;
- 
-     newWindow.document.title = `Statement - ${myCompanyData.fullname}`;
-     let runningBalance = 0; // Initialize running balance
- 
-     newWindow.document.body.innerHTML = `
+    const closingBalance = totalCredit - totalDebit;
+
+    newWindow.document.title = `Statement - ${myCompanyData.fullname}`;
+    let runningBalance = 0; // Initialize running balance
+
+    newWindow.document.body.innerHTML = `
  <div style="font-family: Arial; padding: 10px; background: white; color: #212529;">
    <div style="
      display: flex; 
@@ -233,21 +241,21 @@ const Statements = () => {
        </thead>
        <tbody>
          ${dataToPrint.map((e) => {
-       const credit = e.localCredit || 0;
-       const debit = e.localDebit || 0;
-       
-       runningBalance += credit - debit; // running balance
-       return `
+      const credit = e.localCredit || 0;
+      const debit = e.localDebit || 0;
+
+      runningBalance += credit - debit; // running balance
+      return `
              <tr>
                <td style="border:1px solid #dee2e6;padding:8px;">${dayjs(e.date).format("DD/MM/YYYY")}</td>
                <td style="border:1px solid #dee2e6;padding:8px;">${e.description || ""}</td>
-               <td style="border:1px solid #dee2e6;padding:8px;">${e.quantity != null ? e.quantity.toLocaleString(undefined, {minimumFractionDigits: 2,maximumFractionDigits: 2}): ""}${e.unit ? " " + e.unit : ""}</td>
+               <td style="border:1px solid #dee2e6;padding:8px;">${e.quantity != null ? e.quantity.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""}${e.unit ? " " + e.unit : ""}</td>
                <td style="border:1px solid #dee2e6;padding:8px;text-align:right;">${credit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                <td style="border:1px solid #dee2e6;padding:8px;text-align:right;">${debit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                <td style="border:1px solid #dee2e6;padding:8px;text-align:right;color:${runningBalance < 0 ? "red" : "black"};">${runningBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
              </tr>
            `;
-     }).join("")}
+    }).join("")}
        </tbody>
        <tfoot>
          <tr>
@@ -273,40 +281,44 @@ const Statements = () => {
        padding: 8px 0;
        border-top: 1px solid #dee2e6;
      ">
-       Generated on ${dayjs().format("DD/MM/YYYY HH:mm")}<br/>
+       Generated on ${dayjs().format("DD/MM/YYYY")}<br/>
        Powered by ${branding[0].name}
      </footer>
  </div>
      `;
- 
- 
-     newWindow.print();
-   };
-   //USD statement
-     const handleUSDData = () => {
-   
-       if (!myCompanyData) return toast.error("Select a company first to get statement!");
-       if (!selectedCurrency) return toast.error("Select Currency");
-   
-       // Use filtered statement if exists, otherwise full statement
-       let dataToPrint = filteredStatement.length ? filteredStatement : statementWithBalance;
-   
-       handleUSDStatement(dataToPrint);
-     };
-   
-     const handleUSDStatement = (dataToPrint) => {
-       if (!selectedCurrency) return;
-   
-       const newWindow = window.open("", "_blank");
-       if (!newWindow) return;
-   
-       const totalCredit = dataToPrint.reduce((sum, r) => sum + (r.credit || 0), 0);
-       const totalDebit = dataToPrint.reduce((sum, r) => sum + (r.debit || 0), 0);
-       const closingBalance = totalCredit - totalDebit;
-   
-       newWindow.document.title = `Statement - ${myCompanyData.fullname}`;
-   
-       newWindow.document.body.innerHTML = `
+
+
+    newWindow.print();
+  };
+  //USD statement
+  const handleUSDData = () => {
+
+    if (!myCompanyData) return toast.error("Select a company first to get statement!");
+    if (!selectedCurrency) return toast.error("Select Currency");
+
+    // Use filtered statement if exists, otherwise full statement
+
+    if (filteredStatement === null) return toast.error("No data found for selected date range!");
+    let dataToPrint = filteredStatement.length
+      ? filteredStatement
+      : statementWithBalance;
+
+    handleUSDStatement(dataToPrint);
+  };
+
+  const handleUSDStatement = (dataToPrint) => {
+    if (!selectedCurrency) return;
+
+    const newWindow = window.open("", "_blank");
+    if (!newWindow) return;
+
+    const totalCredit = dataToPrint.reduce((sum, r) => sum + (r.credit || 0), 0);
+    const totalDebit = dataToPrint.reduce((sum, r) => sum + (r.debit || 0), 0);
+    const closingBalance = totalCredit - totalDebit;
+
+    newWindow.document.title = `Statement - ${myCompanyData.fullname}`;
+
+    newWindow.document.body.innerHTML = `
        <div style="font-family: Arial; padding: 10px; background: white; color: #212529;">
           <div style="
        display: flex; 
@@ -376,24 +388,24 @@ const Statements = () => {
            </thead>
            <tbody>
              ${dataToPrint
-           .map((e) => {
-             const credit = e.credit || 0;
-             const debit = e.debit || 0;
-             const balance = e.balance;
-             return `
+        .map((e) => {
+          const credit = e.credit || 0;
+          const debit = e.debit || 0;
+          const balance = e.balance;
+          return `
                  <tr>
                    <td style="border:1px solid #dee2e6;padding:8px;">${dayjs(
-               e.date
-             ).format("DD/MM/YYYY")}</td>
+            e.date
+          ).format("DD/MM/YYYY")}</td>
                    <td style="border:1px solid #dee2e6;padding:8px;">${e.description || ""}</td>
                    <td style="border:1px solid #dee2e6;padding:8px;text-align:right;">${credit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                    <td style="border:1px solid #dee2e6;padding:8px;text-align:right;">${debit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                    <td style="border:1px solid #dee2e6;padding:8px;text-align:right;color:${balance <= 0 ? "red" : "black"
-               };">${balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+            };">${balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                  </tr>
                `;
-           })
-           .join("")}
+        })
+        .join("")}
            </tbody>
            <tfoot>
              <tr>
@@ -423,10 +435,10 @@ const Statements = () => {
    </footer>
        </div>
      `;
-   
-   
-       newWindow.print();
-     };
+
+
+    newWindow.print();
+  };
 
   const showModal = () => setIsModalOpen(true);
 

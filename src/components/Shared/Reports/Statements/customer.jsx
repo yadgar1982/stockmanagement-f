@@ -109,7 +109,6 @@ const Statements = () => {
   // Date filter
   useEffect(() => {
     if (!dateRange || dateRange.length !== 2 || !dateRange[0] || !dateRange[1]) {
-      // If no dates selected, show full statement
       setFilteredStatement(statementWithBalance);
       return;
     }
@@ -120,6 +119,11 @@ const Statements = () => {
         dayjs(e.date).isSameOrAfter(start, "day") &&
         dayjs(e.date).isSameOrBefore(end, "day")
     );
+
+    if (filtered.length === 0) {
+      setFilteredStatement(null);
+      return;
+    }
     setFilteredStatement(filtered);
   }, [dateRange, statementWithBalance]);
 
@@ -139,7 +143,15 @@ const Statements = () => {
     }
 
     // Use filtered statement if exists, otherwise full statement
-    let dataToPrint = filteredStatement.length ? filteredStatement : statementWithBalance;
+    if (filteredStatement === null) {
+      return toast.error("No data found for selected date range!");
+    }
+
+    let dataToPrint =
+      Array.isArray(filteredStatement) && filteredStatement.length > 0
+        ? filteredStatement
+        : statementWithBalance;
+
 
     // Filter by selected currency — USD or any other
     dataToPrint = dataToPrint.filter(
@@ -276,7 +288,15 @@ const Statements = () => {
     if (!selectedCurrency) return toast.error("Select Currency");
 
     // Use filtered statement if exists, otherwise full statement
-    let dataToPrint = filteredStatement.length ? filteredStatement : statementWithBalance;
+    if (filteredStatement === null) {
+      return toast.error("No data found for selected date range!");
+    }
+
+    let dataToPrint =
+      Array.isArray(filteredStatement) && filteredStatement.length > 0
+        ? filteredStatement
+        : statementWithBalance;
+
 
     handleUSDStatement(dataToPrint);
   };
@@ -423,7 +443,7 @@ const Statements = () => {
     <div className="relative w-84 md:w-screen bg-orange-50 h-[77vh] ">
       <img src={logo} alt="Watermark" className="absolute inset-0 m-auto opacity-15 w-7/9 h-7/9 object-contain pointer-events-none" />
       <div className=' flex flex-col gap-4 p-2'>
-         <h1 className="md:text-3xl text-2xl text-orange-500 font-extrabold drop-shadow-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>
+        <h1 className="md:text-3xl text-2xl text-orange-500 font-extrabold drop-shadow-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>
           Customer Financial Statements:
         </h1>
 

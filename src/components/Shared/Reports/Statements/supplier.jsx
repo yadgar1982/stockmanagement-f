@@ -109,11 +109,12 @@ const Statements = () => {
 
   // Date filter
   useEffect(() => {
+    // No date range → show all data
     if (!dateRange || dateRange.length !== 2 || !dateRange[0] || !dateRange[1]) {
-      // If no dates selected, show full statement
       setFilteredStatement(statementWithBalance);
       return;
     }
+
     const [start, end] = dateRange;
 
     const filtered = statementWithBalance.filter(
@@ -121,6 +122,12 @@ const Statements = () => {
         dayjs(e.date).isSameOrAfter(start, "day") &&
         dayjs(e.date).isSameOrBefore(end, "day")
     );
+    if (filtered.length === 0) {
+      setFilteredStatement(null);
+      return;
+    }
+
+    // Matches found
     setFilteredStatement(filtered);
   }, [dateRange, statementWithBalance]);
 
@@ -140,7 +147,14 @@ const Statements = () => {
     }
 
     // Use filtered statement if exists, otherwise full statement
-    let dataToPrint = filteredStatement.length ? filteredStatement : statementWithBalance;
+    if (filteredStatement === null) {
+      return toast.error("No data found for selected date range!");
+    }
+
+    let dataToPrint =
+      Array.isArray(filteredStatement) && filteredStatement.length > 0
+        ? filteredStatement
+        : statementWithBalance;
 
     // Filter by selected currency — USD or any other
     dataToPrint = dataToPrint.filter(
@@ -277,7 +291,14 @@ const Statements = () => {
     if (!selectedCurrency) return toast.error("Select Currency");
 
     // Use filtered statement if exists, otherwise full statement
-    let dataToPrint = filteredStatement.length ? filteredStatement : statementWithBalance;
+    if (filteredStatement === null) {
+      return toast.error("No data found for selected date range!");
+    }
+
+    let dataToPrint =
+      Array.isArray(filteredStatement) && filteredStatement.length > 0
+        ? filteredStatement
+        : statementWithBalance;
 
     handleUSDStatement(dataToPrint);
   };
