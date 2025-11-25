@@ -34,7 +34,7 @@ const NotFound = lazy(() => import("./components/Home/pages/NotFound"));
 function App() {
   return (
     <Provider store={store}>
-      <ToastContainer position="top-center" autoClose={1500} />
+      <ToastContainer position="top-center" autoClose={1500} newestOnTop closeOnClick pauseOnHover />
       <Router>
         {/* Suspense fallback shows while lazy components load */}
         <Suspense fallback={<div style={{textAlign:'center', marginTop:'50px'}}>Loading...</div>}>
