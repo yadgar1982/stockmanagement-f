@@ -39,7 +39,7 @@ const Login = () => {
 
       // navigate by role
       if (user.role === "admin") return navigate("/admin");
-      if (user.role === "user") return navigate("/user");
+      if (user.role === "user") return navigate("/inventory");
       return navigate("/login");
 
     } catch (error) {
