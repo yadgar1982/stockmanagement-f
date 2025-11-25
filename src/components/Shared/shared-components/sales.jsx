@@ -29,7 +29,7 @@ const Sales = () => {
   const dispatch = useDispatch();
 
   const token = cookies.get("authToken")
-  const [purchases, setPurchases] = useState([]);
+  // const [purchases, setPurchases] = useState([]);
   const [salesData, setSalesData] = useState([]);
   const [unit, setUnit] = useState("");
   const [qty, setQty] = useState(0);
@@ -171,156 +171,7 @@ const Sales = () => {
 
 
   //print function
-  //  const handlePrint = async (record) => {
-
-  //       const createdDate = new Date(record.createdAt);
-
-  //       // Add 1 month
-  //       const nextMonthDate = new Date(createdDate);
-  //       nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
-  //       const formattedDate = nextMonthDate.toLocaleDateString();
-  //     try {
-  //       //  Fetch customer data first
-  //       const customer = await handleCus(record.customerId);
-
-  //       // Create a hidden iframe for printing
-  //       const iframe = document.createElement("iframe");
-  //       iframe.style.position = "fixed";
-  //       iframe.style.top = "0";
-  //       iframe.style.left = "0";
-  //       iframe.style.width = "0";
-  //       iframe.style.height = "0";
-  //       iframe.style.border = "0";
-  //       document.body.appendChild(iframe);
-
-  //       const doc = iframe.contentDocument || iframe.contentWindow.document;
-
-
-  //       const style = doc.createElement("style");
-  //       style.textContent = `
-  //       body {
-  //         font-family: Arial, sans-serif;
-  //         margin: 50px 20px 20px 20px; /* push down content */
-  //       }
-  //       header {
-  //         display: flex;
-  //         justify-content: space-between;
-  //         margin-bottom: 40px;
-  //       }
-  //       .company, .vendor {
-  //         width: 48%;
-  //       }
-  //       .company img {
-  //         max-width: 100px;
-  //         margin-bottom: 10px;
-  //       }
-  //       h1 {
-  //         text-align: center;
-  //         margin-bottom: 20px;
-  //       }
-  //       table {
-  //         width: 100%;
-  //         border-collapse: collapse;
-  //         margin-bottom: 20px;
-  //       }
-  //       th, td {
-  //         border: 1px solid #000;
-  //         padding: 8px;
-  //         text-align: left;
-  //       }
-  //       th {
-  //         background-color: #f0f0f0;
-  //       }
-  //       tfoot td {
-  //         font-weight: bold;
-  //       }
-  //       .footer {
-  //         margin-top: 30px;
-  //         font-size: 0.9em;
-  //       }
-  //     `;
-  //       doc.head.appendChild(style);
-
-  //      // Add HTML content
-  //       doc.body.innerHTML = `
-
-  //       <header>
-  //          <!-- LEFT: Company -->
-  //         <div class="company">
-  //           <img src="${logo}"  width="40" crossorigin="anonymous" />
-  //           <br>
-  //            <strong>Company Details::</strong><br>
-  //           Seller:<strong>${branding[0]?.name}</strong><br>
-  //           Address: ${branding[0]?.address || "-"}<br>
-  //           Phone: ${branding[0]?.mobile || "-"}<br>
-  //           Email: ${branding[0]?.email || "-"}<br>
-  //           Invoice Date: ${record?.createdAt ? new Date(record.createdAt).toLocaleDateString() : "-"}<br>
-  //           Last Due Date: ${formattedDate}<br>
-  //           PO #: ${record._id}
-  //           <img src="${logo}"  width="40" crossorigin="anonymous" />
-  //         </div>
-
-  //         <!-- RIGHT: Customer -->
-  //         <div class="vendor">
-  //           <strong>Customer Details:</strong><br>
-  //           Buyer: ${customer.fullname || "-"}<br>
-  //           Address: ${customer.country || "-"}<br>
-  //           Phone: ${customer.mobile || "-"}<br>
-  //           Email: ${customer.email || "-"}<br>
-
-  //         </div>
-  //       </header>
-
-  //       <h1>Invoice — ${record.productName}</h1>
-
-  //       <table>
-  //         <thead>
-  //           <tr>
-  //             <th>No</th>
-  //             <th>Details</th>
-  //             <th>Qty</th>
-  //             <th>Unit</th>
-  //             <th>Unit-Price USD</th>
-  //             <th>Exch Price (${record.currency})</th>
-  //             <th>Belong-To</th>
-  //             <th>Total USD</th>
-  //           </tr>
-  //         </thead>
-  //         <tbody>
-  //           <tr>
-  //             <td>1</td>
-  //             <td>${record.productName}</td>
-  //             <td>${record.quantity}</td>
-  //             <td>${record.unit}</td>
-  //             <td>${record.unitCost}</td>
-  //             <td>${record.exchangedAmt}</td>
-  //             <td>${record.companyName}</td>
-  //             <td>${record.quantity * record.unitCost}</td>
-  //           </tr>
-  //         </tbody>
-  //         <tfoot>
-  //           <tr>
-  //             <td colspan="7">Subtotal</td>
-  //             <td>${record.quantity * record.unitCost}</td>
-  //           </tr>
-  //         </tfoot>
-  //       </table>
-
-  //       <div>Created by: ${record.userName}</div>
-  //       <div class="footer">
-  //         If you have any questions about this order, please contact the receiver.
-  //       </div>
-  //     `;
-
-  //       iframe.contentWindow.focus();
-  //       iframe.contentWindow.print();
-
-
-  //       setTimeout(() => document.body.removeChild(iframe), 500);
-  //     } catch (err) {
-  //       console.error("Failed to fetch customer or print:", err);
-  //     }
-  //   };
+ 
   const handlePrint = async (record) => {
     try {
       const createdDate = new Date(record.createdAt);
@@ -869,23 +720,25 @@ const Sales = () => {
         <ToastContainer position="top-right" autoClose={3000} />
         <div className="p-4 bg-zinc-100">
           {/* Sales Form */}
-          <div className='flex w-full gap-4 items-center flex item-center justify-between bg-zinc-200'>
+          <div className='flex w-full gap-4 items-center flex item-center justify-between bg-zinc-200 p-2'>
             <h2 className='text-sm md:text-4xl p-2 text-white font-bold [text-shadow:2px_2px_4px_rgba(0,0,0,0.5)]'>Create Sale Record</h2>
-
-            <div className='mb-4 w-[50%] flex justify-end '>
-              <ExchangeCalculator/>
-          </div>
             <div> {productQty && (
-              <div className='text-red-500 mt-3 md:text-1xl text-sm mb-2'>
-                Availible Qty: {productQty - productSaleQty},{productUnit || null}
+              <div className='text-yellow-200 bg-blue-900 font-bold p-2 mt-3 md:text-1xl text-sm mb-2'>
+                <span className='text-white'>Availible Qty:</span> {productQty - productSaleQty},{productUnit || null}
               </div>
             )}</div>
+            <div className='mb-4 w-[50%] flex justify-end '>
+              <ExchangeCalculator />
+            </div>
+
           </div>
           <Card className="mb-0 shadow-md !rounded-none ">
             <Form
-              layout="vertical"
-              onFinish={edit ? onUpdate : onFinish}
               form={form}
+              layout="vertical"
+
+              onFinish={edit ? onUpdate : onFinish}
+              
               initialValues={{ userName: userName, salesDate: initialSalesDate }}
               size='small'
 
@@ -987,7 +840,7 @@ const Sales = () => {
                     onChange={(value) => currencyChange(value)}
                   />
                 </Form.Item>
-                <Form.Item  label={<span style={{ color: 'red' }}>Exch Amt</span>} name="exchangedAmt">
+                <Form.Item label={<span style={{ color: 'red' }}>Exch Amt</span>} name="exchangedAmt">
                   <Input readOnly
                   />
                 </Form.Item>

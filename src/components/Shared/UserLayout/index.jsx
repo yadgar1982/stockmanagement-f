@@ -19,18 +19,19 @@ import { Avatar, Button, Divider, Layout, Menu, theme } from 'antd';
 const { Header, Sider, Content } = Layout;
 
 const UserLayout = ({ children }) => {
+
+  const logo = import.meta.env.VITE_LOGO_URL;
   const dispatch = useDispatch()
+  const [controlledCollapsed, setControlledCollapsed] = useState(false);
+  const [isBroken, setIsBroken] = useState(false);
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
-const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-
-useEffect(() => {
-  const handleResize = () => setIsMobile(window.innerWidth < 768);
-  window.addEventListener('resize', handleResize);
-  return () => window.removeEventListener('resize', handleResize);
-}, []);
-
-
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsBroken(window.innerWidth < 768);
+    }
+  }, []);
 
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
@@ -47,6 +48,7 @@ useEffect(() => {
     dispatch(fetchBranding())
 
   }, [])
+
   useEffect(() => {
     // save to localStorage **after brandings are loaded**
     if (brandings && brandings.length > 0) {
@@ -141,11 +143,17 @@ useEffect(() => {
   const avatar = userInfo.avatar;
   return (
     <Layout className='h-screen'>
-      <Sider trigger={null} collapsible collapsed={collapsed} className='!bg-zinc-100 !border-r !border-zinc-200 !border-sm'>
-        <div className="demo-logo-vertical" />
+      <Sider breakpoint="md"
+        collapsedWidth={80}
+        collapsed={controlledCollapsed}
+        onBreakpoint={(broken) => {
+          setIsBroken(broken);
+          setControlledCollapsed(broken);
+        }} className='!bg-zinc-200 !border-r !border-zinc-200 !border-sm'>
+
         <div className='w-full flex items-center !shadow-sm !shadow-black justify-center !z-10 p-0.5 bg-[#B8860B]'>
           <Avatar className='!text-2xl !bg-white !text-zinc-500 !font-bold' size={60}
-            src={avatar ? avatar : "./logo.png"}
+            src={logo}
           >
 
           </Avatar>
@@ -178,33 +186,37 @@ useEffect(() => {
               height: 64,
             }}
           />
-          <Button
-            className="px-4 py-2 rounded-lg text-black font-bold 
-         bg-gradient-to-r from-[#D4AF37] to-[#F7E27A] 
-         hover:from-[#F7E27A] hover:to-[#D4AF37] 
-         transition-all duration-300"
-            onClick={logout}
-          >
-            <span className='!text-lg'>Logout</span>
-            <LogoutOutlined />
-          </Button>
+          <div className='flex  gap-3 items-center '>
+            <p className='text-white font-bold md:text-xl'>{userInfo?.fullname}</p>
+            <Button
+              className="px-4 py-2 rounded-lg text-black font-bold 
+                bg-gradient-to-r from-[#D4AF37] to-[#F7E27A] 
+                hover:from-[#F7E27A] hover:to-[#D4AF37] 
+                transition-all duration-300"
+              onClick={logout}
+            >
+              <span className='!text-lg'>Logout</span>
+              <LogoutOutlined />
+
+            </Button>
+          </div>
+
         </Header>
-       <Content
-  style={{
-    margin: 0,
-    padding: 0,
-    minHeight: '100vh',
-    width: collapsed ? 'calc(100vw - 80px)' : 'calc(100vw - 200px)',
-    backgroundImage: isMobile ? "url('/statement.jpg')" : 'none',
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    backgroundRepeat: 'no-repeat',
-    transition: 'width 0.2s',
-  }}
->
-  {children}
-</Content>
-         
+        <Content
+          style={{
+            margin: 0,
+            padding: 0,
+            minHeight: '81vh',
+            backgroundImage: isMobile ? "url('/statement.jpg')" : 'none',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            transition: 'width 0.2s',
+          }}
+        >
+          {children}
+        </Content>
+
       </Layout>
     </Layout>
   );

@@ -5,6 +5,9 @@ import { StockOutlined, AccountBookOutlined, UserOutlined, ShopOutlined, TeamOut
 import UserLayout from '../Shared/UserLayout'
 import SupplierStatements from '../Shared/Reports/Statements/supplier';
 import CustomerStatements from '../Shared/Reports/Statements/customer';
+import DealerStatements from '../Shared/Reports/Statements/dealer';
+import Company from '../Shared/Reports/Statements/company';
+import Warehouse from '../Shared/Reports/Statements/Warehouse';
 const User = () => {
   const [size, setSize] = useState('small');
 
@@ -61,7 +64,7 @@ const User = () => {
   ),
   children: (
     <div className="bg-white h-screen w-full">
-      <CustomerStatements />
+      <DealerStatements/>
     </div>
   ),
 },
@@ -80,7 +83,25 @@ const User = () => {
   ),
   children: (
     <div className="bg-white h-screen w-full">
-      <CustomerStatements />
+      <Company/>
+    </div>
+  ),
+},
+{
+  key: "5",
+  label: (
+    <Tooltip title="Warehouse">
+      <span className="hidden md:block">Warehouse</span>
+    </Tooltip>
+  ),
+  icon: (
+    <Tooltip title="Warehouse">
+      <BankOutlined className="md:!hidden flex justify-center text-lg pt-4" />
+    </Tooltip>
+  ),
+  children: (
+    <div className="bg-white h-screen w-full">
+      <Warehouse/>
     </div>
   ),
 },
@@ -95,12 +116,13 @@ const User = () => {
 
       <div className='w-full justify-center items-center flex p-5'> <h1 className='text-blue-200 text-shadow-black text-shadow-lg md:text-6xl md:font-bold '>Reports & Statements:</h1></div>
       <div className="!w-screen !h-screen">
+        
         <Tabs
           defaultActiveKey="1"
           type="card"
           size={size}
           items={items}
-          className="h-full small-tabs"
+          className="h-full small-tabs !bg-white md:!w-[100%]"
         />
       </div>
 

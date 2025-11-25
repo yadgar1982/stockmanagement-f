@@ -718,6 +718,14 @@ const CustomerPayment = () => {
                 </Form.Item>
 
                 <Form.Item
+                  label="Amount"
+                  name="amount"
+                  rules={[{ required: true, message: "Please enter amount" }]}
+                >
+                  <Input placeholder="Enter item amount"
+                    onChange={(e) => setAmount(Number(e.target.value))} />
+                </Form.Item>
+                 <Form.Item
                   label="Currnecy"
                   name="currency"
                 >
@@ -728,14 +736,6 @@ const CustomerPayment = () => {
                     options={currencyOptions}
                     onChange={(value) => currencyChange(value)}
                   />
-                </Form.Item>
-                <Form.Item
-                  label="Amount"
-                  name="amount"
-                  rules={[{ required: true, message: "Please enter amount" }]}
-                >
-                  <Input placeholder="Enter item amount"
-                    onChange={(e) => setAmount(Number(e.target.value))} />
                 </Form.Item>
                 <Form.Item label="Exch Amt" name="exchangedAmt">
                   <Input readOnly

@@ -10,7 +10,7 @@ import { fetchPayment } from '../../../../redux/slices/paymentSlice';
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import { toast } from 'react-toastify';
-
+const logo = import.meta.env.VITE_LOGO_URL;
 //get branding info: 
 const branding = JSON.parse(localStorage.getItem("branding"))
 
@@ -95,9 +95,7 @@ const Statements = () => {
 
     //sort currency
     const currencies = [...new Set(allEntries.map((item) => item.currency))];
-    setMyCurrency(
-      currencies
-    );
+    setMyCurrency(currencies);
 
     let runningBalance = 0;
     return allEntries.map(entry => {
@@ -108,6 +106,7 @@ const Statements = () => {
 
   }, [myPurchaseData, myPaymentData]);
 
+
   // Date filter
   useEffect(() => {
     if (!dateRange || dateRange.length !== 2 || !dateRange[0] || !dateRange[1]) {
@@ -115,7 +114,6 @@ const Statements = () => {
       setFilteredStatement(statementWithBalance);
       return;
     }
-
     const [start, end] = dateRange;
 
     const filtered = statementWithBalance.filter(
@@ -123,7 +121,6 @@ const Statements = () => {
         dayjs(e.date).isSameOrAfter(start, "day") &&
         dayjs(e.date).isSameOrBefore(end, "day")
     );
-
     setFilteredStatement(filtered);
   }, [dateRange, statementWithBalance]);
 
@@ -137,7 +134,10 @@ const Statements = () => {
 
   const handleData = () => {
     if (!mySupplierData) return toast.error("Select a supplier first to get statement!");
-    if (!selectedCurrency) return toast.error("Select Currency");
+    if (!selectedCurrency || selectedCurrency.length === 0) {
+      toast.error("Select Currency to get Statement!");
+      return;
+    }
 
     // Use filtered statement if exists, otherwise full statement
     let dataToPrint = filteredStatement.length ? filteredStatement : statementWithBalance;
@@ -149,11 +149,6 @@ const Statements = () => {
 
     if (!dataToPrint.length) return toast.alert("No data to print for selected currency!");
 
-    // Totals (use localCredit/localDebit)
-    const totalCredit = dataToPrint.reduce((sum, r) => sum + (r.localCredit || 0), 0);
-    const totalDebit = dataToPrint.reduce((sum, r) => sum + (r.localDebit || 0), 0);
-    const closingBalance = totalCredit - totalDebit;
-
     handlePrintStatement(dataToPrint);
   };
 
@@ -162,35 +157,16 @@ const Statements = () => {
 
     const newWindow = window.open("", "_blank");
     if (!newWindow) return;
-
-    // Decide which values to use based on currency
-    // const isUSD = selectedCurrency === "USD";
-
-    // const totalCredit = dataToPrint.reduce(
-    //   (sum, r) => sum + (isUSD ? r.credit || 0 : r.localCredit || 0),
-    //   0
-    // );
-    // const totalDebit = dataToPrint.reduce(
-    //   (sum, r) => sum + (isUSD ? r.debit || 0 : r.localDebit || 0),
-    //   0
-    // );
-
-    const totalCredit = dataToPrint.reduce(
-      (sum, r) => sum + (r.localCredit || 0),
-      0
-    );
-
-    const totalDebit = dataToPrint.reduce(
-      (sum, r) => sum + (r.localDebit || 0),
-      0
-    );
+    const totalCredit = dataToPrint.reduce((sum, r) => sum + (r.localCredit || 0), 0);
+    const totalDebit = dataToPrint.reduce((sum, r) => sum + (r.localDebit || 0), 0);
     const closingBalance = totalCredit - totalDebit;
 
     newWindow.document.title = `Statement - ${mySupplierData.fullname}`;
+    let runningBalance = 0; // Initialize running balance
 
     newWindow.document.body.innerHTML = `
-    <div style="font-family: Arial; padding: 10px; background: white; color: #212529;">
-       <div style="
+<div style="font-family: Arial; padding: 10px; background: white; color: #212529;">
+  <div style="
     display: flex; 
     align-items: center; 
     justify-content: center; 
@@ -198,128 +174,103 @@ const Statements = () => {
     gap: 10px;
     margin-bottom: 10px;
   ">
-     <header style="width: 100%; text-align: center; margin-bottom: 20px;">
-  <div style="
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-    position: relative;
-    margin-bottom: 10px;
-  ">
-    <!-- Left-aligned logo -->
-    <div style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%);">
-      <img 
-        src="https://stockmanagement-f.vercel.app/logo.png" 
-        alt="${branding[0].name} Logo" 
-        style="height: 65px; width: auto; object-fit: contain;"
-      />
-    </div>
+    <header style="width: 100%; text-align: center; margin-bottom: 20px;">
+      <div style="
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        position: relative;
+        margin-bottom: 10px;
+      ">
+        <div style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%);">
+          <img 
+            src="${logo}" 
+            alt="${branding[0].name} Logo" 
+            style="height: 65px; width: auto; object-fit: contain;"
+          />
+        </div>
+        <div style="text-align: center;">
+          <h2 style="margin: 0; font-size: 22px; color: #023e8a;">${branding[0].name}</h2>
+          <p style="margin: 3px 0; font-size: 13px; color: #555;">${branding[0].address}</p>
+          <p style="margin: 3px 0; font-size: 13px; color: #555;">${branding[0].mobile}</p>
+          <a href="mailto:${branding[0].email}" style="font-size: 13px; color: #0077b6; text-decoration: none;">
+            ${branding[0].email}
+          </a>
+        </div>
+      </div>
 
-    <!-- Centered company info -->
-    <div style="text-align: center;">
-      <h2 style="margin: 0; font-size: 22px; color: #023e8a;">${branding[0].name}</h2>
-      <p style="margin: 3px 0; font-size: 13px; color: #555;">${branding[0].address}</p>
-      <p style="margin: 3px 0; font-size: 13px; color: #555;">${branding[0].mobile}</p>
-      <a href="mailto:${branding[0].email}" 
-         style="font-size: 13px; color: #0077b6; text-decoration: none;">
-        ${branding[0].email}
-      </a>
-    </div>
-  </div>
+      <hr style="border: 1px solid #0077b6; margin: 15px auto 10px; width: 100%;" />
 
-  <!-- Divider line -->
-  <hr style="border: 1px solid #0077b6; margin: 15px auto 10px; width: 100%;" />
+      <div style="margin-top: 5px; text-align: left;">
+        <h1 style="margin: 0; text-align: center; font-size: 24px; color: #5a5b5cff;">Financial Statement</h1>
+        <p><strong>Name:</strong> ${mySupplierData.fullname}</p>
+        <p><strong>Account No:</strong> ${mySupplierData.accountNo}</p>
+        <p><strong>Mobile:</strong> ${mySupplierData.mobile}</p>
+        <p><strong>Currency: ${selectedCurrency}</strong></p>
+      </div>
+    </header>
 
-  <!-- Statement Title -->
-  <div style="margin-top: 5px; text-align: left;">
-  <h1 style="margin: 0; text-align: center; font-size: 24px; color: #5a5b5cff;">Financial Statement</h1>
-  <p><strong>Name:</strong> ${mySupplierData.fullname}
-  </p>
-  <p><strong>Account No:</strong> ${mySupplierData.accountNo}
-  </p>
-  <p><strong>Mobile:</strong> ${mySupplierData.mobile}
-  </p>
-  <p><strong>Currency: ${selectedCurrency}</strong></p>
+    <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+      <thead>
+        <tr>
+          <th style="border:1px solid #dee2e6;padding:8px;">Date</th>
+          <th style="border:1px solid #dee2e6;padding:8px;">Description</th>
+          <th style="border:1px solid #dee2e6;padding:8px;">Credit</th>
+          <th style="border:1px solid #dee2e6;padding:8px;">Debit</th>
+          <th style="border:1px solid #dee2e6;padding:8px;">Balance</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${dataToPrint.map((e) => {
+      const credit = e.localCredit || 0;
+      const debit = e.localDebit || 0;
+      runningBalance += credit - debit; // running balance
+      return `
+            <tr>
+              <td style="border:1px solid #dee2e6;padding:8px;">${dayjs(e.date).format("DD/MM/YYYY")}</td>
+              <td style="border:1px solid #dee2e6;padding:8px;">${e.description || ""}</td>
+              <td style="border:1px solid #dee2e6;padding:8px;text-align:right;">${credit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+              <td style="border:1px solid #dee2e6;padding:8px;text-align:right;">${debit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+              <td style="border:1px solid #dee2e6;padding:8px;text-align:right;color:${runningBalance < 0 ? "red" : "black"};">${runningBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+            </tr>
+          `;
+    }).join("")}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="2" style="font-weight:bold;border:1px solid #dee2e6;padding:8px;">Totals</td>
+          <td style="font-weight:bold;border:1px solid #dee2e6;padding:8px;text-align:right;">${totalCredit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td style="font-weight:bold;border:1px solid #dee2e6;padding:8px;text-align:right;">${totalDebit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td style="font-weight:bold;border:1px solid #dee2e6;padding:8px;text-align:right;">${closingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <p>Thank you for your business.</p>
+    <footer style="
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      font-size: 12px;
+      color: #868e96;
+      background: white;
+      padding: 8px 0;
+      border-top: 1px solid #dee2e6;
+    ">
+      Generated on ${dayjs().format("DD/MM/YYYY HH:mm")}<br/>
+      Powered by ${branding[0].name}
+    </footer>
 </div>
-</header>
-   
-
-      
-      <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-        <thead>
-          <tr>
-            <th style="border:1px solid #dee2e6;padding:8px;">Date</th>
-            <th style="border:1px solid #dee2e6;padding:8px;">Description</th>
-            <th style="border:1px solid #dee2e6;padding:8px;">Credit</th>
-            <th style="border:1px solid #dee2e6;padding:8px;">Debit</th>
-            <th style="border:1px solid #dee2e6;padding:8px;">Balance</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${dataToPrint
-        .map((e) => {
-          const credit = e.localCredit || 0;
-          const debit = e.localDebit || 0;
-          const balance = credit - debit;
-          return `
-              <tr>
-                <td style="border:1px solid #dee2e6;padding:8px;">${dayjs(
-            e.date
-          ).format("DD/MM/YYYY")}</td>
-                <td style="border:1px solid #dee2e6;padding:8px;">${e.description || ""}</td>
-                <td style="border:1px solid #dee2e6;padding:8px;text-align:right;">${credit.toFixed(
-            2
-          )}</td>
-                <td style="border:1px solid #dee2e6;padding:8px;text-align:right;">${debit.toFixed(
-            2
-          )}</td>
-                <td style="border:1px solid #dee2e6;padding:8px;text-align:right;color:${balance < 0 ? "red" : "black"
-            };">${balance.toFixed(2)}</td>
-              </tr>
-            `;
-        })
-        .join("")}
-        </tbody>
-        <tfoot>
-          <tr>
-            <td colspan="2" style="font-weight:bold;border:1px solid #dee2e6;padding:8px;">Totals</td>
-            <td style="font-weight:bold;border:1px solid #dee2e6;padding:8px;text-align:right;">${totalCredit.toFixed(
-          2
-        )}</td>
-            <td style="font-weight:bold;border:1px solid #dee2e6;padding:8px;text-align:right;">${totalDebit.toFixed(
-          2
-        )}</td>
-            <td style="font-weight:bold;border:1px solid #dee2e6;padding:8px;text-align:right;">${closingBalance.toFixed(
-          2
-        )}</td>
-          </tr>
-        </tfoot>
-      </table>
-
-      <p>Thank you for your business.</p>
-      <footer style="
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  text-align: center;
-  font-size: 12px;
-  color: #868e96;
-  background: white;
-  padding: 8px 0;
-  border-top: 1px solid #dee2e6;
-">
-  Generated on ${dayjs().format("DD/MM/YYYY HH:mm")}<br/>
-  Powered by ${branding[0].name}
-</footer>
-    </div>
-  `;
+    `;
 
 
     newWindow.print();
   };
 
+  //USD statement
   const handleUSDData = () => {
 
     if (!mySupplierData) return toast.error("Select a supplier first to get statement!");
@@ -328,29 +279,17 @@ const Statements = () => {
     // Use filtered statement if exists, otherwise full statement
     let dataToPrint = filteredStatement.length ? filteredStatement : statementWithBalance;
 
-
-    // Totals (use localCredit/localDebit)
-    const totalUSCredit = dataToPrint.reduce((sum, r) => sum + (r.unitCost || 0), 0);
-    const totalUSDebit = dataToPrint.reduce((sum, r) => sum + (r.amount || 0), 0);
-    const closingBalance = totalUSCredit - totalUSDebit;
-
     handleUSDStatement(dataToPrint);
   };
+
   const handleUSDStatement = (dataToPrint) => {
     if (!selectedCurrency) return;
 
     const newWindow = window.open("", "_blank");
     if (!newWindow) return;
 
-    const totalCredit = dataToPrint.reduce(
-      (sum, r) => sum + (r.credit || 0),
-      0
-    );
-
-    const totalDebit = dataToPrint.reduce(
-      (sum, r) => sum + (r.debit || 0),
-      0
-    );
+    const totalCredit = dataToPrint.reduce((sum, r) => sum + (r.credit || 0), 0);
+    const totalDebit = dataToPrint.reduce((sum, r) => sum + (r.debit || 0), 0);
     const closingBalance = totalCredit - totalDebit;
 
     newWindow.document.title = `Statement - ${mySupplierData.fullname}`;
@@ -377,7 +316,7 @@ const Statements = () => {
     <!-- Left-aligned logo -->
     <div style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%);">
       <img 
-        src="https://stockmanagement-f.vercel.app/logo.png" 
+        src="${logo}" 
         alt="${branding[0].name} Logo" 
         style="height: 65px; width: auto; object-fit: contain;"
       />
@@ -428,21 +367,17 @@ const Statements = () => {
         .map((e) => {
           const credit = e.credit || 0;
           const debit = e.debit || 0;
-          const balance = credit - debit;
+          const balance = e.balance;
           return `
               <tr>
                 <td style="border:1px solid #dee2e6;padding:8px;">${dayjs(
             e.date
           ).format("DD/MM/YYYY")}</td>
                 <td style="border:1px solid #dee2e6;padding:8px;">${e.description || ""}</td>
-                <td style="border:1px solid #dee2e6;padding:8px;text-align:right;">${credit.toFixed(
-            2
-          )}</td>
-                <td style="border:1px solid #dee2e6;padding:8px;text-align:right;">${debit.toFixed(
-            2
-          )}</td>
-                <td style="border:1px solid #dee2e6;padding:8px;text-align:right;color:${balance < 0 ? "red" : "black"
-            };">${balance.toFixed(2)}</td>
+                <td style="border:1px solid #dee2e6;padding:8px;text-align:right;">${credit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td style="border:1px solid #dee2e6;padding:8px;text-align:right;">${debit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td style="border:1px solid #dee2e6;padding:8px;text-align:right;color:${balance <= 0 ? "red" : "black"
+            };">${balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
               </tr>
             `;
         })
@@ -450,17 +385,11 @@ const Statements = () => {
         </tbody>
         <tfoot>
           <tr>
-            <td colspan="2" style="font-weight:bold;border:1px solid #dee2e6;padding:8px;">Totals</td>
-            <td style="font-weight:bold;border:1px solid #dee2e6;padding:8px;text-align:right;">${totalCredit.toFixed(
-          2
-        )}</td>
-            <td style="font-weight:bold;border:1px solid #dee2e6;padding:8px;text-align:right;">${totalDebit.toFixed(
-          2
-        )}</td>
-            <td style="font-weight:bold;border:1px solid #dee2e6;padding:8px;text-align:right;">${closingBalance.toFixed(
-          2
-        )}</td>
-          </tr>
+               <td colspan="2" style="font-weight:bold;border:1px solid #dee2e6;padding:8px;">Totals</td>
+               <td style="font-weight:bold;border:1px solid #dee2e6;padding:8px;text-align:right;">${totalCredit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+               <td style="font-weight:bold;border:1px solid #dee2e6;padding:8px;text-align:right;">${totalDebit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+               <td style="font-weight:bold;border:1px solid #dee2e6;padding:8px;text-align:right;">${closingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+             </tr>
         </tfoot>
       </table>
 
@@ -492,25 +421,24 @@ const Statements = () => {
     setIsModalOpen(true);
   };
   return (
-    <div className="p-0 w-[100%] md:w-screen h-screen p-4 bg-cover bg-center bg-no-repeat bg-[url('/statement.jpg')]">
+    <div className="relative w-84 md:w-screen bg-orange-50 h-[77vh] ">
+      <img src={logo} alt="Watermark" className="absolute inset-0 m-auto opacity-15 w-7/9 h-7/9 object-contain pointer-events-none" />
       <div className=' flex flex-col gap-4 p-2'>
-        <br></br>
-        <h1 className='md:text-2xl text-zinc-200 font-bold'>Supplier Financial Statements:</h1>
+        <h1 className="md:text-3xl text-2xl text-orange-500 font-extrabold drop-shadow-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>
+          Supplier Financial Statements:
+        </h1>
         <br />
-        <Button
-                  type="text"
-                  className='!bg-orange-400 !text-white md:!w-25  md:!text-lg hover:!bg-green-500 !font-bold !shadow-lg !shadow-black'
-                  onClick={showModal}
-                >
-                  <PrinterOutlined className='!font-bold md:!text-2xl' />
-                </Button>
+        <Button type="text" className='!bg-orange-400 !text-white md:!w-25 !w-25 md:!text-lg hover:!bg-green-500 !font-bold !shadow-lg !shadow-black' onClick={showModal}>
+          <PrinterOutlined className='!font-bold md:!text-2xl' />
+        </Button>
+        {/* statement modal */}
         <Modal
           title="Print Supplier Statement"
           footer={null}
-          // closable={{ 'aria-label': 'Custom Close Button' }}
           open={isModalOpen}
-          // onOk={()=>setIsModalOpen(false)}
+
           onCancel={() => setIsModalOpen(false)}
+          className='md:!w-100 !w-73'
         >
           <Form layout="vertical">
             <Form.Item

@@ -1,17 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  FileMarkdownOutlined,
-  LogoutOutlined,
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
-  ShopOutlined,
-  ShoppingCartOutlined,
-  StockOutlined,
-  UploadOutlined,
-  UserOutlined,
-  VideoCameraOutlined,
-} from '@ant-design/icons';
+
+ const logo = import.meta.env.VITE_LOGO_URL;
 import { Avatar, Button, Layout, Menu, theme } from 'antd';
 const { Header, Sider, Content } = Layout;
 
@@ -30,7 +20,7 @@ const UserLayout = ({ children }) => {
       <Layout>
         <Header style={{ padding: 0, background: colorBgContainer }} className='!bg-[#1192c7] !text-blue-500 !shadow-sm !shadow-black z-1 flex justify-between items-center !px-5'>
           <Avatar className='!text-2xl !bg-white !text-orange-500 !font-bold' size={60}
-            src="./logo.png"
+            src={logo}
           >
 
           </Avatar>

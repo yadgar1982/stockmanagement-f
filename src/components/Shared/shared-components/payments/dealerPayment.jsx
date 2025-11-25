@@ -46,6 +46,7 @@ const DealerPayment = () => {
   const [payment, setpayment] = useState(null);
   const [totalPaid, setTotalPaid] = useState(0);
   const [totalxPaid, setTotalxPaid] = useState(0);
+
   const [totalSComission, setTotalSComission] = useState(0);
   const [totalxSComission, setTotalxSComission] = useState(0);
   const [dealerId, setDealerId] = useState("");
@@ -73,20 +74,20 @@ const DealerPayment = () => {
     label: s.dealerName,
     value: s.dealerId
   }))
-  
-  
+
+
   const { sale, srloading, srerror } = useSelector((state) => state.sale);
   const allSales = sale?.data || [];
   const sold = allSales.map((item) => ({
     totalComission: item.totalComission,
-    totalxComission:item.totalxComission
+    totalxComission: item.totalxComission
   }));
 
- const { purchase, prloading, prerror } = useSelector((state) => state.purchase);
+  const { purchase, prloading, prerror } = useSelector((state) => state.purchase);
   const allPurchase = purchase?.data || [];
   const purchased = allPurchase.map((item) => ({
     totalPComission: item.totalComission,
-    totalxPComission:item.totalxComission
+    totalxPComission: item.totalxComission
   }));
 
 
@@ -123,19 +124,19 @@ const DealerPayment = () => {
 
   }, [])
 
-  const transactionType=[
-  { value: 'cash', label: 'Cash' },
-  { value: 'bank_transfer', label: 'Bank Transfer' },
-  { value: 'credit_card', label: 'Credit Card' },
-  { value: 'cheque', label: 'Cheque' },
-  { value: 'mobile_payment', label: 'Mobile Payment' },
-  { value: 'other', label: 'Other' },
+  const transactionType = [
+    { value: 'cash', label: 'Cash' },
+    { value: 'bank_transfer', label: 'Bank Transfer' },
+    { value: 'credit_card', label: 'Credit Card' },
+    { value: 'cheque', label: 'Cheque' },
+    { value: 'mobile_payment', label: 'Mobile Payment' },
+    { value: 'other', label: 'Other' },
   ]
 
-   const paymentType = [
-  { value: 'cr', label: 'Credit' },
-  { value: 'dr', label: 'Debit' },
- ];
+  const paymentType = [
+    { value: 'cr', label: 'Credit' },
+    { value: 'dr', label: 'Debit' },
+  ];
   //fetch payment all data
   const { data: paymentData, error: pError } = useSWR("/api/payment/get", fetcher);
 
@@ -147,7 +148,7 @@ const DealerPayment = () => {
 
 
 
-  
+
   const handleCus = async (id) => {
     const httpReq = http();
     const { data } = await httpReq.get(`/api/dealer/get/${id}`);
@@ -174,15 +175,21 @@ const DealerPayment = () => {
     //dealer total due calculation
     const dealerSale = sale.filter(i => i.dealerId == id);
     const dealerPurchase = purchase.filter(i => i.dealerId == id);
-  
-    const totalPComission = dealerPurchase.reduce((sum, item) => sum + (item.totalComission || 0), 0)
-    const totalxpComission = dealerPurchase.reduce((sum, item) => sum + (item.totalExComission || 0), 0)
-    const totalComission = dealerSale.reduce((sum, item) => sum + (item.totalComission || 0), 0)
-    const totalxComission = dealerSale.reduce((sum, item) => sum + (item.totalExComission || 0), 0)
 
-    
-    const totalSComission= Number(totalComission)+Number(totalPComission)
-    const totalxSComission=Number(totalxComission)+Number(totalxpComission)
+    const totalPComission = dealerPurchase.reduce((sum, item) => sum + (item.totalComission || 0), 0)
+    console.log("total purchase comi", totalPComission)
+    const totalxpComission = dealerPurchase.reduce((sum, item) => sum + (item.totalExComission || 0), 0)
+ console.log("total purchase loca", totalxpComission)
+    const totalComission = dealerSale.reduce((sum, item) => sum + (item.totalComission || 0), 0)
+    console.log("total sales comi", totalComission)
+    const totalxComission = dealerSale.reduce((sum, item) => sum + (item.totalExComission || 0), 0)
+    console.log("total sales local", totalxComission)
+
+
+    const totalSComission = Number(totalComission) + Number(totalPComission)
+    console.log("total comission in usd", totalSComission)
+    const totalxSComission = Number(totalxComission) + Number(totalxpComission)
+    console.log("total comission in local", totalxSComission)
     setTotalSComission(totalSComission)
     setTotalxSComission(totalxSComission)
     setdealerData(data);
@@ -195,7 +202,7 @@ const DealerPayment = () => {
   const totalDueAmount = Number(amt) + Number(totalPaidToDealer) - Number(totalSComission)
 
   const exAmt = exchangedAmt || 0;
-  const totalXPaidToDealer = totalPaid || 0
+  const totalXPaidToDealer = totalxPaid || 0
   const totaldealerxSale = totalxSComission || 0
   const totalExDueAmount = Number(exAmt) + Number(totalXPaidToDealer) - Number(totaldealerxSale)
 
@@ -204,10 +211,10 @@ const DealerPayment = () => {
   const userName = userInfo?.fullname || "";
 
   //print function
-    const handlePrint = async (record) => {
+  const handlePrint = async (record) => {
     try {
       const dealer = await handleCus(record.dealerId);
-    
+
 
       // Open a new blank window
       const printWindow = window.open('', '_blank', 'width=800,height=900');
@@ -377,7 +384,7 @@ const DealerPayment = () => {
       toast.error("Failed to delete payment record");
     }
   };
-  
+
   const handleEdit = async (record) => {
     setdealerData(record);
     setAmount(Number(record.amount));
@@ -423,18 +430,20 @@ const DealerPayment = () => {
     { title: <span className="text-sm md:!text-1xl font-semibold">Amount</span>, dataIndex: 'amount', key: 'amount', width: 80 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Currency</span>, dataIndex: 'currency', key: 'currency', width: 20 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Exched Amt</span>, dataIndex: 'exchangedAmt', key: 'exchangedAmt', width: 60 },
-    { title: <span className="text-sm md:!text-1xl font-semibold">Trans-Type</span>, dataIndex: 'paymentType', key: 'p-type', width: 60 ,
-       render: (text) => (
-    <span
-      style={{
-        color: text.toLowerCase() === 'dr' ? 'red' : 'inherit', // red if 'dr', default otherwise
-        fontWeight: 'bold',
-      }}>
-      {text}
-    </span>
-    )},
+    {
+      title: <span className="text-sm md:!text-1xl font-semibold">Trans-Type</span>, dataIndex: 'paymentType', key: 'p-type', width: 60,
+      render: (text) => (
+        <span
+          style={{
+            color: text.toLowerCase() === 'dr' ? 'red' : 'inherit', // red if 'dr', default otherwise
+            fontWeight: 'bold',
+          }}>
+          {text}
+        </span>
+      )
+    },
     { title: <span className="text-sm md:!text-1xl font-semibold">Belong To</span>, dataIndex: 'companyName', key: 'company', width: 60 },
-    
+
     { title: <span className="text-sm md:!text-1xl font-semibold">Description</span>, dataIndex: 'description', key: 'description', width: 150 },
 
     // print
@@ -528,11 +537,11 @@ const DealerPayment = () => {
   ];
 
   const dataSource = paymentData?.data
-  .filter(item => item.isPassed === false && item.entity === 'dealer')
-  .map(item => ({
-    ...item,
-    key: item._id, 
-  }));
+    .filter(item => item.isPassed === false && item.entity === 'dealer')
+    .map(item => ({
+      ...item,
+      key: item._id,
+    }));
   //currency change
   const currencyChange = (e) => {
 
@@ -563,7 +572,7 @@ const DealerPayment = () => {
         soldate: values.soldate ? values.soldate.toDate() : null,
         dealerName: selecteddealer?.dealerName,
         transBy: selecteddealer?.dealerName,
-         entity: "dealer",
+        entity: "dealer",
         // productName: selectedProduct?.productName,
         companyName: selectedCompany?.companyName,
         // warehouseName: selectedStock?.stockName,
@@ -682,7 +691,9 @@ const DealerPayment = () => {
             <h2 className='text-sm  md:text-2xl p-2 font-semibold text-zinc-600'>Make Payment to Dealer</h2>
             <div> {dealerData && (
               <div className=' mt-3 md:text-1xl text-white text-sm mb-2 bg-blue-800 p-2'>Total due Amount:
-                <span className='font-bold text-yellow-400'> {totalDueAmount} USD  {totalExDueAmount} {cr}</span>
+                <span className='font-bold text-yellow-400 gap-2'>    {(totalDueAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD&nbsp;and &nbsp;
+                  {(totalExDueAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {cr}
+                </span>
               </div>
             )}</div>
           </div>
@@ -713,7 +724,7 @@ const DealerPayment = () => {
                     options={dealerOptions}
                   />
                 </Form.Item>
-               
+
                 <Form.Item
                   label="P-No"
                   name="paymentNo"
@@ -735,6 +746,15 @@ const DealerPayment = () => {
                   />
                 </Form.Item>
 
+
+                <Form.Item
+                  label="Amount"
+                  name="amount"
+                  rules={[{ required: true, message: "Please enter amount" }]}
+                >
+                  <Input placeholder="Enter item amount"
+                    onChange={(e) => setAmount(Number(e.target.value))} />
+                </Form.Item>
                 <Form.Item
                   label="Currnecy"
                   name="currency"
@@ -746,14 +766,6 @@ const DealerPayment = () => {
                     options={currencyOptions}
                     onChange={(value) => currencyChange(value)}
                   />
-                </Form.Item>
-                 <Form.Item
-                  label="Amount"
-                  name="amount"
-                  rules={[{ required: true, message: "Please enter amount" }]}
-                >
-                  <Input placeholder="Enter item amount"
-                    onChange={(e) => setAmount(Number(e.target.value))} />
                 </Form.Item>
                 <Form.Item label="Exch Amt" name="exchangedAmt">
                   <Input readOnly
@@ -787,7 +799,7 @@ const DealerPayment = () => {
                 >
                   <DatePicker className="w-full" format="MM/DD/YYYY" />
                 </Form.Item>
-                 <Form.Item
+                <Form.Item
                   label="Trns Type"
                   name="transactionType"
                   rules={[{ required: true, message: "Please Enter company name" }]}
@@ -845,7 +857,7 @@ const DealerPayment = () => {
                   {`${edit ? "Update DealerPayment" : "Add DealerPayment"}`}
                 </Button>
               </Form.Item>
-              
+
             </Form>
           </Card>
 

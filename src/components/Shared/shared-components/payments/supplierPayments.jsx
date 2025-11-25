@@ -660,7 +660,7 @@ const SupplierPayment = () => {
             <h2 className='text-sm  md:text-2xl p-2 font-semibold text-zinc-600'>Make Payment to Supplier</h2>
             <div> {supplierData && (
               <div className=' mt-3 md:text-1xl text-white text-sm mb-2 bg-blue-800 p-2'>Total due Amount:
-                <span className='font-bold text-yellow-400'> {totalDueAmount} USD  {totalExDueAmount} {cr}</span>
+                <span className='font-bold text-yellow-400'> {totalDueAmount} USD  {totalDueAmount*exchange} {cr}</span>
               </div>
             )}</div>
           </div>
@@ -713,7 +713,16 @@ const SupplierPayment = () => {
                   />
                 </Form.Item>
 
+               
                 <Form.Item
+                  label="Amount"
+                  name="amount"
+                  rules={[{ required: true, message: "Please enter amount" }]}
+                >
+                  <Input placeholder="Enter item amount"
+                    onChange={(e) => setAmount(Number(e.target.value))} />
+                </Form.Item>
+                 <Form.Item
                   label="Currnecy"
                   name="currency"
                 >
@@ -724,14 +733,6 @@ const SupplierPayment = () => {
                     options={currencyOptions}
                     onChange={(value) => currencyChange(value)}
                   />
-                </Form.Item>
-                <Form.Item
-                  label="Amount"
-                  name="amount"
-                  rules={[{ required: true, message: "Please enter amount" }]}
-                >
-                  <Input placeholder="Enter item amount"
-                    onChange={(e) => setAmount(Number(e.target.value))} />
                 </Form.Item>
                 <Form.Item label="Exch Amt" name="exchangedAmt">
                   <Input readOnly

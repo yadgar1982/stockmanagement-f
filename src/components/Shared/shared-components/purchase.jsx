@@ -29,7 +29,6 @@ const Purchase = () => {
   const dispatch = useDispatch();
 
   const token = cookies.get("authToken")
-  const [purchases, setPurchases] = useState([]);
   const [unit, setUnit] = useState("");
   const [qty, setQty] = useState(0);
   const [unitCost, setUnitCost] = useState(0)
@@ -38,14 +37,14 @@ const Purchase = () => {
   const [exchangedAmt, setExchangedAmt] = useState(1)
   const [exComission, setExComission] = useState(1)
   const [productQty, setProductQty] = useState(null);
+  const [productSaleQty, setProductSaleQty] = useState(null);
+  const [salesData, setSalesData] = useState(null);
   const [productUnit, setProductUnit] = useState(null);
   const [totalPurchase, setTotalPurchase] = useState([])
   const [edit, setEdit] = useState(false)
   const [supplierData, setSupplierData] = useState(null);
-
   const [purchase, setPurchase] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState("");
-
   const [form] = Form.useForm();
   //get branding
   const branding = JSON.parse(localStorage.getItem("branding") || "null");
@@ -121,8 +120,6 @@ const Purchase = () => {
     value: cur.currencyName,
   }))
 
-  //branding
-
 
   useEffect(() => {
     dispatch(fetchSuppleirs())
@@ -144,10 +141,19 @@ const Purchase = () => {
     }
   }, [purchaseData])
 
+  //calculation of availiblestock
+
+  //fetch sales all data
+  const { data: sales, error: saError } = useSWR("/api/sale/get", fetcher);
+
+  useEffect(() => {
+    if (sales && sales?.data) {
+      setSalesData(sales?.data || null);
+    }
+  }, [sales])
 
   //get all supppliers
   const handleSup = async (id) => {
-
     const httpReq = http();
     const { data } = await httpReq.get(`/api/supplier/get/${id}`);
     return data;
@@ -223,7 +229,7 @@ const Purchase = () => {
       <header>
         <!-- LEFT: Company -->
         <div class="company">
-          <img src="./logo.jpg" alt="Company Logo" width="55" />
+          <img src="${import.meta.env.VITE_LOGO_URL}" />
           <br>
           <strong>${branding[0]?.name}</strong><br>
           Address: ${branding[0]?.address || "-"}<br>
@@ -374,16 +380,17 @@ const Purchase = () => {
     { title: <span className="text-sm md:!text-1xl font-semibold">Supplier</span>, dataIndex: 'supplierName', key: 'supplier', width: 120 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Belong To</span>, dataIndex: 'companyName', key: 'company', width: 120 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Warehouse</span>, dataIndex: 'warehouseName', key: 'warehouse', width: 120 },
-    { title: <span className="text-sm md:!text-1xl font-semibold">Unit Cost $</span>, dataIndex: 'unitCost', key: 'unitCost',
-      render:(_,record)=>(
-      <span className='w-full flex justify-between px-1 gap-1'>
-        <span>{Number(record.unitCost).toLocaleString(undefined,{
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
-         })}
+    {
+      title: <span className="text-sm md:!text-1xl font-semibold">Unit Cost $</span>, dataIndex: 'unitCost', key: 'unitCost',
+      render: (_, record) => (
+        <span className='w-full flex justify-between px-1 gap-1'>
+          <span>{Number(record.unitCost).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          })}
           </span>
-         <span className='!text-blue-500'> USD</span>
-      </span>  
+          <span className='!text-blue-500'> USD</span>
+        </span>
       ),
     },
     {
@@ -400,7 +407,7 @@ const Purchase = () => {
         </span>
       ),
     },
-     {
+    {
       title: "Unit Cost",
       dataIndex: "to",
       key: "exchangedAmt",
@@ -428,7 +435,6 @@ const Purchase = () => {
         </span>
       ),
     },
-    { title: <span className="text-sm md:!text-1xl font-semibold">Total Amt</span>, dataIndex: 'totalLocalCost', key: 'totalLocalCost', width: 100 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Country</span>, dataIndex: 'countryName', key: 'country', width: 120 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Batch No</span>, dataIndex: 'batch', key: 'batch', width: 120 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Dealer</span>, dataIndex: 'dealerName', key: 'dealer', width: 120 },
@@ -678,20 +684,31 @@ const Purchase = () => {
   const handleProductChange = (value) => {
     setSelectedProduct(value);
 
+    // Handle purchase quantities
     if (Array.isArray(totalPurchase)) {
-      const filteredPurchase = totalPurchase.filter((p) => p.productId === value)
+      const filteredPurchase = totalPurchase.filter((p) => p.productId === value);
       const calculatedQty = filteredPurchase.reduce((sum, item) => sum + item.quantity, 0);
-
       const unit = filteredPurchase.length > 0 ? filteredPurchase[0].unit : null;
+
       setProductUnit(unit);
       setProductQty(calculatedQty);
     } else {
       setProductQty(null);
-      setProductUnit(null);
     }
 
+    // Handle sales quantities
+    if (Array.isArray(salesData)) {
+      const filteredSales = salesData.filter((p) => p.productId === value);
+      const calculatedSaleQty = filteredSales.reduce((sum, item) => sum + item.quantity, 0);
+      const unit = filteredSales.length > 0 ? filteredSales[0].unit : null;
 
-  }
+      setProductUnit(unit); // optional: override if you want sales unit
+      setProductSaleQty(calculatedSaleQty); // use separate state for sales
+    } else {
+      setProductSaleQty(null);
+    }
+  };
+
 
   const initialPurchaseDate = supplierData?.purchaseDate
     ? dayjs(supplierData.purchaseDate, "DD-MM-YYYY")
@@ -703,23 +720,26 @@ const Purchase = () => {
         <ToastContainer position="top-right" autoClose={3000} />
         <div className="p-4 bg-zinc-100">
           {/* Purchase Form */}
-          <div className='flex w-full gap-4 items-center flex item-center justify-between bg-zinc-200'>
-            <h2 className="text-sm md:text-4xl p-2 text-white font-bold [text-shadow:2px_2px_4px_rgba(0,0,0,0.5)]">Create Purchase Record</h2>       
-           <div className='mb-4 w-[50%] flex justify-end '>
-              <ExchangeCalculator/>
-          </div>
-               
+          <div className='flex w-full gap-4 items-center flex item-center justify-between bg-zinc-200  px-4'>
+            <h2 className="text-sm md:text-4xl p-2 text-white font-bold [text-shadow:2px_2px_4px_rgba(0,0,0,0.5)]">Create Purchase Record</h2>
             <div> {productQty && (
-              <div className='text-red-500 mt-3 md:text-1xl text-sm mb-2'>
-                Availible Qty: {productQty},{productUnit || null}
+              <div className='!text-yellow-200  bg-blue-900 mt-3 md:text-1xl text-sm mb-2 p-2'>
+                <span className='text-white'>Availible Qty:</span> {Number(productQty) - Number(productSaleQty)},{productUnit || null}
               </div>
             )}</div>
+            <div className='mb-4 w-[50%] flex justify-end p-2 '>
+              <ExchangeCalculator />
+            </div>
+
+
           </div>
           <Card className="mb-0 shadow-md !rounded-none ">
             <Form
-              layout="vertical"
-              onFinish={edit ? onUpdate : onFinish}
               form={form}
+              layout="vertical"
+
+              onFinish={edit ? onUpdate : onFinish}
+
               initialValues={{ userName: userName, purchaseDate: initialPurchaseDate }}
               size='small'
 
@@ -821,7 +841,7 @@ const Purchase = () => {
                     onChange={(value) => currencyChange(value)}
                   />
                 </Form.Item>
-                <Form.Item  name="exchangedAmt" label={<span style={{ color: 'red' }}>Exch Amt</span>}>
+                <Form.Item name="exchangedAmt" label={<span style={{ color: 'red' }}>Exch Amt</span>}>
                   <Input readOnly
                   />
                 </Form.Item>
@@ -881,9 +901,9 @@ const Purchase = () => {
                 <Form.Item
                   label="userName"
                   name="userName"
-                  value={userName}
+
                 >
-                  <Input value={userName}
+                  <Input
                     disabled
                     className='!text-red-600'
                   />
