@@ -29,6 +29,7 @@ import ExchangeCalculator from '../exchangeCalc';
 const CustomerPayment = () => {
   const dispatch = useDispatch();
 
+  const [form] = Form.useForm();
   const token = cookies.get("authToken")
   const [unit, setUnit] = useState("");
   const [amount, setAmount] = useState(0);
@@ -52,7 +53,6 @@ const CustomerPayment = () => {
 
 
 
-  const [form] = Form.useForm();
   //get branding
   const branding = JSON.parse(localStorage.getItem("branding") || "null");
 
@@ -161,7 +161,7 @@ const CustomerPayment = () => {
     setCr(myNewCrncy)
     setTotalPaid(totalPaid || 0)
     setTotalxPaid(totalExPaid || 0)
-    const customerSale = sale.filter(i => i.customerId == id);
+    const customerSale = sale.filter(i => i.customerId === id);
     const totalSaleAmount = customerSale.reduce((sum, item) => sum + (item.totalCost || 0), 0)
     const totalxSaleAmount = customerSale.reduce((sum, item) => sum + (item.quantity * item.exchangedAmt || 0), 0)
     setTotalSaleAmount(totalSaleAmount)
@@ -173,6 +173,7 @@ const CustomerPayment = () => {
   const amt = amount || 0;
   const totalReceivedFromCustomer = totalPaid || 0
   const totalCustomerSale = totalSaleAmount || 0
+  console.log('t',totalCustomerSale)
   const totalDueAmount = Number(amt) + Number(totalReceivedFromCustomer) - Number(totalCustomerSale)
 
   const exAmt = exchangedAmt || 0;
@@ -664,15 +665,16 @@ const CustomerPayment = () => {
             <h2 className='text-sm  md:text-2xl p-2 font-semibold text-zinc-600'>Make Payment to Customer</h2>
             <div> {customerData && (
               <div className=' mt-3 md:text-1xl text-white text-sm mb-2 bg-blue-800 p-2'>Total due Amount:
-                <span className='font-bold text-yellow-400'> {totalDueAmount} USD  {totalExDueAmount} {cr}</span>
+                <span className='font-bold text-yellow-400'> {(totalDueAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD </span>
               </div>
             )}</div>
           </div>
           <Card className="mb-0 shadow-md !rounded-none ">
             <Form
+              form={form}
               layout="vertical"
               onFinish={edit ? onUpdate : onFinish}
-              form={form}
+              
               initialValues={{ userName: userName, paymentDate: initialpaymentDate }}
               size='small'
 

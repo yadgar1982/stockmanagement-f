@@ -149,7 +149,7 @@ const DealerPayment = () => {
 
 
 
-  const handleCus = async (id) => {
+  const handleDealer = async (id) => {
     const httpReq = http();
     const { data } = await httpReq.get(`/api/dealer/get/${id}`);
     setDealerId(data)
@@ -157,7 +157,7 @@ const DealerPayment = () => {
   }
 
   const dealerChange = async (id) => {
-    await handleCus(id);
+    await handleDealer(id);
 
     const httpReq = http();
     const { data } = await httpReq.get(`/api/dealer/get/${id}`);
@@ -213,7 +213,7 @@ const DealerPayment = () => {
   //print function
   const handlePrint = async (record) => {
     try {
-      const dealer = await handleCus(record.dealerId);
+      const dealer = await handleDealer(record.dealerId);
 
 
       // Open a new blank window
@@ -691,17 +691,16 @@ const DealerPayment = () => {
             <h2 className='text-sm  md:text-2xl p-2 font-semibold text-zinc-600'>Make Payment to Dealer</h2>
             <div> {dealerData && (
               <div className=' mt-3 md:text-1xl text-white text-sm mb-2 bg-blue-800 p-2'>Total due Amount:
-                <span className='font-bold text-yellow-400 gap-2'>    {(totalDueAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD&nbsp;and &nbsp;
-                  {(totalExDueAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {cr}
+                <span className='font-bold text-yellow-400 gap-2'>    {(totalDueAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
                 </span>
               </div>
             )}</div>
           </div>
           <Card className="mb-0 shadow-md !rounded-none ">
             <Form
+              form={form}
               layout="vertical"
               onFinish={edit ? onUpdate : onFinish}
-              form={form}
               initialValues={{ userName: userName, paymentDate: initialpaymentDate }}
               size='small'
 

@@ -40,9 +40,6 @@ const OtherPayments = () => {
 
   //for customer financial calculation states
   const [payment, setpayment] = useState(null);
-
-
-
   const [form] = Form.useForm();
   //get branding
   const branding = JSON.parse(localStorage.getItem("branding") || "null");
@@ -573,9 +570,10 @@ const OtherPayments = () => {
           </div>
           <Card className="mb-0 shadow-md !rounded-none ">
             <Form
+              form={form}
               layout="vertical"
               onFinish={edit ? onUpdate : onFinish}
-              form={form}
+              
               initialValues={{ userName: userName, paymentDate: initialpaymentDate }}
               size='small'
 

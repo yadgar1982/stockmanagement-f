@@ -148,6 +148,7 @@ const ExchangeCalculator = () => {
 
           {/* Result TextArea */}
           <Form.Item label={<span className="text-lg font-semibold text-gray-700">Result</span>}>
+          
             <Input.TextArea
               className=" !bg-zinc-50 !text-2xl font-bold text-purple-700 !rounded-lg md:!h-12 border-2 border-purple-400 p-3 focus:!ring-2 focus:!ring-purple-300 focus:!border-purple-500 transition-all duration-200"
               value={
