@@ -190,17 +190,21 @@ const AdminLayout = ({ children }) => {
           minHeight: '100vh',
         }}
       >
-        <Header
-          style={{
-            padding: '0 16px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
-            zIndex: 20,
-          }}
-          className='!bg-[#B8860B] !shadow-sm !shadow-black'
-        >
+       <Header
+  style={{
+    position: 'fixed',       // Fix the header at top
+    top: 0,                  // Start from top
+    left: 0,                 // Start from left
+    width: '100%',           // Full width
+    padding: '0 16px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
+    zIndex: 1000,            // Make sure it stays above content
+  }}
+  className='!bg-[#B8860B] !shadow-sm !shadow-black'
+>
           <Button
             type="text"
             icon={
@@ -213,7 +217,7 @@ const AdminLayout = ({ children }) => {
             onClick={() => setCollapsed(!collapsed)}
           />
 
-          <div className='flex  gap-3 items-center '>
+          <div className='flex  gap-3 items-center'>
             <p className='text-white font-bold md:text-xl'>{userInfo?.fullname}</p>
             <Button
               className="px-4 py-2 rounded-lg text-black font-bold 
@@ -232,9 +236,11 @@ const AdminLayout = ({ children }) => {
         <Content
           style={{
             margin: 0,
-            padding: 16,
+            padding: 8,
+            paddingTop:75,
             background: colorBgContainer,
             minHeight: 'calc(100vh - 64px)', // subtract header height
+
           }}
         >
           {children}

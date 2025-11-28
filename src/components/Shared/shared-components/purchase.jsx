@@ -45,6 +45,7 @@ const Purchase = () => {
   const [supplierData, setSupplierData] = useState(null);
   const [purchase, setPurchase] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState("");
+  const [salePrice, setSalePrice] = useState("");
   const [form] = Form.useForm();
   //get branding
   const branding = JSON.parse(localStorage.getItem("branding") || "null");
@@ -71,6 +72,8 @@ const Purchase = () => {
     productName: item.productName,
     productId: item._id,
   }));
+
+
   const productOptions = product.map((p) => ({
     label: p.productName,
     value: p.productId,
@@ -141,6 +144,8 @@ const Purchase = () => {
     }
   }, [purchaseData])
 
+ 
+  
   //calculation of availiblestock
 
   //fetch sales all data
@@ -332,11 +337,11 @@ const Purchase = () => {
 
   const handleEdit = async (record) => {
     setSupplierData(record);
-
+    setUnitCost(record.unitCost)
     form.setFieldsValue({
       ...record,
       supplierId: record.supplierId,
-      purchaseDate: initialPurchaseDate
+      purchaseDate: initialPurchaseDate,
     });
 
     setEdit(true); // set edit state with full rec
@@ -549,6 +554,7 @@ const Purchase = () => {
 
 
   const onFinish = async (values) => {
+  
     const httpReq = http(token);
 
     try {
@@ -573,7 +579,7 @@ const Purchase = () => {
         totalExComission: ((Number(values?.comission) || 0) * (Number(values?.quantity) || 0) * (Number(exchange) || 1))
       };
 
-      console.log("Payload to backend:", formattedValues);
+   
 
       await httpReq.post("/api/purchase/create", formattedValues);
 
@@ -590,7 +596,6 @@ const Purchase = () => {
 
   const onUpdate = async (values) => {
     try {
-
       //  Find selected objects from arrays
       const selectedSupplier = supplier.find(s => s.supplierId === values.supplierId);
       const selectedProduct = product.find(p => p.productId === values.productId);
@@ -601,19 +606,18 @@ const Purchase = () => {
 
       const formattedValues = {
         ...values,
+        salePrice:selectedProduct?._id || values.salePrice,
+        party:selectedProduct?._id || values.party,
         supplierId: selectedSupplier.supplierId,
         supplierName: selectedSupplier.supplierName,
         totalCost: (Number(values?.quantity) || 0) * (Number(values?.unitCost) || 0),
         totalLocalCost: (Number(values?.quantity) || 0) * (Number(values?.exchangedAmt) || 0),
         productId: selectedProduct?._id || values.productId,
         productName: selectedProduct?.productName || values.productName,
-
         companyId: selectedCompany?._id || values.companyId,
         companyName: selectedCompany?.companyName || values.companyName,
-
         warehouseId: selectedStock?._id || values.warehouseId,
         warehouseName: selectedStock?.stockName || values.warehouseName,
-
         dealerId: selectedDealer?._id || values.dealerId,
         dealerName: selectedDealer?.dealerName || values.dealerName,
         totalComission: (Number(values?.comission || 0) * (Number(values?.quantity) || 0)),
@@ -633,8 +637,20 @@ const Purchase = () => {
     }
   };
 
+useEffect(() => {
+  if (!products || !Array.isArray(products.data)) return;
 
-  const units =
+  const product = products.data.find(
+    (item) => String(item._id) === String(selectedProduct)
+  );
+
+    if (product) {
+    setSalePrice(product.salePrice);
+    form.setFieldsValue({ salePrice: product.salePrice });
+  }
+}, [selectedProduct, products]);
+
+const units =
     [
       {
         value: 'kg',
@@ -672,8 +688,9 @@ const Purchase = () => {
 
 
   useEffect(() => {
+    
     setExchangedAmt(Number(unitCost) * exchange);
-  }, [qty, unitCost, exchange]);
+  }, [qty, unitCost, exchange,crncy]);
 
   useEffect(() => {
     form.setFieldsValue({ exchangedAmt: exchangedAmt });
@@ -682,6 +699,7 @@ const Purchase = () => {
 
 
   const handleProductChange = (value) => {
+    
     setSelectedProduct(value);
 
     // Handle purchase quantities
@@ -689,12 +707,14 @@ const Purchase = () => {
       const filteredPurchase = totalPurchase.filter((p) => p.productId === value);
       const calculatedQty = filteredPurchase.reduce((sum, item) => sum + item.quantity, 0);
       const unit = filteredPurchase.length > 0 ? filteredPurchase[0].unit : null;
+      const sprice = selectedProduct.salePrice;
 
       setProductUnit(unit);
       setProductQty(calculatedQty);
-    } else {
+       } else {
       setProductQty(null);
     }
+
 
     // Handle sales quantities
     if (Array.isArray(salesData)) {
@@ -737,12 +757,9 @@ const Purchase = () => {
             <Form
               form={form}
               layout="vertical"
-
               onFinish={edit ? onUpdate : onFinish}
-
               initialValues={{ userName: userName, purchaseDate: initialPurchaseDate }}
               size='small'
-
 
             >
               <div className='md:grid md:grid-cols-8  gap-2'>
@@ -845,6 +862,13 @@ const Purchase = () => {
                   <Input readOnly
                   />
                 </Form.Item>
+                 <Form.Item
+                 disabled
+                  label="Sale Price"
+                  name="salePrice"
+               >
+                  <Input disabled value={salePrice}/>
+                </Form.Item>
                 <Form.Item
                   label="Country"
                   name="countryName"
@@ -870,6 +894,14 @@ const Purchase = () => {
                   rules={[{ required: true, message: "Please enter batch No" }]}
                 >
                   <Input placeholder="Enter enter Batch No"
+                  />
+                </Form.Item>
+                <Form.Item
+                  label="Party No"
+                  name="party"
+                  rules={[{ required: true, message: "Please enter Party No" }]}
+                >
+                  <Input placeholder="Enter enter party No"
                   />
                 </Form.Item>
                 <Form.Item

@@ -177,19 +177,14 @@ const DealerPayment = () => {
     const dealerPurchase = purchase.filter(i => i.dealerId == id);
 
     const totalPComission = dealerPurchase.reduce((sum, item) => sum + (item.totalComission || 0), 0)
-    console.log("total purchase comi", totalPComission)
     const totalxpComission = dealerPurchase.reduce((sum, item) => sum + (item.totalExComission || 0), 0)
- console.log("total purchase loca", totalxpComission)
     const totalComission = dealerSale.reduce((sum, item) => sum + (item.totalComission || 0), 0)
-    console.log("total sales comi", totalComission)
     const totalxComission = dealerSale.reduce((sum, item) => sum + (item.totalExComission || 0), 0)
-    console.log("total sales local", totalxComission)
+
 
 
     const totalSComission = Number(totalComission) + Number(totalPComission)
-    console.log("total comission in usd", totalSComission)
     const totalxSComission = Number(totalxComission) + Number(totalxpComission)
-    console.log("total comission in local", totalxSComission)
     setTotalSComission(totalSComission)
     setTotalxSComission(totalxSComission)
     setdealerData(data);

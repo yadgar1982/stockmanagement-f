@@ -18,6 +18,7 @@ const { RangePicker } = DatePicker;
 const branding = JSON.parse(localStorage.getItem("branding"));
 
 const Statements = () => {
+  const [form]=Form.useForm();
   const dispatch = useDispatch();
   const logo = import.meta.env.VITE_LOGO_URL;
 
@@ -118,15 +119,17 @@ const Statements = () => {
       unit: p?.unit
     }));
 
-    const paymentEntries = myPaymentData.map(p => ({
-      date: new Date(p.paymentDate),
+    
+      const paymentEntries = myPaymentData.map(p => ({
+      date: new Date(p.paymentDate || p.createdAt),
       description: p?.description || "Payment",
-      credit: 0,
-      debit: p?.amount || 0,
-      localCredit: 0,
-      localDebit: p?.exchangedAmt || 0,
+      credit: p?.paymentType?.toLowerCase() === "cr" ? Number(p.amount) : 0,
+      debit: p?.paymentType?.toLowerCase() === "dr" ? Number(p.amount) : 0,
+      localCredit: p?.paymentType?.toLowerCase() === "cr" ? Number(p.exchangedAmt) : 0,
+      localDebit: p?.paymentType?.toLowerCase() === "dr" ? Number(p.exchangedAmt) : 0,
       currency: p.currency,
     }));
+
 
     const allEntries = [...purchaseEntries, ...salesEntries, ...paymentEntries].sort((a, b) => a.date - b.date);
 
@@ -454,7 +457,7 @@ const Statements = () => {
         </Button>
 
         <Modal title="Print company Statement" footer={null} open={isModalOpen} onCancel={() => setIsModalOpen(false)} className='md:!w-100 !w-80'>
-          <Form layout="vertical">
+          <Form layout="vertical" form={form}>
             <Form.Item label="company Name" name="companyId" rules={[{ required: true, message: "Please select a company" }]}>
               <Select onChange={handlecompanystatement} showSearch placeholder="Select a company" optionFilterProp="label" options={allCompany.map(s => ({ label: `${s.fullname}  ( Acc No: ${s.accountNo} )`, value: s._id }))} />
             </Form.Item>

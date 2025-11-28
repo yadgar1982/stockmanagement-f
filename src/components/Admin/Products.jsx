@@ -201,7 +201,11 @@ console.log("id",id)
       title: 'Price',
       dataIndex: 'price',
       key: "price"
-
+    },
+    {
+      title: 'Sale Price',
+      dataIndex: 'salePrice',
+      key: "salePrice"
     },
     {
       title: "Edit",      
@@ -351,6 +355,18 @@ console.log("id",id)
                 </div>
                     <div className="w-full md:w-1/2">
                   <Form.Item
+                    label="Sale Price"
+                    name="salePrice"
+                    rules={[{ required: true, message: 'Please input your Price!' }]}
+                  >
+                    <Input className="w-full" />
+                  </Form.Item>
+                </div>
+              </div>
+
+              <div>
+                <div className="w-full md:w-1/2">
+                  <Form.Item
                     label="Product Code"
                     name="productCode"
                     rules={[{ required: true, message: 'Please input your Price!' }]}
@@ -358,8 +374,9 @@ console.log("id",id)
                     <Input className="w-full" />
                   </Form.Item>
                 </div>
-
               </div>
+
+
 
               {/* Submit Button */}
               <div className="py-4">

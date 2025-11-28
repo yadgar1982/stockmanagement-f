@@ -47,7 +47,7 @@ const Sales = () => {
   const [cusId, setcusId] = useState("");
   const [open, setOpen] = useState(false);
   const [form] = Form.useForm();
-
+  const [salePrice, setSalePrice] = useState("");
   //get branding
   const branding = JSON.parse(localStorage.getItem("branding") || "null");
 
@@ -162,6 +162,40 @@ const Sales = () => {
   }, [sales])
 
 
+  useEffect(() => {
+  if (!products?.data) return;
+
+  // If editing an existing record
+  if (edit && customerData) {
+    const product = products.data.find(
+      (item) => item._id === customerData.productId
+    );
+    const price = product ? product.salePrice : 0;
+    setUnitCost(customerData.unitCost || price);
+    form.setFieldsValue({ ...customerData, unitCost: customerData.unitCost || price });
+  }
+  // If selecting a new product
+  else if (selectedProduct) {
+    const product = products.data.find(
+      (item) => item._id === selectedProduct
+    );
+    if (product) {
+      setSalePrice(product.salePrice);
+      setUnitCost(product.salePrice);
+      form.setFieldsValue({ unitCost: product.salePrice });
+    }
+  }
+}, [selectedProduct, products, edit, customerData]);
+
+
+  useEffect(() => {
+  setUnitCost(salePrice); 
+  form.setFieldsValue({ unitCost: salePrice });
+  }, [salePrice]);
+
+
+
+
   //get all customer
   const handleCus = async (id) => {
     const httpReq = http();
@@ -170,8 +204,9 @@ const Sales = () => {
   }
 
 
+
   //print function
- 
+
   const handlePrint = async (record) => {
     try {
       const createdDate = new Date(record.createdAt);
@@ -347,16 +382,15 @@ const Sales = () => {
       toast.error("Failed to delete purchase record", err);
     }
   }
-  const handleEdit = async (record) => {
-    setCustomerData(record);
+const handleEdit = (record) => {
+  setCustomerData(record);
+  setEdit(true);
 
-    form.setFieldsValue({
-      ...record,
-      customerId: record.customerId,
-      salesDate: initialSalesDate,
-    });
-    setEdit(true);
-  };
+  form.setFieldsValue({
+  ...record,
+  salesDate: Date.Now() 
+});
+};
 
   const handleIspassed = async (id) => {
     try {
@@ -447,7 +481,7 @@ const Sales = () => {
         </span>
       ),
     },
-    { title: <span className="text-sm md:!text-1xl font-semibold">Total Amt</span>, dataIndex: 'totalLocalCost', key: 'totalLocalCost', width: 100 },
+
     { title: <span className="text-sm md:!text-1xl font-semibold">Country</span>, dataIndex: 'countryName', key: 'country', width: 120 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Batch No</span>, dataIndex: 'batch', key: 'batch', width: 120 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Dealer</span>, dataIndex: 'dealerName', key: 'dealer', width: 120 },
@@ -544,8 +578,6 @@ const Sales = () => {
 
   ];
 
-
-
   const dataSource = salesData
     ?.filter((item) => item.isPassed === false)
     .map((item) => ({
@@ -558,8 +590,6 @@ const Sales = () => {
     const selectedCurrency = currency.find((i) => i.currencyName === e);
 
     if (selectedCurrency) {
-      console.log("Selected currency object:", selectedCurrency);
-      console.log("Rate:", selectedCurrency.rate);
       setCrncy(Number(selectedCurrency.rate))
     } else {
       console.log("Currency not found");
@@ -567,7 +597,6 @@ const Sales = () => {
   };
 
   const onFinish = async (values) => {
-
     const httpReq = http(token);
 
     try {
@@ -580,7 +609,7 @@ const Sales = () => {
 
       const formattedValues = {
         ...values,
-
+       
         salesDate: values.salesDate ? values.salesDate.toDate() : null,
         customerName: selectedCustomer?.customerName,
         customerId: selectedCustomer?.customerId,
@@ -588,6 +617,7 @@ const Sales = () => {
         companyName: selectedCompany?.companyName,
         warehouseName: selectedStock?.stockName,
         dealerName: selectedDealer?.dealerName,
+        amount: salePrice || 0,
         totalCost: (Number(values?.quantity) || 0) * (Number(values?.unitCost) || 0),
         totalLocalCost: (Number(values?.quantity) || 0) * (Number(values?.exchangedAmt) || 0),
         isPassed: false,
@@ -667,8 +697,8 @@ const Sales = () => {
     setExchange(rate);
   }, [crncy, currency]);
   useEffect(() => {
-    setexchangedAmt(Number(unitCost) * exchange);
-  }, [qty, unitCost, exchange]); // only recalc when these change
+        setexchangedAmt(Number(unitCost) * exchange);
+  }, [qty, unitCost, exchange,crncy,currency]); 
 
   useEffect(() => {
     form.setFieldsValue({ exchangedAmt: exchangedAmt });
@@ -693,7 +723,7 @@ const Sales = () => {
       setProductQty(calculatedQty);
     }
     if (Array.isArray(salesData)) {
-      // filter all matching items (returns an array)
+
       const filteredSales = salesData.filter((p) => p.productId === value);
       // sum the quantities
       const calculatedSaleQty = filteredSales.reduce((total, item) => total + item.quantity, 0);
@@ -711,8 +741,8 @@ const Sales = () => {
   }
 
   const initialSalesDate = customerData?.salesDate
-    ? dayjs(customerData?.salesDate, "DD-MM-YYYY")
-    : null;
+  ? dayjs(customerData?.salesDate, "DD-MM-YYYY")
+  : null;
 
   return (
     <UserLayout>
@@ -738,7 +768,7 @@ const Sales = () => {
               layout="vertical"
 
               onFinish={edit ? onUpdate : onFinish}
-              
+
               initialValues={{ userName: userName, salesDate: initialSalesDate }}
               size='small'
 
@@ -820,12 +850,11 @@ const Sales = () => {
                     options={stockOptions}
                   />
                 </Form.Item>
-                <Form.Item
-                  label="Unit Cost"
-                  name="unitCost"
-                  rules={[{ required: true, message: "Please enter item Price" }]}
-                >
-                  <Input placeholder="Enter enter item Price" onChange={(e) => setUnitCost(Number(e.target.value))}
+                <Form.Item label="Unit Cost" name="unitCost">
+                  <Input
+                    value={unitCost} // use separate state for editable value
+                    onChange={(e) => setUnitCost(Number(e.target.value))}
+                    placeholder="Enter item price"
                   />
                 </Form.Item>
                 <Form.Item
@@ -895,7 +924,7 @@ const Sales = () => {
                   label="Sales Date"
                   name="salesDate"
                 >
-                  <DatePicker className="w-full" format="DD/MM/YYYY" />
+                  <DatePicker className="w-full" format="MM/DD/YYYY" />
                 </Form.Item>
                 <Form.Item
                   label="userName"

@@ -121,13 +121,13 @@ const Statements = () => {
       unit: p.unit
     }));
 
-    const paymentEntries = myPaymentData.map(p => ({
-      date: new Date(p.paymentDate),
+     const paymentEntries = myPaymentData.map(p => ({
+      date: new Date(p.paymentDate || p.createdAt),
       description: p?.description || "Payment",
-      credit: 0,
-      debit: p?.amount || 0,
-      localCredit: 0,
-      localDebit: p?.exchangedAmt || 0,
+      credit: p?.paymentType?.toLowerCase() === "cr" ? Number(p.amount) : 0,
+      debit: p?.paymentType?.toLowerCase() === "dr" ? Number(p.amount) : 0,
+      localCredit: p?.paymentType?.toLowerCase() === "cr" ? Number(p.exchangedAmt) : 0,
+      localDebit: p?.paymentType?.toLowerCase() === "dr" ? Number(p.exchangedAmt) : 0,
       currency: p.currency,
     }));
 

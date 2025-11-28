@@ -68,45 +68,49 @@ const Statements = () => {
   }, [cId, allCustomers, allsale, allPayment]);
 
   // Statement with running balance
+  
+
+
+  // Date filter
+
   const statementWithBalance = useMemo(() => {
     const saleEntries = mySaleData.map(p => ({
       date: new Date(p.saleDate || p.createdAt),
-      description: p.description || "sale",
-      credit: p.totalCost || 0,
-      debit: 0,
-      localCredit: p?.totalLocalCost || 0,
-      localDebit: 0,
+      description: p.description || "Sale",
+      credit: 0,
+      debit: Number(p.totalCost) || 0,
+      localCredit: 0,
+      localDebit: Number(p?.totalLocalCost) || 0,
       currency: p.currency,
       quantity: p.quantity,
       unit: p.unit
     }));
 
     const paymentEntries = myPaymentData.map(p => ({
-      date: new Date(p.paymentDate),
+      date: new Date(p.paymentDate || p.createdAt),
       description: p?.description || "Payment",
-      credit: 0,
-      debit: p?.amount || 0,
-      localCredit: 0,
-      localDebit: p?.exchangedAmt || 0,
+      credit: p?.paymentType?.toLowerCase() === "cr" ? Number(p.amount) : 0,
+      debit: p?.paymentType?.toLowerCase() === "dr" ? Number(p.amount) : 0,
+      localCredit: p?.paymentType?.toLowerCase() === "cr" ? Number(p.exchangedAmt) : 0,
+      localDebit: p?.paymentType?.toLowerCase() === "dr" ? Number(p.exchangedAmt) : 0,
       currency: p.currency,
     }));
-
     const allEntries = [...saleEntries, ...paymentEntries].sort((a, b) => a.date - b.date);
 
-    //sort currency
-    const currencies = [...new Set(allEntries.map((item) => item.currency))];
+    // Get all currencies
+    const currencies = [...new Set(allEntries.map(item => item.currency))];
     setMyCurrency(currencies);
 
     let runningBalance = 0;
     return allEntries.map(entry => {
-      runningBalance += entry.credit - entry.debit;
-      return { ...entry, balance: runningBalance };
+      runningBalance += Number(entry.credit) - Number(entry.debit);
+      return { ...entry, balance: Number(runningBalance.toFixed(2)) };
     });
 
   }, [mySaleData, myPaymentData]);
 
 
-  // Date filter
+
   useEffect(() => {
     if (!dateRange || dateRange.length !== 2 || !dateRange[0] || !dateRange[1]) {
       setFilteredStatement(statementWithBalance);
@@ -253,7 +257,7 @@ const Statements = () => {
           <td colspan="2" style="font-weight:bold;border:1px solid #dee2e6;padding:8px;">Totals</td>
           <td style="font-weight:bold;border:1px solid #dee2e6;padding:8px;text-align:right;">${totalCredit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
           <td style="font-weight:bold;border:1px solid #dee2e6;padding:8px;text-align:right;">${totalDebit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-          <td style="font-weight:bold;border:1px solid #dee2e6;padding:8px;text-align:right;">${closingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td style="border:1px solid #dee2e6;padding:8px;text-align:right;color:${closingBalance < 0 ? "red" : "black"};">${closingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
         </tr>
       </tfoot>
     </table>

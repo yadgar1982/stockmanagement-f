@@ -173,7 +173,6 @@ const CustomerPayment = () => {
   const amt = amount || 0;
   const totalReceivedFromCustomer = totalPaid || 0
   const totalCustomerSale = totalSaleAmount || 0
-  console.log('t',totalCustomerSale)
   const totalDueAmount = Number(amt) + Number(totalReceivedFromCustomer) - Number(totalCustomerSale)
 
   const exAmt = exchangedAmt || 0;
@@ -530,15 +529,14 @@ const CustomerPayment = () => {
 
 
   const onFinish = async (values) => {
+
     const httpReq = http(token);
 
     try {
       // Find selected objects from arrays
       const selectedcustomer = customer.find(s => s.customerId === values.customerId);
-      // const selectedProduct = product.find(p => p.productId === values.productId);
       const selectedCompany = company.find(c => c.companyId === values.companyId);
-      // const selectedStock = stock.find(s => s.stockId === values.warehouseId);
-      // const selectedDealer = dealer.find(d => d.dealerId === values.dealerId);
+     
 
       // 2 Prepare formatted values for payment
       const formattedValues = {
@@ -547,10 +545,7 @@ const CustomerPayment = () => {
         customerName: selectedcustomer?.customerName,
         transBy: selectedcustomer?.customerName,
          entity: "customer",
-        // productName: selectedProduct?.productName,
         companyName: selectedCompany?.companyName,
-        // warehouseName: selectedStock?.stockName,
-        // dealerName: selectedDealer?.dealerName,
         isPassed: false,
       };
       // Create payment
