@@ -22,6 +22,7 @@ import { fetchStock } from '../../../redux/slices/stockSlice';
 import { fetchCompany } from '../../../redux/slices/companySlice';
 import { fetchDealer } from '../../../redux/slices/dealerSlice';
 import { fetchCurrency } from '../../../redux/slices/currencySlice';
+import { fetchCategory } from '../../../redux/slices/categorySlice.js';
 import ExchangeCalculator from './exchangeCalc/index.jsx';
 const logo = import.meta.env.VITE_LOGO_URL;
 
@@ -32,7 +33,9 @@ const Sales = () => {
   // const [purchases, setPurchases] = useState([]);
   const [salesData, setSalesData] = useState([]);
   const [unit, setUnit] = useState("");
+  const [weight, setWeight] = useState(1);
   const [qty, setQty] = useState(0);
+  const [quantity,setQuantity]=useState(0)
   const [unitCost, setUnitCost] = useState(0)
   const [exchange, setExchange] = useState(0)
   const [crncy, setCrncy] = useState("")
@@ -44,10 +47,13 @@ const Sales = () => {
   const [edit, setEdit] = useState(false)
   const [customerData, setCustomerData] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState("");
-  const [cusId, setcusId] = useState("");
-  const [open, setOpen] = useState(false);
+  const [customerEditData, setCustomerEditData] = useState("");
+  const [btnDisabled, setBtnDisabled] = useState(false);
+  const [isWeight,setIsWeight]=useState(false)
+  const [btnText, setBtnText] = useState(edit ? "Update Purchase" : "Add Purchase");
+  const [myCategory, setMyCategory] = useState(false);
   const [form] = Form.useForm();
-  const [salePrice, setSalePrice] = useState("");
+
   //get branding
   const branding = JSON.parse(localStorage.getItem("branding") || "null");
 
@@ -62,18 +68,11 @@ const Sales = () => {
     customerCountry: item.country,
     customerEmail: item.email,
   }))
-
-  const getCustomerById = (customerArray, cusId) => {
-    if (!Array.isArray(customerArray)) return null;
-    return customerArray.find((item) => item.customerId === cusId) || null;
-  };
-  const selectedCustomer = getCustomerById(all, cusId);
-
-
   const customerOptions = customer.map((s) => ({
     label: s.customerName,
     value: s.customerId
   }))
+
   const { products, prloading, prerror } = useSelector((state) => state.products);
   const allProducts = products?.data || [];
   const product = allProducts.map((item) => ({
@@ -112,11 +111,11 @@ const Sales = () => {
     dealerName: item.fullname,
     dealerId: item._id
   }));
-
   const dealerOptions = dealer.map((dl) => ({
     label: dl.dealerName,
     value: dl.dealerId
   }))
+
   const { currencies, crloading, crerror } = useSelector((state) => state.currencies);
   const allCurrencies = currencies?.data || [];
   const currency = allCurrencies.map((item) => ({
@@ -129,9 +128,22 @@ const Sales = () => {
     value: cur.currencyName,
   }))
 
-  //branding
+  const { category, catloading, caterror } = useSelector((state) => state.category);
+  const allCaterogies = category?.data || [];
+  const categories = allCaterogies.map((item) => ({
+    categoryName: item.categoryName,
+    categoryId: item._id,
+  }));
+  const categoryOptions = categories.map((cat) => ({
+    label: cat.categoryName,
+    value: cat.categoryName,
+  }))
 
+  // get userName
+  const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+  const userName = userInfo?.fullname || "";
 
+  //fetch all redux data
   useEffect(() => {
     dispatch(fetchCustomers())
     dispatch(fetchProducts())
@@ -139,9 +151,9 @@ const Sales = () => {
     dispatch(fetchCompany())
     dispatch(fetchCurrency())
     dispatch(fetchDealer())
+    dispatch(fetchCategory())
 
   }, [])
-
 
   //fetch purchase all data
   const { data: purchaseData, error: pError } = useSWR("/api/purchase/get", fetcher);
@@ -161,41 +173,6 @@ const Sales = () => {
     }
   }, [sales])
 
-
-  useEffect(() => {
-  if (!products?.data) return;
-
-  // If editing an existing record
-  if (edit && customerData) {
-    const product = products.data.find(
-      (item) => item._id === customerData.productId
-    );
-    const price = product ? product.salePrice : 0;
-    setUnitCost(customerData.unitCost || price);
-    form.setFieldsValue({ ...customerData, unitCost: customerData.unitCost || price });
-  }
-  // If selecting a new product
-  else if (selectedProduct) {
-    const product = products.data.find(
-      (item) => item._id === selectedProduct
-    );
-    if (product) {
-      setSalePrice(product.salePrice);
-      setUnitCost(product.salePrice);
-      form.setFieldsValue({ unitCost: product.salePrice });
-    }
-  }
-}, [selectedProduct, products, edit, customerData]);
-
-
-  useEffect(() => {
-  setUnitCost(salePrice); 
-  form.setFieldsValue({ unitCost: salePrice });
-  }, [salePrice]);
-
-
-
-
   //get all customer
   const handleCus = async (id) => {
     const httpReq = http();
@@ -203,11 +180,16 @@ const Sales = () => {
     return data;
   }
 
-
+  useEffect(() => {
+    setBtnText(edit ? "Update Purchase" : "Add Purchase");
+  }, [edit]);
 
   //print function
-
   const handlePrint = async (record) => {
+    const totalCost = Number(record?.totalCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    const totalLocalCost = Number(record?.totalLocalCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+
     try {
       const createdDate = new Date(record.createdAt);
       const nextMonthDate = new Date(createdDate);
@@ -236,7 +218,7 @@ const Sales = () => {
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Invoice - ${record._id}</title>
+  <title style="width:100%; justify-content:center">Invoice - ${record._id}</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 40px; box-sizing: border-box; }
     header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; width: 100%; }
@@ -259,11 +241,11 @@ const Sales = () => {
   <!-- Header: Company + Customer -->
   <header>
     <!-- Company Info -->
-    <div class="company" style="display:flex; gap:12px; align-items:center;">
-      <div class="company-logo">
+    <div class="company" style="text-align: left; border: 1px solid #000; padding: 10px; border-radius: 5px;display:flex; gap:10px; align-items:center;">
+      <div class="company-logo" >
         <img src="${logo}" width="60" style="object-fit:contain;" crossorigin="anonymous" />
       </div>
-      <div class="company-info">
+      <div class="company-info ">
         <div class="name">${branding[0]?.name}</div>
         <div>${branding[0]?.address || "-"}</div>
         <div>${branding[0]?.mobile || "-"}</div>
@@ -276,7 +258,7 @@ const Sales = () => {
     </div>
 
     <!-- Customer Info -->
-    <div class="vendor" style="text-align:right;">
+    <div class="vendor" style="text-align: left; padding-left: 100px; border-radius: 5px;">
       <strong>Customer Details:</strong><br>
       Buyer: ${customer.fullname || "-"}<br>
       Address: ${customer.country || "-"}<br>
@@ -290,55 +272,65 @@ const Sales = () => {
     <div>
       <div>Invoice Date: ${new Date(record.createdAt).toLocaleDateString()}</div>
       <div>Last Due Date: ${formattedDate}</div>
-      <div>PO #: ${record._id}</div>
+      <div>Party #: ${record.party}</div>
     </div>
    
   </div>
 
   <!-- Invoice Title -->
-  <h1>Invoice — ${record.productName}</h1>
+ <h2 style="text-align: center; font-size: 24px; font-weight: bold; margin: 20px 0;">
+  Invoice # ${record.invoiceNo}
+</h2>
 
   <!-- Table -->
   <table>
     <thead>
       <tr>
-        <th>No</th>
-        <th>Details</th>
-        <th>Qty</th>
-        <th>Unit</th>
-        <th>Unit-Price USD</th>
-        <th>Exch Price (${record.currency})</th>
-        <th>Belongs To</th>
-        <th>Total (${record.currency})</th>
-        <th>Total USD</th>
+        <th style="font-size:14px; white-space:nowrap">No</th>
+        <th style="max-width: 300px; white-space: normal; word-wrap: break-word;">Details</th>
+        <th style="font-size:14px; white-space:nowrap">Qty</th>
+        <th style="font-size:14px; white-space:nowrap">Weight</th>
+        <th style="font-size:14px; white-space:nowrap">Unit-Price USD</th>
+        <th style="font-size:14px; white-space:nowrap">Exch Price (${record.currency})</th>
+        <th style="font-size:14px; white-space:nowrap">Belongs To</th>
+        <th style="font-size:14px; white-space:nowrap">Total (${record.currency})</th>
+        <th style="font-size:14px; white-space:nowrap">Total USD</th>
       </tr>
     </thead>
     <tbody>
       <tr>
         <td>1</td>
-        <td>${record.productName}</td>
-        <td>${record.quantity}</td>
-        <td>${record.unit}</td>
-        <td>${record.unitCost}</td>
-        <td>${record.exchangedAmt}</td>
-        <td>${record.companyName}</td>
-        <td>${record.totalLocalCost}</td>
-                <td>${Number(record.quantity * record.unitCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        <td style="max-width: 300px; white-space: normal; word-wrap: break-word;">${record.description}</td>
+        <td style=" white-space: nowrap;word-wrap: break-word">${record.weight && record.weight > 0
+          ? Number(record.quantity) + " " + record.unit
+          : Number(record.quantity) + " " + record.unit
+        }</td>
+           <td style=" white-space: nowrap;word-wrap: break-word">${record.weight && record.weight > 0
+          ? Number(record.weight).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " kg"
+          : record.quantity + " " + record.unit
+        }</td>
+        <td style="word-wrap: break-word; white-space:nowrap">${(record.unitCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        <td style="word-wrap: break-word">${(record.exchangedAmt).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        <td style="word-wrap: break-word">${record.companyName}</td>
+        <td style="word-wrap: break-word">${(record.totalLocalCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        <td>${(record.totalCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
       </tr>
     </tbody>
     <tfoot>
       <tr>
         <td colspan="7">Subtotal</td>
-        <td>${Number(record.quantity * record.exchangedAmt).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-        <td>${Number(record.quantity * record.unitCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        <td>${totalLocalCost}</td>
+     
+         <td>${totalCost}</td>
       </tr>
     </tfoot>
   </table>
 
   <!-- Footer -->
-  <div>Created by: ${record.userName}</div>
+  <div >Created by:<span style="font-family: 'Brush Script MT', cursive; font-size:24px;color:blue;"> ${record.userName} </span></div>
+
   <div class="footer">
-    If you have any questions about this order, please contact the receiver.
+    Signature: .............
   </div>
 
   <script>
@@ -356,25 +348,79 @@ const Sales = () => {
     }
   };
 
-
+  //customer change
   const customerChange = async (id) => {
     const httpReq = http();
     const { data } = await httpReq.get(`/api/customer/get/${id}`);
     return setCustomerData(data);
   }
 
-  // get userName
-  const userInfo = JSON.parse(localStorage.getItem("userInfo"));
-  const userName = userInfo?.fullname || "";
+  //currency change
+  const currencyChange = (e) => {
+    // e is the selected currency string, e.g., "AFN"
+    const selectedCurrency = currency.find((i) => i.currencyName === e);
 
+    if (selectedCurrency) {
+      setCrncy(Number(selectedCurrency.rate))
+    } else {
+      console.log("Currency not found");
+    }
+  };
 
+  //handle weight change
+  const handleWeightChange = (e) => {
+    if (unit.toLowerCase() === "box") {
+      const value = e.target.value;
+      // allow empty or valid float numbers
+      if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
+        setWeight(value);
+        form.setFieldsValue({ weight: value });
+      }
+    }
+  };
 
+  //handle Product change
+    const handleProductChange = (value) => {
 
-  //Delete 
+    setSelectedProduct(value);
+    //purchase calculation
+    if (Array.isArray(totalPurchase)) {
+      const filteredPurchase = totalPurchase.filter((p) => p.productId === value);
+      // sum the quantities
+      const calculatedQty = filteredPurchase.reduce((sum, item) => sum + (item.weight)*(item.quantity), 0);
+
+      // get unit from first matched item
+      const unit = filteredPurchase.length > 0 ? filteredPurchase[0].unit : null;
+
+      setProductUnit(unit);
+      setProductQty(calculatedQty);
+    }
+    if (Array.isArray(salesData)) {
+      const filteredSales = salesData.filter((p) => p.productId === value);
+      const calculatedSaleQty = filteredSales.reduce((total, item) => total + (item.weight)*(item.quantity), 0);
+      const unit = filteredSales.length > 0 ? filteredSales[0].unit : null;
+
+      setProductUnit(unit);
+      setProductSaleQty(calculatedSaleQty)
+
+    } else {
+      setProductQty(null);
+      setProductSaleQty(null);
+    }
+
+  }
+
+  //handle category change
+  const handleCategoryChange = (values) => {
+    setMyCategory(values);
+  }
+
+  //Delete Function
   const handleDelete = async (obj) => {
     try {
       const salesId = obj._id;
       const httpReq = http(token);
+      await httpReq.delete(`/api/warehouse/delete/${salesId}`);
       await httpReq.delete(`/api/sale/delete/${salesId}`);
       toast.success("Purchase record deleted successfully");
       mutate("/api/sale/get");
@@ -382,16 +428,26 @@ const Sales = () => {
       toast.error("Failed to delete purchase record", err);
     }
   }
-const handleEdit = (record) => {
-  setCustomerData(record);
-  setEdit(true);
 
-  form.setFieldsValue({
-  ...record,
-  salesDate: Date.Now() 
-});
-};
+  //handle Edit
+  const handleEdit = async (record) => {
 
+    setCustomerEditData(record);
+   
+    form.setFieldsValue({
+      ...record,
+
+      salesDate: record?.salesDate ? dayjs(record?.salesDate) : record?.createdAt,
+      category: record?.categoryName,
+      qty: record?.quantity,
+      customer: record.customerName
+    });
+    setEdit(true);
+    setIsWeight(true)
+  
+  };
+
+  //handle Pass
   const handleIspassed = async (id) => {
     try {
       const httpReq = http();
@@ -402,7 +458,6 @@ const handleEdit = (record) => {
       toast.error("Failed to Pass!", err);
     }
   }
-
 
   //Table data
   const columns = [
@@ -578,25 +633,33 @@ const handleEdit = (record) => {
 
   ];
 
+   // data source
   const dataSource = salesData
     ?.filter((item) => item.isPassed === false)
     .map((item) => ({
       ...item,
       key: item._id,
     })) || [];
-  //currency change
-  const currencyChange = (e) => {
-    // e is the selected currency string, e.g., "AFN"
-    const selectedCurrency = currency.find((i) => i.currencyName === e);
 
-    if (selectedCurrency) {
-      setCrncy(Number(selectedCurrency.rate))
-    } else {
-      console.log("Currency not found");
+  //unit change effect
+  useEffect(() => {
+    if (unit.toLowerCase() === "kg" || unit.toLowerCase() === "each") {
+      setWeight("1");
+      form.setFieldsValue({ weight: "1" });
+    } else if (unit.toLowerCase() === "tons") {
+      setWeight("1000");
+      form.setFieldsValue({ weight: "1000" });
+    } else if (unit.toLowerCase() === "box") {
+      setWeight(""); // allow user input
+      form.setFieldsValue({ weight: "" });
     }
-  };
+  }, [unit]);
 
+  //submit funciton
   const onFinish = async (values) => {
+    setBtnDisabled(true);
+    setBtnText("Submitting...");
+    const invoiceNo = `INV-${Math.floor(100000 + Math.random() * 900000)}`; // e.g., INV-123456
     const httpReq = http(token);
 
     try {
@@ -607,61 +670,137 @@ const handleEdit = (record) => {
       const selectedStock = stock.find(s => s.stockId === values.warehouseId);
       const selectedDealer = dealer.find(d => d.dealerId === values.dealerId);
 
+
+      const finalQty = weight && qty ? weight * qty : 1 || 0;
+
       const formattedValues = {
         ...values,
-       
+        invoiceNo,
+        quantity: qty,
+        weight: finalQty,
         salesDate: values.salesDate ? values.salesDate.toDate() : null,
-        customerName: selectedCustomer?.customerName,
-        customerId: selectedCustomer?.customerId,
-        productName: selectedProduct?.productName,
-        companyName: selectedCompany?.companyName,
-        warehouseName: selectedStock?.stockName,
-        dealerName: selectedDealer?.dealerName,
-        amount: salePrice || 0,
-        totalCost: (Number(values?.quantity) || 0) * (Number(values?.unitCost) || 0),
-        totalLocalCost: (Number(values?.quantity) || 0) * (Number(values?.exchangedAmt) || 0),
+        customerName: customerData?.fullname || "",
+        customerId: customerData?._id || "",
+        productName: selectedProduct?.productName || "",
+        companyName: selectedCompany?.companyName || "",
+        warehouseName: selectedStock?.stockName || "",
+        dealerName: selectedDealer?.dealerName || "",
+        totalCost: finalQty * (Number(values?.unitCost) || 0),
+        totalLocalCost: finalQty * (Number(values?.exchangedAmt) || 0),
         isPassed: false,
-        totalComission: (Number(values?.comission || 0) * (Number(values?.quantity) || 0)),
-        totalExComission: ((Number(values?.comission) || 0) * (Number(values?.quantity) || 0) * (Number(exchange) || 1))
+        totalComission: (Number(values?.comission) || 0) * finalQty,
+        totalExComission:
+          (Number(values?.comission) || 0) *
+          finalQty *
+          (Number(exchange) || 1),
+
       };
 
+
       const data = await httpReq.post("/api/sale/create", formattedValues);
+      const salesId = data?.data?.data?._id;
+      const warehouseData = {
+        ...values,
+        invoiceNo,
+        transaction: "sale",
+        currency: "USD",
+        transactionId: String(salesId),
+        quantity: qty,
+        transactionDate: values.salesDate ? values.salesDate.toDate() : null,
+        customerName: selectedCustomer?.customerName || "",
+        productName: selectedProduct?.productName || "",
+        companyName: selectedCompany?.companyName || "",
+        warehouseName: selectedStock?.stockName || "",
+        totalCost: finalQty * (Number(values?.unitCost) || 0),
+        totalLocalCost: finalQty * (Number(values?.exchangedAmt) || 0),
+        isPassed: false,
+        transactionType: "Out",
+      }
+
+      await httpReq.post("/api/warehouse/create", warehouseData)
+
       toast.success("Sale record added successfully");
       mutate("/api/sale/get");
       form.resetFields();
       return data;
 
     } catch (err) {
-      console.log(err);
+      console.log("err", err);
       toast.error(`Failed: ${err?.response?.data?.message || err?.message || "Unknown error"}`);
+    }
+    finally {
+      setTimeout(() => {
+        setBtnDisabled(false);
+        setBtnText(edit ? "Update Purchase" : "Add Purchase");
+      }, 2000);
     }
   };
 
-
+  //update function
   const onUpdate = async (values) => {
-
+    setBtnDisabled(true);
+    setBtnText("Submitting...");
     try {
       const httpReq = http(token);
+      const selectedCompany = company.find(c => c.companyId === values.companyId);
+      const selectedStock = stock.find(s => s.stockId === values.warehouseId);
+      // Calculate final quantity: prefer updated qty & weight, fallback to existing
+      const qty = values.qty ?? customerEditData.quantity ?? 0;
+      const weight = values.weight ?? customerEditData.weight ?? 1;
+      const finalQty = weight * qty;
       const formattedValues = {
+        ...customerEditData,
         ...values,
-        customerId: customerData?._id,
-        customerName: customerData?.fullname,
-        totalCost: (Number(values?.quantity) || 0) * (Number(values?.unitCost) || 0),
-        totalLocalCost: (Number(values?.quantity) || 0) * (Number(values?.exchangedAmt) || 0),
-        totalComission: (Number(values?.comission || 0) * (Number(values?.quantity) || 0)),
-        totalExComission: ((Number(values?.comission) || 0) * (Number(values?.quantity) || 0) * (Number(exchange) || 1))
+        weight,
+        quantity,
+        salesDate: values.salesDate ? values.salesDate.toDate() : customerEditData.salesDate,
+        customerName: customerData?.fullname ?? customerEditData.customerName,
+        customerId: values.customerId ?? customerEditData.customerId,
+        totalCost: (Number(values.unitCost) ?? Number(customerEditData.unitCost) ?? 0) * finalQty,
+        totalLocalCost: (Number(values.exchangedAmt) ?? Number(customerEditData.exchangedAmt) ?? 0) * finalQty,
+        totalComission: (Number(values.comission) ?? Number(customerEditData.comission) ?? 0) * finalQty,
+        totalExComission:
+          ((Number(values.comission) ?? Number(customerEditData.comission) ?? 0) * finalQty *
+            (Number(exchange) ?? 1)),
+
+        comission: Number(values.comission ?? customerEditData.comission ?? 0),
       };
-      await httpReq.put(`/api/sale/update/${values._id}`, formattedValues)
-      toast.success("Sale record updated successfully")
+
+      //update sales
+      const sales = await httpReq.put(`/api/sale/update/${values._id}`, formattedValues);
+      const salesId = sales?.data?.data?._id;
+      const warehouseData = {
+        ...values,
+        weight,
+        currency: "USD",
+        quantity,
+        transactionDate: values.salesDate ? values.salesDate.toDate() : customerEditData.salesDate,
+        customerName: customerData?.fullname ?? customerEditData.customerName,
+        customerId: values.customerId ?? customerEditData.customerId,
+        totalCost: (Number(values.unitCost) ?? Number(customerEditData.unitCost) ?? 0) * finalQty,
+        totalLocalCost: (Number(values.exchangedAmt) ?? Number(customerEditData.exchangedAmt) ?? 0) * finalQty,
+        productName: selectedProduct?.productName || "",
+        companyName: selectedCompany?.companyName || "",
+        warehouseName: selectedStock?.stockName || "",
+        isPassed: false,
+        transactionType: "Out",
+      }
+      await httpReq.put(`/api/warehouse/update/${salesId}`, warehouseData)
+
+      toast.success("Sale record updated successfully");
       mutate("/api/sale/get");
-      setEdit(false)
       form.resetFields();
     } catch (err) {
-      console.log(err);
-      toast.error("Update Failed", err)
+      console.log("err", err);
+      toast.error("Update Failed", err);
+    } finally {
+      setTimeout(() => {
+        setBtnDisabled(false);
+        setBtnText(edit ? "Update Purchase" : "Add Purchase");
+        setEdit(false);
+      }, 2000);
     }
-  }
-
+  };
 
   const units =
     [
@@ -680,69 +819,29 @@ const handleEdit = (record) => {
       {
         value: 'box',
         label: 'Box',
-      },
-      {
-        value: 'Inches',
-        label: 'inche',
-      },
-
-    ]
+      },]
 
 
-  //exchange rate
+  //exchange rate effect
   useEffect(() => {
-    // Use its rate, 
     const rate = crncy || 1;
-
     setExchange(rate);
   }, [crncy, currency]);
+  
+  // exchange amount calculation effect
   useEffect(() => {
-        setexchangedAmt(Number(unitCost) * exchange);
-  }, [qty, unitCost, exchange,crncy,currency]); 
+    const quantity = qty * weight
+    setexchangedAmt(Number(unitCost) * exchange);
+    setQuantity(quantity)
+  }, [qty, unitCost, exchange]); // only recalc when these change
 
   useEffect(() => {
     form.setFieldsValue({ exchangedAmt: exchangedAmt });
   }, [exchangedAmt, form]);
 
-
-
-  const handleProductChange = (value) => {
-
-    setSelectedProduct(value);
-    //purchase calculation
-    if (Array.isArray(totalPurchase)) {
-      // filter all matching items (returns an array)
-      const filteredPurchase = totalPurchase.filter((p) => p.productId === value);
-      // sum the quantities
-      const calculatedQty = filteredPurchase.reduce((sum, item) => sum + item.quantity, 0);
-
-      // get unit from first matched item
-      const unit = filteredPurchase.length > 0 ? filteredPurchase[0].unit : null;
-
-      setProductUnit(unit);
-      setProductQty(calculatedQty);
-    }
-    if (Array.isArray(salesData)) {
-
-      const filteredSales = salesData.filter((p) => p.productId === value);
-      // sum the quantities
-      const calculatedSaleQty = filteredSales.reduce((total, item) => total + item.quantity, 0);
-      // get unit from first matched item
-      const unit = filteredSales.length > 0 ? filteredSales[0].unit : null;
-
-      setProductUnit(unit);
-      setProductSaleQty(calculatedSaleQty)
-
-    } else {
-      setProductQty(null);
-      setProductSaleQty(null);
-    }
-
-  }
-
   const initialSalesDate = customerData?.salesDate
-  ? dayjs(customerData?.salesDate, "DD-MM-YYYY")
-  : null;
+    ? dayjs(customerData?.salesDate, "DD-MM-YYYY")
+    : null;
 
   return (
     <UserLayout>
@@ -793,8 +892,22 @@ const handleEdit = (record) => {
                   />
                 </Form.Item>
                 <Form.Item
+                  label="Category"
+                  name="categoryName"
+                  rules={[{ required: true, message: "Please enter unit name" }]}
+                >
+                  <Select
+                    value={myCategory}
+                    onChange={handleCategoryChange}
+                    showSearch
+                    placeholder="Select a Unit"
+                    optionFilterProp="label"
+                    options={categoryOptions}
+                  />
+                </Form.Item>
+                <Form.Item
                   label="Quantity"
-                  name="quantity"
+                  name="qty"
                   rules={[{ required: true, message: "Please enter item quantity" }]}
                 >
                   <Input placeholder="Enter item quantity"
@@ -811,6 +924,16 @@ const handleEdit = (record) => {
                     placeholder="Select a Unit"
                     optionFilterProp="label"
                     options={units}
+                  />
+                </Form.Item>
+                <Form.Item
+                  label="Weight"
+                  name="weight"
+                  hidden={!(unit === "box" || isWeight)}
+                >
+                  <Input
+                    value={weight}
+                    onChange={handleWeightChange}
                   />
                 </Form.Item>
                 <Form.Item
@@ -850,11 +973,12 @@ const handleEdit = (record) => {
                     options={stockOptions}
                   />
                 </Form.Item>
-                <Form.Item label="Unit Cost" name="unitCost">
-                  <Input
-                    value={unitCost} // use separate state for editable value
-                    onChange={(e) => setUnitCost(Number(e.target.value))}
-                    placeholder="Enter item price"
+                <Form.Item
+                  label="Unit Cost"
+                  name="unitCost"
+                  rules={[{ required: true, message: "Please enter item Price" }]}
+                >
+                  <Input placeholder="Enter enter item Price" onChange={(e) => setUnitCost(Number(e.target.value))}
                   />
                 </Form.Item>
                 <Form.Item
@@ -870,7 +994,12 @@ const handleEdit = (record) => {
                   />
                 </Form.Item>
                 <Form.Item label={<span style={{ color: 'red' }}>Exch Amt</span>} name="exchangedAmt">
-                  <Input readOnly
+                  <Input
+                    readOnly
+                    value={(form.getFieldValue("exchangedAmt") || 0).toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
                   />
                 </Form.Item>
                 <Form.Item
@@ -901,6 +1030,14 @@ const handleEdit = (record) => {
                   />
                 </Form.Item>
                 <Form.Item
+                  label="Party"
+                  name="party"
+                  rules={[{ required: true, message: "Please enter  Party No" }]}
+                >
+                  <Input placeholder="Enter enter Party No"
+                  />
+                </Form.Item>
+                <Form.Item
                   label="Dealer"
                   name="dealerId"
                 >
@@ -924,7 +1061,7 @@ const handleEdit = (record) => {
                   label="Sales Date"
                   name="salesDate"
                 >
-                  <DatePicker className="w-full" format="MM/DD/YYYY" />
+                  <DatePicker className="w-full" format="DD/MM/YYYY" />
                 </Form.Item>
                 <Form.Item
                   label="userName"
@@ -947,10 +1084,16 @@ const handleEdit = (record) => {
                 />
               </Form.Item>
               <Form.Item>
-                <Button type="text" htmlType="submit" className={`w-[200px] md:!h-[30px] !text-white hover:!shadow-lg hover:!shadow-zinc-800 hover:!text-white !font-bold 
-                  ${edit ? "!bg-orange-500 hover:!bg-orange-600" : "!bg-blue-700 hover:!bg-green-500"}
-                `} >
-                  {`${edit ? "Update Sale" : "Add Sale"}`}
+                <Button
+                  type="text"
+                  htmlType="submit"
+                  disabled={btnDisabled}
+                  className={`w-[200px] md:!h-[30px] !text-white hover:!shadow-lg hover:!shadow-zinc-800 hover:!text-white !font-bold 
+                   ${edit ? "!bg-orange-500 hover:!bg-orange-600" : "!bg-blue-700 hover:!bg-green-500"}
+                  ${btnDisabled ? "!bg-gray-400 hover:!bg-gray-400 cursor-not-allowed" : ""}
+                 `}
+                >
+                  {btnText}
                 </Button>
               </Form.Item>
             </Form>

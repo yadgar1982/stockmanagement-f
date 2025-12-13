@@ -127,6 +127,15 @@ const AdminLayout = ({ children }) => {
             </span>
           ),
         },
+        {
+          key: 'category',
+          icon: <ProductOutlined className='!text-zinc-500 md:!text-2xl ' />,
+          label: (
+            <span className='text-zinc-500 font-semibold md:!text-lg'>
+              Category
+            </span>
+          ),
+        },
 
       ],
     },

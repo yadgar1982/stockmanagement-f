@@ -10,6 +10,8 @@ import brandingReducer from "./slices/brandingSlice"
 import purchaseReducer from "./slices/purchaseSlice"
 import saleReducer from "./slices/salesSlice"
 import paymentReducer from "./slices/paymentSlice"
+import categoryReducer from "./slices/categorySlice"
+import warehouseReducer from "./slices/warehouseSlice"
 
 
 export const store=configureStore({
@@ -25,6 +27,8 @@ export const store=configureStore({
     purchase:purchaseReducer,
     sale:saleReducer,
     payments:paymentReducer,
+    category:categoryReducer,
+    warehouse:warehouseReducer,
 
   }
 });

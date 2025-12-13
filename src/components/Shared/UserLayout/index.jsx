@@ -6,6 +6,8 @@ import {
   AuditOutlined,
   DollarOutlined,
   FileMarkdownOutlined,
+  HomeOutlined,
+  HomeTwoTone,
   LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -132,6 +134,11 @@ const UserLayout = ({ children }) => {
           ),
         }
       ],
+    },
+     {
+      key: 'warehouse',
+      icon: <HomeOutlined className='md:!text-xl !text-zinc-500 !font-semibold' />,
+      label: <span className='md:!text-lg !text-zinc-500 font-semibold'>Ware House</span>,
     },
   ]
 

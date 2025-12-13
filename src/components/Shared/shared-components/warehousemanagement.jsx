@@ -25,33 +25,33 @@ import ExchangeCalculator from './exchangeCalc';
 const logo = import.meta.env.VITE_LOGO_URL;
 
 
-const Purchase = () => {
+const Warehouse = () => {
   const dispatch = useDispatch();
 
   const token = cookies.get("authToken")
   const [unit, setUnit] = useState("");
   const [weight, setWeight] = useState(1);
   const [qty, setQty] = useState(0);
-  const [quantity, setQuantity] = useState(0)
   const [unitCost, setUnitCost] = useState(0)
   const [exchange, setExchange] = useState(0)
   const [crncy, setCrncy] = useState("")
   const [exchangedAmt, setExchangedAmt] = useState(1)
   const [exComission, setExComission] = useState(1)
   const [productQty, setProductQty] = useState(null);
-  const [productPurchaseQty, setProductPurchaseQty] = useState(null);
-  const [purchasesData, setPurchasesData] = useState(null);
+  const [productWarehouseQty, setProductWarehouseQty] = useState(null);
+  const [WarehousesData, setWarehousesData] = useState(null);
   const [productUnit, setProductUnit] = useState(null);
-  const [totalPurchase, setTotalPurchase] = useState([])
+  const [totalWarehouse, setTotalWarehouse] = useState([])
   const [edit, setEdit] = useState(false)
   const [supplierData, setSupplierData] = useState(null);
   const [supplierEditData, setSupplierEditData] = useState("");
-  const [purchase, setPurchase] = useState(null);
+  const [Warehouse, setWarehouse] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState("");
   const [salePrice, setSalePrice] = useState("");
   const [btnDisabled, setBtnDisabled] = useState(false);
-  const [isWeight, setIsWeight] = useState(false)
-  const [btnText, setBtnText] = useState(edit ? "Update Purchase" : "Add Purchase");
+  const [btnText, setBtnText] = useState(edit ? "Update Warehouse" : "Add Warehouse");
+  const [sourceId,setSourceId]=useState("");
+  const [targetId,setTargetId]=useState("");
   const [form] = Form.useForm();
   //get branding
   const branding = JSON.parse(localStorage.getItem("branding") || "null");
@@ -67,17 +67,19 @@ const Purchase = () => {
     supplierCountry: item.country,
     supplierEmail: item.email,
   }))
+
   const supplierOptions = supplier.map((s) => ({
     label: s.supplierName,
     value: s.supplierId
   }))
-
   const { products, prloading, prerror } = useSelector((state) => state.products);
   const allProducts = products?.data || [];
   const product = allProducts.map((item) => ({
     productName: item.productName,
     productId: item._id,
   }));
+
+
   const productOptions = product.map((p) => ({
     label: p.productName,
     value: p.productId,
@@ -89,11 +91,11 @@ const Purchase = () => {
     stockName: item.stockName,
     stockId: item._id
   }));
+
   const stockOptions = stock.map((st) => ({
     label: st.stockName,
     value: st.stockId
   }));
-
   const { companys, cloading, cerror } = useSelector((state) => state.company);
   const allCompanies = companys?.data || [];
   const company = allCompanies.map((item) => ({
@@ -104,18 +106,17 @@ const Purchase = () => {
     label: com.companyName,
     value: com.companyId
   }))
-
   const { dealers, dloading, derror } = useSelector((state) => state.dealers);
   const allDealers = dealers?.data || [];
   const dealer = allDealers.map((item) => ({
     dealerName: item.fullname,
     dealerId: item._id
   }));
+
   const dealerOptions = dealer.map((dl) => ({
     label: dl.dealerName,
     value: dl.dealerId
   }))
-
   const { currencies, crloading, crerror } = useSelector((state) => state.currencies);
   const allCurrencies = currencies?.data || [];
   const currency = allCurrencies.map((item) => ({
@@ -128,11 +129,7 @@ const Purchase = () => {
     value: cur.currencyName,
   }))
 
-  // get userName
-  const userInfo = JSON.parse(localStorage.getItem("userInfo"));
-  const userName = userInfo?.fullname || "";
 
-  //fetch all redux data
   useEffect(() => {
     dispatch(fetchSuppleirs())
     dispatch(fetchProducts())
@@ -143,21 +140,27 @@ const Purchase = () => {
 
   }, [])
 
-  //fetch purchase all data
-  const { data: purchaseData, error: pError } = useSWR("/api/purchase/get", fetcher);
+
+
+  //fetch Warehouse all data
+  const { data: WarehouseData, error: pError } = useSWR("/api/warehouse/get", fetcher);
 
   useEffect(() => {
-    if (purchaseData && purchaseData?.data) {
-      setTotalPurchase(purchaseData?.data);
+    if (WarehouseData && WarehouseData?.data) {
+      setTotalWarehouse(WarehouseData?.data);
     }
-  }, [purchaseData])
+  }, [WarehouseData])
+
+
+
+  //calculation of availiblestock
 
   //fetch sales all data
   const { data: sales, error: saError } = useSWR("/api/sale/get", fetcher);
 
   useEffect(() => {
     if (sales && sales?.data) {
-      setPurchasesData(sales?.data || null);
+      setWarehousesData(sales?.data || null);
     }
   }, [sales])
 
@@ -169,11 +172,6 @@ const Purchase = () => {
   }
 
 
-  useEffect(() => {
-    setBtnText(edit ? "Update Purchase" : "Add Purchase");
-  }, [edit]);
-
-  // Print function
   const handlePrint = async (record) => {
 
     const totalCost = Number(record?.totalCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -336,127 +334,66 @@ const Purchase = () => {
     }
   };
 
-  // supplier change
   const supplierChange = async (id) => {
     const httpReq = http();
     const { data } = await httpReq.get(`/api/supplier/get/${id}`);
     return setSupplierData(data);
   }
 
-  //currency change
-  const currencyChange = (e) => {
+  // get userName
+  const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+  const userName = userInfo?.fullname || "";
 
-    const selectedCurrency = currency.find((i) => i.currencyName === e);
-    if (selectedCurrency) {
-      setCrncy(Number(selectedCurrency.rate))
-    } else {
-      console.log("Currency not found");
-    }
-  };
-
-  //chandle Weight change
-  const handleWeightChange = (e) => {
-    if (unit.toLowerCase() === "box") {
-      const value = e.target.value;
-      // allow empty or valid float numbers
-      if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
-        setWeight(value);
-        form.setFieldsValue({ weight: value });
-      }
-    }
-  };
-
-  //handle Product Change
-  const handleProductChange = (value) => {
-
-    setSelectedProduct(value);
-
-    // Handle purchase quantities
-
-    if (Array.isArray(totalPurchase)) {
-      const filteredPurchase = totalPurchase.filter((p) => p.productId === value);
-
-      const calculatedQty = filteredPurchase.reduce((sum, item) => sum + (item.weight) * (item.quantity), 0);
-      const unit = filteredPurchase.length > 0 ? filteredPurchase[0].unit : null;
-      const sprice = selectedProduct.salePrice;
-
-      setProductUnit(unit);
-      setProductQty(calculatedQty);
-    }
-    if (Array.isArray(purchasesData)) {
-      const filteredSales = purchasesData.filter((p) => p.productId === value);
-      const calculatedSaleQty = filteredSales.reduce((total, item) => total + (item.weight) * (item.quantity), 0);
-      const unit = filteredSales.length > 0 ? filteredSales[0].unit : null;
-
-      setProductUnit(unit);
-      setProductPurchaseQty(calculatedSaleQty)
-    }
-    else {
-      setProductQty(null);
-      setProductPurchaseQty(null);
-    }
-
-
-    // Handle sales quantities
-    if (Array.isArray(purchasesData)) {
-      const filteredSales = purchasesData.filter((p) => p.productId === value);
-      const calculatedSaleQty = filteredSales.reduce((sum, item) => sum + item.quantity, 0);
-      const unit = filteredSales.length > 0 ? filteredSales[0].unit : null;
-
-      setProductUnit(unit); // optional: override if you want sales unit
-      setProductPurchaseQty(calculatedSaleQty); // use separate state for sales
-    } else {
-      setProductPurchaseQty(null);
-    }
-  };
 
   //Delete 
   const handleDelete = async (obj) => {
+   
+ 
     try {
-      const purchaseId = obj._id;
+      const WarehouseId = obj.transactionId;
 
       const httpReq = http(token);
 
-      // // Delete purchase and warehouse records
-      await httpReq.delete(`/api/warehouse/delete/${purchaseId}`);
-      await httpReq.delete(`/api/purchase/delete/${purchaseId}`);
-      toast.success("Purchase record and supplier transaction deleted successfully");
-      mutate("/api/purchase/get");
+      // // Delete Warehouse
+      await httpReq.delete(`/api/warehouse/delete/${WarehouseId}`);
+      toast.success("Warehouse record deleted successfully");
+      mutate("/api/warehouse/get");
     } catch (err) {
-      toast.error("Failed to delete purchase record");
+      toast.error("Failed to delete Warehouse record");
     }
   };
 
-  const handleEdit = async (record) => {
-    setSupplierEditData(record);
-    setEdit(true);
-    setIsWeight(true)
-    form.setFieldsValue({
-      ...record,
-      purchaseDate: record?.purchaseDate ? dayjs(record?.purchaseDate) : record?.createdAt,
-      qty: record?.quantity,
-      supplier: record.supplierName,
-      supplierId: record.supplierId,
-    });
+  // const handleEdit = async (record) => {
+  //   setSupplierEditData(record);
 
+  //   form.setFieldsValue({
+  //     ...record,
+  //     WarehouseDate: record?.WarehouseDate ? dayjs(record?.WarehouseDate) : record?.createdAt,
+  //     qty: record?.quantity,
+  //     supplier: record.supplierName,
+  //     supplierId: record.supplierId,
+  //   });
 
+  //   setEdit(true);
 
-    const httpReq = http();
-    const { data: purchase } = await httpReq.get(`/api/purchase/get/${record._id}`);
-    return setPurchase(purchase);
+  //   const httpReq = http();
+  //   const { data: Warehouse } = await httpReq.get(`/api/warehouse/get/${record._id}`);
+  //   return setWarehouse(Warehouse);
 
-  };
+  // };
 
+  
   const handleIspassed = async (id) => {
-    try {
-      const httpReq = http();
-      await httpReq.put(`/api/purchase/update/${id}`, { isPassed: true });
-      toast.success("Purchase marked as passed!");
-      mutate("/api/purchase/get");
-    } catch (err) {
-      toast.error("Failed to Pass!", err);
+      try {
+        const httpReq = http();
+        await httpReq.put(`/api/warehouse/updatewarehouse/${id}`, { isTransfer: true });
+        toast.success("warehouse marked as passed!");
+        mutate("/api/warehouse/get");
+      } catch (err) {
+        console.log("err",err)
+        toast.error("Failed to Pass!", err);
+      }
     }
-  }
 
   //Table data
   const columns = [
@@ -567,37 +504,36 @@ const Purchase = () => {
     ,
 
 
-    {
-      title: (
-        <span className="text-sm md:!text-1xl font-semibold !text-white">
-          Edit
-        </span>
-      ),
-      key: "edit",
-      width: 20,
-      fixed: "right",
-      render: (_, record) => (
-        <a
-          onClick={() => handleEdit(record)}
-          className="!text-white  !w-[100px] "
-        >
-          <EditOutlined className=" !p-2 bg-blue-700 flex justify-center h-[20px] !w-[30]   md:!w-[100%]  md:text-[15px]" />
-        </a>
-      ),
-    },
+    // {
+    //   title: (
+    //     <span className="text-sm md:!text-1xl font-semibold !text-white">
+    //       Edit
+    //     </span>
+    //   ),
+    //   key: "edit",
+    //   width: 20,
+    //   fixed: "right",
+    //   render: (_, record) => (
+    //     <a
+    //       onClick={() => handleEdit(record)}
+    //       className="!text-white  !w-[100px] "
+    //     >
+    //       <EditOutlined className=" !p-2 bg-blue-700 flex justify-center h-[20px] !w-[30]   md:!w-[100%]  md:text-[15px]" />
+    //     </a>
+    //   ),
+    // },
     {
       title: (
         <span className="text-sm md:!text-1xl font-semibold !text-white">
           Pass
         </span>
       ),
-      key: "ispassed",
+      key: "isTransfer",
       width: 20,
       fixed: "right",
       render: (_, record) => (
-
         <Popconfirm
-          title="Are you sure to Pass this Purchase?"
+          title="Are you sure to Pass this Warehouse?"
           description="This action cannot be undone."
           okText="yes"
           cancelText="No"
@@ -615,7 +551,7 @@ const Purchase = () => {
       fixed: "right",
       render: (_, obj) => (
         <Popconfirm
-          title="Are you sure to delete this purchase record?"
+          title="Are you sure to delete this Warehouse record?"
           description="This action cannot be undone."
           okText="yes"
           cancelText="No"
@@ -631,13 +567,36 @@ const Purchase = () => {
 
   ];
 
-  // data source
-  const dataSource = purchaseData?.data.filter(item => item.isPassed === false).map((item) => ({
+  const dataSource = WarehouseData?.data.filter(item => item.isTransfer === false).map((item) => ({
     ...item,
     key: item._Id
   }))
 
-  //unit change effect
+  //currency change
+  const currencyChange = (e) => {
+    const selectedCurrency = currency.find((i) => i.currencyName === e);
+    if (selectedCurrency) {
+      setCrncy(Number(selectedCurrency.rate))
+    } else {
+      console.log("Currency not found");
+    }
+  };
+
+
+
+
+  const handleWeightChange = (e) => {
+    if (unit.toLowerCase() === "box") {
+      const value = e.target.value;
+      // allow empty or valid float numbers
+      if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
+        setWeight(value);
+        form.setFieldsValue({ weight: value });
+      }
+    }
+  };
+
+
   useEffect(() => {
     if (unit.toLowerCase() === "kg" || unit.toLowerCase() === "each") {
       setWeight("1");
@@ -651,7 +610,10 @@ const Purchase = () => {
     }
   }, [unit]);
 
-  //submit funciton
+  console.log("sourceId",sourceId)
+  console.log("targerid",targetId)
+  console.log("selected",stock)
+
   const onFinish = async (values) => {
 
     setBtnDisabled(true);
@@ -665,55 +627,68 @@ const Purchase = () => {
       const selectedCompany = company.find(c => c.companyId === values.companyId);
       const selectedStock = stock.find(s => s.stockId === values.warehouseId);
       const selectedDealer = dealer.find(d => d.dealerId === values.dealerId);
-
+      
       const finalQty = weight && qty ? weight * qty : 1 || 0;
-      const formattedValues = {
+
+        const sourceStockObj = stock.find((s) => s.stockId === sourceId);
+        const sourcewarehouse = sourceStockObj?.stockName || "";
+        const transactionId = `trfd-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      const outEntry = {
         ...values,
         orderNo,
         quantity: qty,
-        purchaseDate: values.purchaseDate ? values.purchaseDate.toDate() : null,
+        weight: finalQty,
+        transaction:"transfer",
+        WarehouseDate: values.WarehouseDate ? values.WarehouseDate.toDate() : null,
         supplierName: selectedSupplier?.supplierName || "",
         productName: selectedProduct?.productName || "",
         companyName: selectedCompany?.companyName || "",
-        warehouseName: selectedStock?.stockName || "",
+        warehouseName: sourcewarehouse||"",
+        warehouseId: sourceId,
         dealerName: selectedDealer?.dealerName || "",
         totalCost: finalQty * (Number(values?.unitCost) || 0),
         totalLocalCost: finalQty * (Number(values?.exchangedAmt) || 0),
-        isPassed: false,
-        totalComission: (Number(values?.comission) || 0) * finalQty,
-        totalExComission:
-          (Number(values?.comission) || 0) *
-          finalQty *
-          (Number(exchange) || 1),
+        isTransfer: false,
+        transactionType: "Out",
+        transactionId: transactionId,
+        userName: userName,
+  
+
       };
-      const purchaseData = await httpReq.post("/api/purchase/create", formattedValues);
-      const purchaseId = purchaseData?.data?.data?._id;
-
-      const warehouseData = {
-
+      console.log("out Entry",outEntry)
+       const targetStockObj = stock.find((s) => s.stockId === targetId);
+        const targetwarehouse = targetStockObj?.stockName || "";
+      const inEntry = {
+       
+       
         ...values,
         orderNo,
-        transaction: "purchase",
-        transactionId: purchaseId,
         quantity: qty,
-        currency: "USD",
-        transactionDate: values.purchaseDate ? values.purchaseDate.toDate() : null,
+        weight: finalQty,
+        transaction:"transfer",
+        WarehouseDate: values.WarehouseDate ? values.WarehouseDate.toDate() : null,
         supplierName: selectedSupplier?.supplierName || "",
         productName: selectedProduct?.productName || "",
         companyName: selectedCompany?.companyName || "",
-        warehouseName: selectedStock?.stockName || "",
+        warehouseName:targetwarehouse || "",
+        warehouseId: targetId,
+        dealerName: selectedDealer?.dealerName || "",
         totalCost: finalQty * (Number(values?.unitCost) || 0),
         totalLocalCost: finalQty * (Number(values?.exchangedAmt) || 0),
-        isPassed: false,
+        isTransfer: false,
         transactionType: "In",
-      }
+        transactionId: transactionId,
+        userName: userName,
+   
+
+      };
+ 
+      await httpReq.post("/api/warehouse/create", outEntry);
+      await httpReq.post("/api/warehouse/create", inEntry);
 
 
-      await httpReq.post("/api/warehouse/create", warehouseData)
-
-
-      toast.success("Purchase record and transaction added successfully");
-      mutate("/api/purchase/get");
+      toast.success("Warehouse record and transaction added successfully");
+      mutate("/api/warehouse/get");
       form.resetFields();
       setSupplierData("");
 
@@ -723,12 +698,11 @@ const Purchase = () => {
     } finally {
       setTimeout(() => {
         setBtnDisabled(false);
-        setBtnText(edit ? "Update Purchase" : "Add Purchase");
+        setBtnText(edit ? "Update Warehouse" : "Add Warehouse");
       }, 2000);
     }
   };
 
-  //update function
   const onUpdate = async (values) => {
     setBtnDisabled(true);
     setBtnText("Processing...");
@@ -749,8 +723,7 @@ const Purchase = () => {
         ...supplierEditData,
         ...values,
         weight,
-        quantity,
-        purchaseDate: values.purchaeDate ? values.purchaseDate.toDate() : supplierEditData.purchaseDate,
+        WarehouseDate: values.purchaeDate ? values.WarehouseDate.toDate() : supplierEditData.WarehouseDate,
         salePrice: selectedProduct?._id || values.salePrice,
         party: selectedProduct?._id || values.party,
         supplierId: selectedSupplier.supplierId,
@@ -771,18 +744,16 @@ const Purchase = () => {
             (Number(exchange) ?? 1)),
         comission: Number(values.comission ?? supplierEditData.comission ?? 0),
       };
-      // Update purchase
-      const purchaseRes = await httpReq.put(`/api/purchase/update/${values._id}`, formattedValues);
+      // Update Warehouse
+      const WarehouseRes = await httpReq.put(`/api/warehouse/update/${values._id}`, formattedValues);
+      mutate("/api/warehouse/get");
 
-
-      const purchaseId = purchaseRes?.data?.data?._id;
+      const WarehouseId = WarehouseRes?.data?.data?._id;
       const warehouseData = {
         ...values,
-        transactionId: purchaseId,
+        transactionId: WarehouseId,
         weight,
-        currency: "USD",
-        quantity,
-        transactionDate: values.purchaeDate ? values.purchaseDate.toDate() : supplierEditData.purchaseDate,
+        WarehouseDate: values.purchaeDate ? values.WarehouseDate.toDate() : supplierEditData.WarehouseDate,
         salePrice: selectedProduct?._id || values.salePrice,
         party: selectedProduct?._id || values.party,
         supplierId: selectedSupplier.supplierId,
@@ -798,12 +769,12 @@ const Purchase = () => {
         transactionType: "In",
       }
 
-      await httpReq.put(`/api/warehouse/update/${purchaseId}`, warehouseData)
-      toast.success("Supplier transaction updated successfully");
-      form.resetFields();
-      mutate("/api/purchase/get");
+      await httpReq.put(`/api/warehouse/update/${WarehouseId}`, warehouseData)
 
+      form.resetFields();
+      toast.success("Supplier transaction updated successfully");
       setSupplierData("");
+      setEdit(false);
     } catch (err) {
       console.error("err", err);
       toast.error("Update Failed");
@@ -811,11 +782,23 @@ const Purchase = () => {
       // Re-enable after 2 seconds
       setTimeout(() => {
         setBtnDisabled(false);
-        setBtnText(edit ? "Update Purchase" : "Add Purchase");
-        setEdit(false);
+        setBtnText(edit ? "Update Warehouse" : "Add Warehouse");
       }, 2000);
     }
   };
+
+  useEffect(() => {
+    if (!products || !Array.isArray(products.data)) return;
+
+    const product = products.data.find(
+      (item) => String(item._id) === String(selectedProduct)
+    );
+
+    if (product) {
+      setSalePrice(product.salePrice);
+      form.setFieldsValue({ salePrice: product.salePrice });
+    }
+  }, [selectedProduct, products]);
 
   const units =
     [
@@ -838,27 +821,13 @@ const Purchase = () => {
 
     ]
 
-  //exchange rate effect
+
   useEffect(() => {
     const rate = crncy || 1;
     setExchange(rate);
   }, [crncy, currency]);
 
-  // sales price effect
-  useEffect(() => {
-    if (!products || !Array.isArray(products.data)) return;
 
-    const product = products.data.find(
-      (item) => String(item._id) === String(selectedProduct)
-    );
-
-    if (product) {
-      setSalePrice(product.salePrice);
-      form.setFieldsValue({ salePrice: product.salePrice });
-    }
-  }, [selectedProduct, products]);
-
- // exchange amount calculation effect
   useEffect(() => {
     setExchangedAmt(Number(unitCost) * exchange);
   }, [qty, unitCost, exchange, crncy]);
@@ -867,8 +836,52 @@ const Purchase = () => {
     form.setFieldsValue({ exchangedAmt: exchangedAmt });
   }, [exchangedAmt, form]);
 
-  const initialPurchaseDate = supplierData?.purchaseDate
-    ? dayjs(supplierData.purchaseDate, "DD-MM-YYYY")
+
+
+  const handleProductChange = (value) => {
+
+    setSelectedProduct(value);
+
+    // Handle Warehouse quantities
+    if (Array.isArray(totalWarehouse)) {
+      const filteredWarehouse = totalWarehouse.filter((p) => p.productId === value);
+      const calculatedQty = filteredWarehouse.reduce((sum, item) => sum + item.quantity, 0);
+      const unit = filteredWarehouse.length > 0 ? filteredWarehouse[0].unit : null;
+      const sprice = selectedProduct.salePrice;
+
+      setProductUnit(unit);
+      setProductQty(calculatedQty);
+    }
+    if (Array.isArray(WarehousesData)) {
+      const filteredSales = WarehousesData.filter((p) => p.productId === value);
+      const calculatedSaleQty = filteredSales.reduce((total, item) => total + item.quantity, 0);
+      const unit = filteredSales.length > 0 ? filteredSales[0].unit : null;
+
+      setProductUnit(unit);
+      setProductWarehouseQty(calculatedSaleQty)
+    }
+    else {
+      setProductQty(null);
+      setProductWarehouseQty(null);
+    }
+
+
+    // Handle sales quantities
+    if (Array.isArray(WarehousesData)) {
+      const filteredSales = WarehousesData.filter((p) => p.productId === value);
+      const calculatedSaleQty = filteredSales.reduce((sum, item) => sum + item.quantity, 0);
+      const unit = filteredSales.length > 0 ? filteredSales[0].unit : null;
+
+      setProductUnit(unit); // optional: override if you want sales unit
+      setProductWarehouseQty(calculatedSaleQty); // use separate state for sales
+    } else {
+      setProductWarehouseQty(null);
+    }
+  };
+
+
+  const initialWarehouseDate = supplierData?.WarehouseDate
+    ? dayjs(supplierData.WarehouseDate, "DD-MM-YYYY")
     : null;
 
   return (
@@ -876,12 +889,12 @@ const Purchase = () => {
       <div>
         <ToastContainer position="top-right" autoClose={3000} />
         <div className="p-4 bg-zinc-100">
-          {/* Purchase Form */}
+          {/* Warehouse Form */}
           <div className='flex w-full gap-4 items-center flex item-center justify-between bg-zinc-200  px-4'>
-            <h2 className="text-sm md:text-4xl p-2 text-white font-bold [text-shadow:2px_2px_4px_rgba(0,0,0,0.5)]">Create Purchase Record</h2>
+            <h2 className="text-sm md:text-4xl p-2 text-white font-bold [text-shadow:2px_2px_4px_rgba(0,0,0,0.5)]">Warehouse Transfer Page</h2>
             <div> {productQty && (
               <div className='!text-yellow-200  bg-blue-900 mt-3 md:text-1xl text-sm mb-2 p-2'>
-                <span className='text-white'>Availible Qty:</span> {Number(productQty) - Number(productPurchaseQty)},{productUnit || null}
+                <span className='text-white'>Availible Qty:</span> {Number(productQty) - Number(productWarehouseQty)},{productUnit || null}
               </div>
             )}</div>
             <div className='mb-4 w-[50%] flex justify-end p-2 '>
@@ -895,7 +908,7 @@ const Purchase = () => {
               form={form}
               layout="vertical"
               onFinish={edit ? onUpdate : onFinish}
-              initialValues={{ userName: userName, purchaseDate: initialPurchaseDate }}
+              initialValues={{ userName: userName, WarehouseDate: initialWarehouseDate }}
               size='small'
 
             >
@@ -942,7 +955,8 @@ const Purchase = () => {
                 <Form.Item
                   label="Weight"
                   name="weight"
-                  hidden={!(unit === "box" || isWeight)}
+
+                  hidden={unit !== "box"}
                 >
                   <Input
                     value={weight}
@@ -974,18 +988,7 @@ const Purchase = () => {
                     options={companyOptions}
                   />
                 </Form.Item>
-                <Form.Item
-                  label="Warehouse"
-                  name="warehouseId"
-                  rules={[{ required: true, message: "Please Enter warehouse name" }]}
-                >
-                  <Select
-                    showSearch
-                    placeholder="Select a Supplier"
-                    optionFilterProp="label"
-                    options={stockOptions}
-                  />
-                </Form.Item>
+
                 <Form.Item
                   label="Unit Cost"
                   name="unitCost"
@@ -1035,13 +1038,33 @@ const Purchase = () => {
                       </Option>
                     ))}
                   </Select>
+
                 </Form.Item>
                 <Form.Item
-                  label="Batch No"
-                  name="batch"
-                  rules={[{ required: true, message: "Please enter batch No" }]}
+                  name="fromWarehouseId"
+                  label="From Warehouse"
+                  rules={[{ required: true, message: "Please select a warehouse" }]}
                 >
-                  <Input placeholder="Enter enter Batch No"
+                  <Select
+                    showSearch
+                    placeholder="Select source warehouse"
+                    optionFilterProp="label"
+                    options={stockOptions}   // value = warehouse._id
+                    onChange={(e)=>setSourceId(e)}
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  name="toWarehouseId"
+                  label="To Warehouse"
+                  rules={[{ required: true, message: "Please select a warehouse" }]}
+                >
+                  <Select
+                    showSearch
+                    placeholder="Select destination warehouse"
+                    optionFilterProp="label"
+                    options={stockOptions}
+                    onChange={(e)=>setTargetId(e)}
                   />
                 </Form.Item>
                 <Form.Item
@@ -1052,29 +1075,11 @@ const Purchase = () => {
                   <Input placeholder="Enter enter party No"
                   />
                 </Form.Item>
+
+
                 <Form.Item
-                  label="Dealer"
-                  name="dealerId"
-                >
-                  <Select
-                    showSearch
-                    placeholder="Enter Dealer"
-                    optionFilterProp="label"
-                    options={dealerOptions}
-                    rules={[{ required: true, message: "Please Enter dealer name" }]}
-                  />
-                </Form.Item>
-                <Form.Item
-                  label="Comission"
-                  name="comission"
-                  rules={[{ required: true, message: "Please enter Comission" }]}
-                >
-                  <Input placeholder="Enter enter comission"
-                  />
-                </Form.Item>
-                <Form.Item
-                  label="Purchase Date"
-                  name="purchaseDate"
+                  label="Warehouse Date"
+                  name="WarehouseDate"
                 >
                   <DatePicker className="w-full" format="MM/DD/YYYY" />
                 </Form.Item>
@@ -1118,7 +1123,7 @@ const Purchase = () => {
 
         </div>
         <div>
-          <div className='text-zinc-600 md:text-lg text-sm p-4 font-bold'>Purchase Records:</div>
+          <div className='text-zinc-600 md:text-lg text-sm p-4 font-bold'>Warehouse Records:</div>
         </div>
         <div className="w-full   overflow-x-auto">
 
@@ -1155,4 +1160,4 @@ const Purchase = () => {
   )
 }
 
-export default Purchase;
+export default Warehouse;

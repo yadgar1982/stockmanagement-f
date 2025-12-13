@@ -15,6 +15,7 @@ const Inventory = lazy(() => import('./components/Shared/shared-components/inven
 const Sales = lazy(() => import("./components/Shared/shared-components/sales"));
 const Purchase = lazy(() => import('./components/Shared/shared-components/purchase'));
 const SupPayments = lazy(() => import('./components/Shared/shared-components/payments/supplierPayments'));
+const Warehouse = lazy(() => import('./components/Shared/shared-components/warehousemanagement'));
 const CusPayment = lazy(() => import('./components/Shared/shared-components/payments/customerPayments'));
 const OtherPayments = lazy(() => import('./components/Shared/shared-components/payments/otherPayments'));
 const DelPayment = lazy(() => import('./components/Shared/shared-components/payments/dealerPayment'));
@@ -27,8 +28,10 @@ const DealerRegister = lazy(() => import("./components/Admin/Dealer"));
 const CompanyRegister = lazy(() => import("./components/Admin/Company"));
 const BrandingRegister = lazy(() => import("./components/Admin/Branding"));
 const Currency = lazy(() => import('./components/Admin/Currency'));
+const Category = lazy(() => import('./components/Admin/Category'));
 const Stock = lazy(() => import('./components/Admin/Stock'));
 const Products = lazy(() => import('./components/Admin/Products'));
+
 const NotFound = lazy(() => import("./components/Home/pages/NotFound"));
 
 function App() {
@@ -53,6 +56,7 @@ function App() {
             <Route path='/customerPayments' element={<CusPayment />} />
             <Route path='/dealerPayments' element={<DelPayment />} />
             <Route path='/otherPayments' element={<OtherPayments />} />
+            <Route path='/warehouse' element={<Warehouse />} />
             
             <Route path='/user' element={<User />} />
             <Route path='/admin' element={<Admin />} />
@@ -67,6 +71,7 @@ function App() {
             <Route path="/stock" element={<Stock />} />
             <Route path="/product" element={<Products />} />
             <Route path="/branding" element={<BrandingRegister />} />
+            <Route path="/category" element={<Category />} />
           </Routes>
         </Suspense>
       </Router>
