@@ -741,7 +741,7 @@ const Purchase = () => {
       const selectedDealer = dealer.find(d => d.dealerId === values.dealerId);
       const httpReq = http(token);
 
-      const qty = values.qty ?? supplierEditData.quantity ?? 0;
+      const qty = values.qty ?? supplierEditData.quantity ?? 0; 
       const weight = values.weight ?? supplierEditData.weight ?? 1;
       const finalQty = weight * qty;
 
@@ -860,7 +860,9 @@ const Purchase = () => {
 
  // exchange amount calculation effect
   useEffect(() => {
+    const quantity = qty * weight
     setExchangedAmt(Number(unitCost) * exchange);
+    setQuantity(quantity)
   }, [qty, unitCost, exchange, crncy]);
 
   useEffect(() => {
