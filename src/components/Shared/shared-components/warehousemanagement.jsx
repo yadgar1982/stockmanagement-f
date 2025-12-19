@@ -26,6 +26,7 @@ const logo = import.meta.env.VITE_LOGO_URL;
 
 
 const Warehouse = () => {
+
   const dispatch = useDispatch();
 
   const token = cookies.get("authToken")
@@ -50,9 +51,11 @@ const Warehouse = () => {
   const [salePrice, setSalePrice] = useState("");
   const [btnDisabled, setBtnDisabled] = useState(false);
   const [btnText, setBtnText] = useState(edit ? "Update Warehouse" : "Add Warehouse");
-  const [sourceId,setSourceId]=useState("");
-  const [targetId,setTargetId]=useState("");
+  const [sourceWarehouse, setSourceWarehouse] = useState("");
+  const [targetWarehouse, setTargetWarehouse] = useState("");
+  const [editText, setEditText] = useState("")
   const [form] = Form.useForm();
+
   //get branding
   const branding = JSON.parse(localStorage.getItem("branding") || "null");
 
@@ -96,6 +99,7 @@ const Warehouse = () => {
     label: st.stockName,
     value: st.stockId
   }));
+
   const { companys, cloading, cerror } = useSelector((state) => state.company);
   const allCompanies = companys?.data || [];
   const company = allCompanies.map((item) => ({
@@ -202,130 +206,130 @@ const Warehouse = () => {
       printWindow.document.body.appendChild(iframe);
 
       const htmlContent = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Order - ${record.orderNo}</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 40px; box-sizing: border-box; }
-    header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; width: 100%; }
-    .company, .vendor { width: 48%; }
-    .company-logo { width: 70px; height: 70px; border-radius: 8px; background:white; border:1px solid #ddd; display:flex; align-items:center; justify-content:center; padding:5px; }
-    .company-info { font-size: 12px; line-height:1.4; color:#444; }
-    .company-info .name { font-weight:bold; font-size:14px; color:#111; }
-    h1 { text-align: center; margin-bottom: 20px; }
-    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-    th, td { border: 1px solid #000; padding: 8px; text-align: left; }
-    th { background: #f0f0f0; }
-    tfoot td { font-weight: bold; }
-    .footer { margin-top: 30px; font-size: 0.9em; }
-    .Order-info { display:flex; justify-content: space-between; width: 100%; margin-bottom: 20px; }
-  </style>
-</head>
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Order - ${record.orderNo}</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 40px; box-sizing: border-box; }
+      header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; width: 100%; }
+      .company, .vendor { width: 48%; }
+      .company-logo { width: 70px; height: 70px; border-radius: 8px; background:white; border:1px solid #ddd; display:flex; align-items:center; justify-content:center; padding:5px; }
+      .company-info { font-size: 12px; line-height:1.4; color:#444; }
+      .company-info .name { font-weight:bold; font-size:14px; color:#111; }
+      h1 { text-align: center; margin-bottom: 20px; }
+      table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+      th, td { border: 1px solid #000; padding: 8px; text-align: left; }
+      th { background: #f0f0f0; }
+      tfoot td { font-weight: bold; }
+      .footer { margin-top: 30px; font-size: 0.9em; }
+      .Order-info { display:flex; justify-content: space-between; width: 100%; margin-bottom: 20px; }
+    </style>
+  </head>
 
-<body>
+  <body>
 
-  <!-- Header: Company + supplier -->
-  <header>
-    <!-- Company Info -->
-    <div class="company" style="text-align: left; border: 1px solid #000; padding: 10px; border-radius: 5px;display:flex; gap:10px; align-items:center;">
-      <div class="company-logo" >
-        <img src="${logo}" width="60" style="object-fit:contain;" crossorigin="anonymous" />
-      </div>
-      <div class="company-info ">
-        <div class="name">${branding[0]?.name}</div>
-        <div>${branding[0]?.address || "-"}</div>
-        <div>${branding[0]?.mobile || "-"}</div>
-        <div>
-          <a href="mailto:${branding[0]?.email}" style="color:#0077b6; text-decoration:none;">
-            ${branding[0]?.email}
-          </a>
+    <!-- Header: Company + supplier -->
+    <header>
+      <!-- Company Info -->
+      <div class="company" style="text-align: left; border: 1px solid #000; padding: 10px; border-radius: 5px;display:flex; gap:10px; align-items:center;">
+        <div class="company-logo" >
+          <img src="${logo}" width="60" style="object-fit:contain;" crossorigin="anonymous" />
+        </div>
+        <div class="company-info ">
+          <div class="name">${branding[0]?.name}</div>
+          <div>${branding[0]?.address || "-"}</div>
+          <div>${branding[0]?.mobile || "-"}</div>
+          <div>
+            <a href="mailto:${branding[0]?.email}" style="color:#0077b6; text-decoration:none;">
+              ${branding[0]?.email}
+            </a>
+          </div>
         </div>
       </div>
+
+      <!-- supplier Info -->
+      <div class="vendor" style="text-align: left; padding-left: 100px; border-radius: 5px;">
+        <strong>Supplier Details:</strong><br>
+        Buyer: ${supplier.fullname || "-"}<br>
+        Address: ${supplier.country || "-"}<br>
+        Phone: ${supplier.mobile || "-"}<br>
+        Email: ${supplier.email || "-"}<br>
+      </div>
+    </header>
+
+    <!-- Order Info (Full Width) -->
+    <div class="Order-info">
+      <div>
+        <div>Order Date: ${new Date(record.createdAt).toLocaleDateString()}</div>
+        <div>Last Due Date: ${formattedDate}</div>
+        <div>Party #: ${record.party}</div>
+      </div>
+    
     </div>
 
-    <!-- supplier Info -->
-    <div class="vendor" style="text-align: left; padding-left: 100px; border-radius: 5px;">
-      <strong>Supplier Details:</strong><br>
-      Buyer: ${supplier.fullname || "-"}<br>
-      Address: ${supplier.country || "-"}<br>
-      Phone: ${supplier.mobile || "-"}<br>
-      Email: ${supplier.email || "-"}<br>
-    </div>
-  </header>
+    <!-- Order Title -->
+    <h2 style="text-align: center; font-size: 24px; font-weight: bold; margin: 20px 0;">Order # ${record.orderNo}</h2>
 
-  <!-- Order Info (Full Width) -->
-  <div class="Order-info">
-    <div>
-      <div>Order Date: ${new Date(record.createdAt).toLocaleDateString()}</div>
-      <div>Last Due Date: ${formattedDate}</div>
-      <div>Party #: ${record.party}</div>
-    </div>
-   
-  </div>
-
-  <!-- Order Title -->
-  <h2 style="text-align: center; font-size: 24px; font-weight: bold; margin: 20px 0;">Order # ${record.orderNo}</h2>
-
-  <!-- Table -->
-  <table>
-    <thead>
-       <tr>
-        <th style="font-size:14px; white-space:nowrap">No</th>
-        <th style="max-width: 300px; white-space: normal; word-wrap: break-word;">Details</th>
-        <th style="font-size:14px; white-space:nowrap">Qty</th>
-        <th style="font-size:14px; white-space:nowrap">Weight</th>
-        <th style="font-size:14px; white-space:nowrap">Unit-Price USD</th>
-        <th style="font-size:14px; white-space:nowrap">Exch Price (${record.currency})</th>
-        <th style="font-size:14px; white-space:nowrap">Belongs To</th>
-        <th style="font-size:14px; white-space:nowrap">Total (${record.currency})</th>
-        <th style="font-size:14px; white-space:nowrap">Total USD</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>1</td>
-        <td style="max-width: 300px; white-space: normal; word-wrap: break-word;">${record.description}</td>
-        <td style=" white-space: nowrap;word-wrap: break-word">${record.weight && record.weight > 0
+    <!-- Table -->
+    <table>
+      <thead>
+        <tr>
+          <th style="font-size:14px; white-space:nowrap">No</th>
+          <th style="max-width: 300px; white-space: normal; word-wrap: break-word;">Details</th>
+          <th style="font-size:14px; white-space:nowrap">Qty</th>
+          <th style="font-size:14px; white-space:nowrap">Weight</th>
+          <th style="font-size:14px; white-space:nowrap">Unit-Price USD</th>
+          <th style="font-size:14px; white-space:nowrap">Exch Price (${record.currency})</th>
+          <th style="font-size:14px; white-space:nowrap">Belongs To</th>
+          <th style="font-size:14px; white-space:nowrap">Total (${record.currency})</th>
+          <th style="font-size:14px; white-space:nowrap">Total USD</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td style="max-width: 300px; white-space: normal; word-wrap: break-word;">${record.description}</td>
+          <td style=" white-space: nowrap;word-wrap: break-word">${record.weight && record.weight > 0
           ? Number(record.quantity) + " " + record.unit
           : Number(record.quantity) + " " + record.unit
         }</td>
-           <td style=" white-space: normal;word-wrap: break-word">${record.weight && record.weight > 0
+            <td style=" white-space: normal;word-wrap: break-word">${record.weight && record.weight > 0
           ? Number(record.weight).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + " kg"
           : record.quantity + " " + record.unit
         }</td>
-        <td style="word-wrap: break-word white-space:nowrap">${(record.unitCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-        <td style="word-wrap: break-word white-space:nowrap">${(record.exchangedAmt).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-        <td style="word-wrap: break-word white-space:nowrap">${record.companyName}</td>
-        <td style="word-wrap: break-word white-space:nowrap">${(record.totalLocalCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-        <td>${(record.totalCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-      </tr>
-    </tbody>
-    <tfoot>
-      <tr>
-        <td colspan="7">Subtotal</td>
-        <td>${totalLocalCost}</td>
-     
-         <td>${totalCost}</td>
-      </tr>
-    </tfoot>
-  </table>
+          <td style="word-wrap: break-word white-space:nowrap">${(record.unitCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td style="word-wrap: break-word white-space:nowrap">${(record.exchangedAmt).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td style="word-wrap: break-word white-space:nowrap">${record.companyName}</td>
+          <td style="word-wrap: break-word white-space:nowrap">${(record.totalLocalCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td>${(record.totalCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="7">Subtotal</td>
+          <td>${totalLocalCost}</td>
+      
+          <td>${totalCost}</td>
+        </tr>
+      </tfoot>
+    </table>
 
-  <!-- Footer -->
-  <div >Created by:<span style="font-family: 'Brush Script MT', cursive; font-size:24px;color:blue;"> ${record.userName} </span></div>
+    <!-- Footer -->
+    <div >Created by:<span style="font-family: 'Brush Script MT', cursive; font-size:24px;color:blue;"> ${record.userName} </span></div>
 
-  <div class="footer">
-    Signature: .............
-  </div>
+    <div class="footer">
+      Signature: .............
+    </div>
 
-  <script>
-    window.onload = () => window.print();
-  </script>
+    <script>
+      window.onload = () => window.print();
+    </script>
 
-</body>
-</html>
-`;
+  </body>
+  </html>
+      `;
 
       iframe.srcdoc = htmlContent;
 
@@ -347,8 +351,8 @@ const Warehouse = () => {
 
   //Delete 
   const handleDelete = async (obj) => {
-   
- 
+
+
     try {
       const WarehouseId = obj.transactionId;
 
@@ -363,37 +367,44 @@ const Warehouse = () => {
     }
   };
 
-  // const handleEdit = async (record) => {
-  //   setSupplierEditData(record);
+  const handleEdit = async (record) => {
+    setEdit(true);
 
-  //   form.setFieldsValue({
-  //     ...record,
-  //     WarehouseDate: record?.WarehouseDate ? dayjs(record?.WarehouseDate) : record?.createdAt,
-  //     qty: record?.quantity,
-  //     supplier: record.supplierName,
-  //     supplierId: record.supplierId,
-  //   });
+    setEditText("Please make sure to reupdate both Warehouses before Updating any data")
+    setSupplierEditData(record);
+    const warehouseDate = record?.WarehouseDate
+      ? dayjs(record.WarehouseDate)
+      : record?.createdAt
+        ? dayjs(record.createdAt)
+        : null;
+    form.setFieldsValue({
+      ...record,
+      WarehouseDate: warehouseDate,
+      qty: record?.quantity,
+      supplier: record.supplierName,
+      supplierId: record.supplierId,
+    });
 
-  //   setEdit(true);
 
-  //   const httpReq = http();
-  //   const { data: Warehouse } = await httpReq.get(`/api/warehouse/get/${record._id}`);
-  //   return setWarehouse(Warehouse);
 
-  // };
+    const httpReq = http();
+    const { data: Warehouse } = await httpReq.get(`/api/warehouse/get/${record._id}`);
+    return setWarehouse(Warehouse);
 
-  
+  };
+
+
   const handleIspassed = async (id) => {
-      try {
-        const httpReq = http();
-        await httpReq.put(`/api/warehouse/updatewarehouse/${id}`, { isTransfer: true });
-        toast.success("warehouse marked as passed!");
-        mutate("/api/warehouse/get");
-      } catch (err) {
-        console.log("err",err)
-        toast.error("Failed to Pass!", err);
-      }
+    try {
+      const httpReq = http();
+      await httpReq.put(`/api/warehouse/updatewarehouse/${id}`, { isTransfer: true });
+      toast.success("warehouse marked as passed!");
+      mutate("/api/warehouse/get");
+    } catch (err) {
+      console.log("err", err)
+      toast.error("Failed to Pass!", err);
     }
+  }
 
   //Table data
   const columns = [
@@ -504,24 +515,24 @@ const Warehouse = () => {
     ,
 
 
-    // {
-    //   title: (
-    //     <span className="text-sm md:!text-1xl font-semibold !text-white">
-    //       Edit
-    //     </span>
-    //   ),
-    //   key: "edit",
-    //   width: 20,
-    //   fixed: "right",
-    //   render: (_, record) => (
-    //     <a
-    //       onClick={() => handleEdit(record)}
-    //       className="!text-white  !w-[100px] "
-    //     >
-    //       <EditOutlined className=" !p-2 bg-blue-700 flex justify-center h-[20px] !w-[30]   md:!w-[100%]  md:text-[15px]" />
-    //     </a>
-    //   ),
-    // },
+    {
+      title: (
+        <span className="text-sm md:!text-1xl font-semibold !text-white">
+          Edit
+        </span>
+      ),
+      key: "edit",
+      width: 20,
+      fixed: "right",
+      render: (_, record) => (
+        <a
+          onClick={() => handleEdit(record)}
+          className="!text-white  !w-[100px] "
+        >
+          <EditOutlined className=" !p-2 bg-blue-700 flex justify-center h-[20px] !w-[30]   md:!w-[100%]  md:text-[15px]" />
+        </a>
+      ),
+    },
     {
       title: (
         <span className="text-sm md:!text-1xl font-semibold !text-white">
@@ -610,9 +621,7 @@ const Warehouse = () => {
     }
   }, [unit]);
 
-  console.log("sourceId",sourceId)
-  console.log("targerid",targetId)
-  console.log("selected",stock)
+
 
   const onFinish = async (values) => {
 
@@ -627,62 +636,59 @@ const Warehouse = () => {
       const selectedCompany = company.find(c => c.companyId === values.companyId);
       const selectedStock = stock.find(s => s.stockId === values.warehouseId);
       const selectedDealer = dealer.find(d => d.dealerId === values.dealerId);
-      
+
       const finalQty = weight && qty ? weight * qty : 1 || 0;
 
-        const sourceStockObj = stock.find((s) => s.stockId === sourceId);
-        const sourcewarehouse = sourceStockObj?.stockName || "";
-        const transactionId = `trfd-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      const transactionId = `trfd-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
       const outEntry = {
         ...values,
         orderNo,
-        quantity: qty,
-        weight: finalQty,
-        transaction:"transfer",
+        quantity: finalQty,
+        transaction: "transfer",
         WarehouseDate: values.WarehouseDate ? values.WarehouseDate.toDate() : null,
         supplierName: selectedSupplier?.supplierName || "",
         productName: selectedProduct?.productName || "",
         companyName: selectedCompany?.companyName || "",
-        warehouseName: sourcewarehouse||"",
-        warehouseId: sourceId,
+        warehouseName: sourceWarehouse?.sourceName || "",
+        warehouseId: sourceWarehouse?.sourceId,
         dealerName: selectedDealer?.dealerName || "",
         totalCost: finalQty * (Number(values?.unitCost) || 0),
         totalLocalCost: finalQty * (Number(values?.exchangedAmt) || 0),
         isTransfer: false,
+        currency: "USD",
         transactionType: "Out",
         transactionId: transactionId,
         userName: userName,
-  
+
 
       };
-      console.log("out Entry",outEntry)
-       const targetStockObj = stock.find((s) => s.stockId === targetId);
-        const targetwarehouse = targetStockObj?.stockName || "";
+     
       const inEntry = {
-       
-       
+
+
         ...values,
         orderNo,
-        quantity: qty,
-        weight: finalQty,
-        transaction:"transfer",
+        quantity: finalQty,
+        transaction: "transfer",
         WarehouseDate: values.WarehouseDate ? values.WarehouseDate.toDate() : null,
         supplierName: selectedSupplier?.supplierName || "",
         productName: selectedProduct?.productName || "",
         companyName: selectedCompany?.companyName || "",
-        warehouseName:targetwarehouse || "",
-        warehouseId: targetId,
+        warehouseName: targetWarehouse.targetName || "",
+        warehouseId: targetWarehouse.targetId,
         dealerName: selectedDealer?.dealerName || "",
         totalCost: finalQty * (Number(values?.unitCost) || 0),
         totalLocalCost: finalQty * (Number(values?.exchangedAmt) || 0),
         isTransfer: false,
         transactionType: "In",
+        currency: "USD",
         transactionId: transactionId,
         userName: userName,
-   
+
 
       };
- 
+
       await httpReq.post("/api/warehouse/create", outEntry);
       await httpReq.post("/api/warehouse/create", inEntry);
 
@@ -699,13 +705,14 @@ const Warehouse = () => {
       setTimeout(() => {
         setBtnDisabled(false);
         setBtnText(edit ? "Update Warehouse" : "Add Warehouse");
-      }, 2000);
+      }, 5000);
     }
   };
 
   const onUpdate = async (values) => {
-    setBtnDisabled(true);
+   
     setBtnText("Processing...");
+    const httpReq = http(token);
     try {
       //  Find selected objects from arrays
       const selectedSupplier = supplier.find(s => s.supplierId === values.supplierId);
@@ -713,16 +720,19 @@ const Warehouse = () => {
       const selectedCompany = company.find(c => c.companyId === values.companyId);
       const selectedStock = stock.find(s => s.stockId === values.warehouseId);
       const selectedDealer = dealer.find(d => d.dealerId === values.dealerId);
-      const httpReq = http(token);
 
-      const qty = values.qty ?? supplierEditData.quantity ?? 0;
+            const qty = values.qty ?? supplierEditData.quantity ?? 0;
       const weight = values.weight ?? supplierEditData.weight ?? 1;
       const finalQty = weight * qty;
 
       const formattedValues = {
+
         ...supplierEditData,
         ...values,
         weight,
+        transactionType: "Out",
+        warehouseName: sourceWarehouse.sourceName || "",
+        warehouseId: sourceWarehouse.sourceId || "",
         WarehouseDate: values.purchaeDate ? values.WarehouseDate.toDate() : supplierEditData.WarehouseDate,
         salePrice: selectedProduct?._id || values.salePrice,
         party: selectedProduct?._id || values.party,
@@ -734,8 +744,6 @@ const Warehouse = () => {
         productName: selectedProduct?.productName || values.productName,
         companyId: selectedCompany?._id || values.companyId,
         companyName: selectedCompany?.companyName || values.companyName,
-        warehouseId: selectedStock?._id || values.warehouseId,
-        warehouseName: selectedStock?.stockName || values.warehouseName,
         dealerId: selectedDealer?._id || values.dealerId,
         dealerName: selectedDealer?.dealerName || values.dealerName,
         totalComission: (Number(values.comission) ?? Number(supplierEditData.comission) ?? 0) * finalQty,
@@ -745,13 +753,15 @@ const Warehouse = () => {
         comission: Number(values.comission ?? supplierEditData.comission ?? 0),
       };
       // Update Warehouse
-      const WarehouseRes = await httpReq.put(`/api/warehouse/update/${values._id}`, formattedValues);
+      const WarehouseRes = await httpReq.put(`/api/warehouse/update/${values.transactionId}`, formattedValues);
       mutate("/api/warehouse/get");
-
-      const WarehouseId = WarehouseRes?.data?.data?._id;
+     
       const warehouseData = {
         ...values,
-        transactionId: WarehouseId,
+        transactionType: "In",
+        warehouseName: targetWarehouse?.targetName || "",
+        warehouseId: targetWarehouse?.targetId,
+        transactionId: values.transactionId,
         weight,
         WarehouseDate: values.purchaeDate ? values.WarehouseDate.toDate() : supplierEditData.WarehouseDate,
         salePrice: selectedProduct?._id || values.salePrice,
@@ -764,28 +774,29 @@ const Warehouse = () => {
         productName: selectedProduct?.productName || values.productName,
         companyId: selectedCompany?._id || values.companyId,
         companyName: selectedCompany?.companyName || values.companyName,
-        warehouseId: selectedStock?._id || values.warehouseId,
-        warehouseName: selectedStock?.stockName || values.warehouseName,
-        transactionType: "In",
       }
 
-      await httpReq.put(`/api/warehouse/update/${WarehouseId}`, warehouseData)
+      await httpReq.put(`/api/warehouse/update/${values.transactionId}`, warehouseData)
 
       form.resetFields();
-      toast.success("Supplier transaction updated successfully");
+      toast.success("Warehouse transaction updated successfully");
       setSupplierData("");
       setEdit(false);
     } catch (err) {
       console.error("err", err);
       toast.error("Update Failed");
     } finally {
-      // Re-enable after 2 seconds
+      const nextText = "Add Warehouse"; // because you setEdit(false)
+
       setTimeout(() => {
         setBtnDisabled(false);
-        setBtnText(edit ? "Update Warehouse" : "Add Warehouse");
-      }, 2000);
+        setBtnText(nextText);
+      }, 5000);
     }
   };
+
+
+
 
   useEffect(() => {
     if (!products || !Array.isArray(products.data)) return;
@@ -883,7 +894,9 @@ const Warehouse = () => {
   const initialWarehouseDate = supplierData?.WarehouseDate
     ? dayjs(supplierData.WarehouseDate, "DD-MM-YYYY")
     : null;
-
+  setTimeout(() => {
+    setEditText("")
+  }, 5000);
   return (
     <UserLayout>
       <div>
@@ -892,11 +905,17 @@ const Warehouse = () => {
           {/* Warehouse Form */}
           <div className='flex w-full gap-4 items-center flex item-center justify-between bg-zinc-200  px-4'>
             <h2 className="text-sm md:text-4xl p-2 text-white font-bold [text-shadow:2px_2px_4px_rgba(0,0,0,0.5)]">Warehouse Transfer Page</h2>
+
             <div> {productQty && (
               <div className='!text-yellow-200  bg-blue-900 mt-3 md:text-1xl text-sm mb-2 p-2'>
                 <span className='text-white'>Availible Qty:</span> {Number(productQty) - Number(productWarehouseQty)},{productUnit || null}
               </div>
+
             )}</div>
+            {
+              editText &&
+              <p className=' text-red-500  text-[16px] font-bold p-1'>{editText}</p>
+            }
             <div className='mb-4 w-[50%] flex justify-end p-2 '>
               <ExchangeCalculator />
             </div>
@@ -915,6 +934,9 @@ const Warehouse = () => {
               <div className='md:grid md:grid-cols-8  gap-2'>
 
                 <Form.Item name="_id" hidden>
+                  <Input />
+                </Form.Item>
+                <Form.Item name="transactionId" hidden>
                   <Input />
                 </Form.Item>
                 <Form.Item
@@ -1041,7 +1063,7 @@ const Warehouse = () => {
 
                 </Form.Item>
                 <Form.Item
-                  name="fromWarehouseId"
+                  name="fromWarehouse"
                   label="From Warehouse"
                   rules={[{ required: true, message: "Please select a warehouse" }]}
                 >
@@ -1049,22 +1071,34 @@ const Warehouse = () => {
                     showSearch
                     placeholder="Select source warehouse"
                     optionFilterProp="label"
-                    options={stockOptions}   // value = warehouse._id
-                    onChange={(e)=>setSourceId(e)}
+                    options={stockOptions}
+                    labelInValue
+                    onChange={(option) => {
+                      setSourceWarehouse({
+                        sourceId: option.value,
+                        sourceName: option.label
+                      });
+                    }}
                   />
                 </Form.Item>
 
                 <Form.Item
-                  name="toWarehouseId"
+                  name="toWarehouse"
                   label="To Warehouse"
                   rules={[{ required: true, message: "Please select a warehouse" }]}
                 >
-                  <Select
+                 <Select
                     showSearch
-                    placeholder="Select destination warehouse"
+                    placeholder="Select source warehouse"
                     optionFilterProp="label"
                     options={stockOptions}
-                    onChange={(e)=>setTargetId(e)}
+                    labelInValue
+                    onChange={(option) => {
+                      setTargetWarehouse({
+                        targetId: option.value,
+                        targetName: option.label
+                      });
+                    }}
                   />
                 </Form.Item>
                 <Form.Item

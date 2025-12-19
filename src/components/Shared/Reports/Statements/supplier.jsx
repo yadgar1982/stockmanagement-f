@@ -30,7 +30,7 @@ const Statements = () => {
   const [myCurrency, setMyCurrency] = useState([]);
   const [selectedCurrency, setSelectedCurrency] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  console.log("my currency",myCurrency)
 
   const { suppliers } = useSelector(state => state.suppliers);
   const allSuppliers = suppliers?.data || [];
@@ -93,7 +93,7 @@ const Statements = () => {
    
 
     const allEntries = [...purchaseEntries, ...paymentEntries].sort((a, b) => a.date - b.date);
-
+    console.log('all entrie',allEntries)
     //sort currency
     const currencies = [...new Set(allEntries.map((item) => item.currency))];
     setMyCurrency(currencies);

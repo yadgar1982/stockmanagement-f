@@ -2,7 +2,7 @@ import React from 'react'
 import dayjs from "dayjs"
 
 import { useState, useEffect } from 'react';
-import { Form, Input, Button, Card, Select, Table, Popconfirm, } from "antd"
+import { Form, Input, Button, Card, Select, Table, Popconfirm, Tooltip, } from "antd"
 import UserLayout from '../UserLayout';
 import TextArea from 'antd/es/input/TextArea';
 import { DatePicker } from 'antd';
@@ -52,6 +52,7 @@ const Purchase = () => {
   const [btnDisabled, setBtnDisabled] = useState(false);
   const [isWeight, setIsWeight] = useState(false)
   const [btnText, setBtnText] = useState(edit ? "Update Purchase" : "Add Purchase");
+  const [currencyName, setCurrencyName] = useState("")
   const [form] = Form.useForm();
   //get branding
   const branding = JSON.parse(localStorage.getItem("branding") || "null");
@@ -278,6 +279,7 @@ const Purchase = () => {
         <th style="max-width: 300px; white-space: normal; word-wrap: break-word;">Details</th>
         <th style="font-size:14px; white-space:nowrap">Qty</th>
         <th style="font-size:14px; white-space:nowrap">Weight</th>
+        <th style="font-size:14px; white-space:nowrap">Total_Qty</th>
         <th style="font-size:14px; white-space:nowrap">Unit-Price USD</th>
         <th style="font-size:14px; white-space:nowrap">Exch Price (${record.currency})</th>
         <th style="font-size:14px; white-space:nowrap">Belongs To</th>
@@ -293,10 +295,11 @@ const Purchase = () => {
           ? Number(record.quantity) + " " + record.unit
           : Number(record.quantity) + " " + record.unit
         }</td>
-           <td style=" white-space: normal;word-wrap: break-word">${record.weight && record.weight > 0
+           <td style=" white-space: nowrap;word-wrap: break-word">${record.weight && record.weight > 0
           ? Number(record.weight).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + " kg"
           : record.quantity + " " + record.unit
         }</td>
+        <td style=" white-space: nowrap;word-wrap: break-word">${(record.quantity * record.weight).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kg</td>
         <td style="word-wrap: break-word white-space:nowrap">${(record.unitCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
         <td style="word-wrap: break-word white-space:nowrap">${(record.exchangedAmt).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
         <td style="word-wrap: break-word white-space:nowrap">${record.companyName}</td>
@@ -306,7 +309,7 @@ const Purchase = () => {
     </tbody>
     <tfoot>
       <tr>
-        <td colspan="7">Subtotal</td>
+        <td colspan="8">Subtotal</td>
         <td>${totalLocalCost}</td>
      
          <td>${totalCost}</td>
@@ -345,7 +348,7 @@ const Purchase = () => {
 
   //currency change
   const currencyChange = (e) => {
-
+    setCurrencyName(e)
     const selectedCurrency = currency.find((i) => i.currencyName === e);
     if (selectedCurrency) {
       setCrncy(Number(selectedCurrency.rate))
@@ -354,6 +357,11 @@ const Purchase = () => {
     }
   };
 
+
+  //handle unitcost change
+  const handleUnitCost = (e) => {
+    setUnitCost(e.target.value);
+  }
   //chandle Weight change
   const handleWeightChange = (e) => {
     if (unit.toLowerCase() === "box") {
@@ -654,6 +662,7 @@ const Purchase = () => {
   //submit funciton
   const onFinish = async (values) => {
 
+
     setBtnDisabled(true);
     setBtnText("Submitting...");
     const orderNo = `Or-${Math.floor(100000 + Math.random() * 900000)}`;
@@ -670,6 +679,7 @@ const Purchase = () => {
       const formattedValues = {
         ...values,
         orderNo,
+        currency: currencyName || "",
         quantity: qty,
         purchaseDate: values.purchaseDate ? values.purchaseDate.toDate() : null,
         supplierName: selectedSupplier?.supplierName || "",
@@ -730,6 +740,7 @@ const Purchase = () => {
 
   //update function
   const onUpdate = async (values) => {
+
     setBtnDisabled(true);
     setBtnText("Processing...");
     try {
@@ -741,15 +752,14 @@ const Purchase = () => {
       const selectedDealer = dealer.find(d => d.dealerId === values.dealerId);
       const httpReq = http(token);
 
-      const qty = values.qty ?? supplierEditData.quantity ?? 0; 
+      const qty = values.qty ?? supplierEditData.quantity ?? 0;
       const weight = values.weight ?? supplierEditData.weight ?? 1;
       const finalQty = weight * qty;
-
       const formattedValues = {
         ...supplierEditData,
         ...values,
         weight,
-        quantity,
+        currency: currencyName || "",
         purchaseDate: values.purchaeDate ? values.purchaseDate.toDate() : supplierEditData.purchaseDate,
         salePrice: selectedProduct?._id || values.salePrice,
         party: selectedProduct?._id || values.party,
@@ -842,7 +852,7 @@ const Purchase = () => {
   useEffect(() => {
     const rate = crncy || 1;
     setExchange(rate);
-  }, [crncy, currency]);
+  }, [crncy, unitCost, currency]);
 
   // sales price effect
   useEffect(() => {
@@ -858,7 +868,7 @@ const Purchase = () => {
     }
   }, [selectedProduct, products]);
 
- // exchange amount calculation effect
+  // exchange amount calculation effect
   useEffect(() => {
     const quantity = qty * weight
     setExchangedAmt(Number(unitCost) * exchange);
@@ -879,8 +889,8 @@ const Purchase = () => {
         <ToastContainer position="top-right" autoClose={3000} />
         <div className="p-4 bg-zinc-100">
           {/* Purchase Form */}
-          <div className='flex w-full gap-4 items-center flex item-center justify-between bg-zinc-200  px-4'>
-            <h2 className="text-sm md:text-4xl p-2 text-white font-bold [text-shadow:2px_2px_4px_rgba(0,0,0,0.5)]">Create Purchase Record</h2>
+          <div className='flex w-full gap-4 items-center flex item-center justify-between bg-gradient-to-r from-zinc-300 to-orange-100  px-4'>
+            <h2 className="text-sm md:text-4xl p-2 text-white font-bold [text-shadow:2px_2px_4px_rgba(1,2,2,0.5)]">Create Purchase Record</h2>
             <div> {productQty && (
               <div className='!text-yellow-200  bg-blue-900 mt-3 md:text-1xl text-sm mb-2 p-2'>
                 <span className='text-white'>Availible Qty:</span> {Number(productQty) - Number(productPurchaseQty)},{productUnit || null}
@@ -892,229 +902,259 @@ const Purchase = () => {
 
 
           </div>
-          <Card className="mb-0 shadow-md !rounded-none ">
+          <Card className="mb-0 shadow-md !rounded-none !bg-zinc-50 ">
             <Form
-              form={form}
-              layout="vertical"
-              onFinish={edit ? onUpdate : onFinish}
-              initialValues={{ userName: userName, purchaseDate: initialPurchaseDate }}
-              size='small'
+  form={form}
+  layout="vertical"
+  onFinish={edit ? onUpdate : onFinish}
+  initialValues={{ userName: userName, purchaseDate: initialPurchaseDate }}
+>
+  <div className='md:grid md:grid-cols-8 gap-1'>
+    
+    <Form.Item name="_id" hidden>
+      <Input />
+    </Form.Item>
 
-            >
-              <div className='md:grid md:grid-cols-8  gap-2'>
+    <Form.Item
+      label="Product Name"
+      name="productId"
+      rules={[{ required: true, message: "Please select a product" }]}
+      className="!mb-0"
+    >
+      <Select
+        showSearch
+        placeholder="Select a Product"
+        optionFilterProp="label"
+        onChange={handleProductChange}
+        options={productOptions}
+      />
+    </Form.Item>
 
-                <Form.Item name="_id" hidden>
-                  <Input />
-                </Form.Item>
-                <Form.Item
-                  label="Product Name"
-                  name="productId"
-                  rules={[{ required: true, message: "Please enter unit name" }]}
-                >
-                  <Select
-                    value={selectedProduct}
-                    onChange={handleProductChange}
-                    showSearch
-                    placeholder="Select a Unit"
-                    optionFilterProp="label"
-                    options={productOptions}
-                  />
-                </Form.Item>
-                <Form.Item
-                  label="Quantity"
-                  name="quantity"
-                  rules={[{ required: true, message: "Please enter item quantity" }]}
-                >
-                  <Input placeholder="Enter item quantity"
-                    onChange={(e) => setQty(Number(e.target.value))} />
-                </Form.Item>
-                <Form.Item
-                  label="Unit"
-                  name="unit"
-                  rules={[{ required: true, message: "Please enter unit name" }]}
-                >
-                  <Select
-                    onChange={(e) => setUnit(e)}
-                    showSearch
-                    placeholder="Select a Unit"
-                    optionFilterProp="label"
-                    options={units}
-                  />
-                </Form.Item>
-                <Form.Item
-                  label="Weight"
-                  name="weight"
-                  hidden={!(unit === "box" || isWeight)}
-                >
-                  <Input
-                    value={weight}
-                    onChange={handleWeightChange}
-                  />
-                </Form.Item>
-                <Form.Item
-                  label="Supplier Name"
-                  name="supplierId"
-                  rules={[{ required: true, message: "Please enter supplier name" }]}
-                >
-                  <Select
-                    onChange={(e) => supplierChange(e)}
-                    showSearch
-                    placeholder="Select a Supplier"
-                    optionFilterProp="label"
-                    options={supplierOptions}
-                  />
-                </Form.Item>
-                <Form.Item
-                  label="company"
-                  name="companyId"
-                  rules={[{ required: true, message: "Please Enter company name" }]}
-                >
-                  <Select
-                    showSearch
-                    placeholder="Select a Company"
-                    optionFilterProp="label"
-                    options={companyOptions}
-                  />
-                </Form.Item>
-                <Form.Item
-                  label="Warehouse"
-                  name="warehouseId"
-                  rules={[{ required: true, message: "Please Enter warehouse name" }]}
-                >
-                  <Select
-                    showSearch
-                    placeholder="Select a Supplier"
-                    optionFilterProp="label"
-                    options={stockOptions}
-                  />
-                </Form.Item>
-                <Form.Item
-                  label="Unit Cost"
-                  name="unitCost"
-                  rules={[{ required: true, message: "Please enter item Price" }]}
-                >
-                  <Input placeholder="Enter enter item Price" onChange={(e) => setUnitCost(Number(e.target.value))}
-                  />
-                </Form.Item>
-                <Form.Item
-                  label="Currnecy"
-                  name="currency"
-                >
-                  <Select
-                    showSearch
-                    placeholder="Enter Currency"
-                    optionFilterProp="label"
-                    options={currencyOptions}
-                    onChange={(value) => currencyChange(value)}
-                  />
-                </Form.Item>
-                <Form.Item name="exchangedAmt" label={<span style={{ color: 'red' }}>Exch Amt</span>}>
-                  <Input readOnly
-                  />
-                </Form.Item>
-                <Form.Item
-                  disabled
-                  label="Sale Price"
-                  name="salePrice"
-                >
-                  <Input disabled value={salePrice} />
-                </Form.Item>
-                <Form.Item
-                  label="Country"
-                  name="countryName"
-                >
-                  <Select
-                    placeholder="Select a country"
-                    showSearch
-                    optionFilterProp="children"
-                    filterOption={(input, option) =>
-                      option.children.toLowerCase().includes(input.toLowerCase())
-                    }
-                  >
-                    {countries.map((country) => (
-                      <Option key={country.value} value={country.value}>
-                        {country.label}
-                      </Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-                <Form.Item
-                  label="Batch No"
-                  name="batch"
-                  rules={[{ required: true, message: "Please enter batch No" }]}
-                >
-                  <Input placeholder="Enter enter Batch No"
-                  />
-                </Form.Item>
-                <Form.Item
-                  label="Party No"
-                  name="party"
-                  rules={[{ required: true, message: "Please enter Party No" }]}
-                >
-                  <Input placeholder="Enter enter party No"
-                  />
-                </Form.Item>
-                <Form.Item
-                  label="Dealer"
-                  name="dealerId"
-                >
-                  <Select
-                    showSearch
-                    placeholder="Enter Dealer"
-                    optionFilterProp="label"
-                    options={dealerOptions}
-                    rules={[{ required: true, message: "Please Enter dealer name" }]}
-                  />
-                </Form.Item>
-                <Form.Item
-                  label="Comission"
-                  name="comission"
-                  rules={[{ required: true, message: "Please enter Comission" }]}
-                >
-                  <Input placeholder="Enter enter comission"
-                  />
-                </Form.Item>
-                <Form.Item
-                  label="Purchase Date"
-                  name="purchaseDate"
-                >
-                  <DatePicker className="w-full" format="MM/DD/YYYY" />
-                </Form.Item>
-                <Form.Item
-                  label="userName"
-                  name="userName"
+    <Form.Item
+      label="Quantity"
+      name="quantity"
+      rules={[{ required: true, message: "Please enter item quantity" }]}
+    >
+      <Input
+        placeholder="Enter item quantity"
+        value={qty}
+        onChange={(e) => setQty(Number(e.target.value))}
+      />
+    </Form.Item>
 
-                >
-                  <Input
-                    disabled
-                    className='!text-red-600'
-                  />
-                </Form.Item>
-              </div>
+    <Form.Item
+      label="Unit"
+      name="unit"
+      rules={[{ required: true, message: "Please enter unit name" }]}
+    >
+      <Select
+        value={unit}
+        onChange={(e) => setUnit(e)}
+        showSearch
+        placeholder="Select a Unit"
+        optionFilterProp="label"
+        options={units}
+      />
+    </Form.Item>
 
-              <Form.Item
-                label="Description"
-                name="description"
-                rules={[{ required: true, message: "Please enter Description" }]}
-              >
-                <TextArea placeholder="Enter enter description"
-                />
-              </Form.Item>
-              <Form.Item>
-                <Button
-                  type="text"
-                  htmlType="submit"
-                  disabled={btnDisabled}
-                  className={`w-[200px] md:!h-[30px] !text-white hover:!shadow-lg hover:!shadow-zinc-800 hover:!text-white !font-bold 
-                    ${edit ? "!bg-orange-500 hover:!bg-orange-600" : "!bg-blue-700 hover:!bg-green-500"}
-                    ${btnDisabled ? "!bg-gray-400 hover:!bg-gray-400 cursor-not-allowed" : ""}
-                  `}
-                >
-                  {btnText}
-                </Button>
-              </Form.Item>
+    <Form.Item
+      label="Weight"
+      name="weight"
+      hidden={!(unit === "box" || isWeight)}
+    >
+      <Input
+        value={weight}
+        onChange={handleWeightChange}
+      />
+    </Form.Item>
 
-            </Form>
+    <Form.Item
+      label="Supplier Name"
+      name="supplierId"
+      rules={[{ required: true, message: "Please enter supplier name" }]}
+    >
+      <Select
+        value={supplierData?.supplierId || undefined}
+        onChange={(e) => supplierChange(e)}
+        showSearch
+        placeholder="Select a Supplier"
+        optionFilterProp="label"
+        options={supplierOptions}
+      />
+    </Form.Item>
+
+    <Form.Item
+      label="Company"
+      name="companyId"
+      rules={[{ required: true, message: "Please Enter company name" }]}
+    >
+      <Select
+        value={form.getFieldValue("companyId")}
+        showSearch
+        placeholder="Select a Company"
+        optionFilterProp="label"
+        options={companyOptions}
+      />
+    </Form.Item>
+
+    <Form.Item
+      label="Warehouse"
+      name="warehouseId"
+      rules={[{ required: true, message: "Please Enter warehouse name" }]}
+    >
+      <Select
+        value={form.getFieldValue("warehouseId")}
+        showSearch
+        placeholder="Select a Warehouse"
+        optionFilterProp="label"
+        options={stockOptions}
+      />
+    </Form.Item>
+
+    <Form.Item
+      label="Unit Cost"
+      name="unitCost"
+      rules={[{ required: true, message: "Please enter item Price" }]}
+    >
+      <Input
+        placeholder="Enter item Price"
+        value={unitCost}
+        onChange={handleUnitCost}
+      />
+    </Form.Item>
+
+    <Form.Item
+      label="Currency"
+      name="currency"
+    >
+      <Tooltip
+        color='purple'
+        title={
+          <span className="text-white font-semibold">
+            Make sure to change unit-cost or Amount before changing currency!
+          </span>
+        }
+      >
+        <Select
+          value={currencyName}
+          showSearch
+          placeholder="Enter Currency"
+          optionFilterProp="label"
+          options={currencyOptions}
+          onChange={currencyChange}
+        />
+      </Tooltip>
+    </Form.Item>
+
+    <Form.Item
+      name="exchangedAmt"
+      label={<span style={{ color: 'red' }}>Exch Amt</span>}
+    >
+      <Input readOnly value={exchangedAmt} />
+    </Form.Item>
+
+    <Form.Item
+      label="Sale Price"
+      name="salePrice"
+    >
+      <Input disabled value={salePrice} />
+    </Form.Item>
+
+    <Form.Item
+      label="Country"
+      name="countryName"
+    >
+      <Select
+        placeholder="Select a country"
+        showSearch
+        optionFilterProp="children"
+        filterOption={(input, option) =>
+          option.children.toLowerCase().includes(input.toLowerCase())
+        }
+      >
+        {countries.map((country) => (
+          <Option key={country.value} value={country.value}>
+            {country.label}
+          </Option>
+        ))}
+      </Select>
+    </Form.Item>
+
+    <Form.Item
+      label="Batch No"
+      name="batch"
+      rules={[{ required: true, message: "Please enter batch No" }]}
+    >
+      <Input placeholder="Enter Batch No" />
+    </Form.Item>
+
+    <Form.Item
+      label="Party No"
+      name="party"
+      rules={[{ required: true, message: "Please enter Party No" }]}
+    >
+      <Input placeholder="Enter Party No" />
+    </Form.Item>
+
+    <Form.Item
+      label="Dealer"
+      name="dealerId"
+    >
+      <Select
+        value={form.getFieldValue("dealerId")}
+        showSearch
+        placeholder="Enter Dealer"
+        optionFilterProp="label"
+        options={dealerOptions}
+      />
+    </Form.Item>
+
+    <Form.Item
+      label="Comission"
+      name="comission"
+      rules={[{ required: true, message: "Please enter Comission" }]}
+    >
+      <Input placeholder="Enter comission" />
+    </Form.Item>
+
+    <Form.Item
+      label="Purchase Date"
+      name="purchaseDate"
+    >
+      <DatePicker className="w-full" format="MM/DD/YYYY" />
+    </Form.Item>
+
+    <Form.Item
+      label="userName"
+      name="userName"
+    >
+      <Input disabled className='!text-red-600' />
+    </Form.Item>
+
+  </div>
+
+  <Form.Item
+    label="Description"
+    name="description"
+    rules={[{ required: true, message: "Please enter Description" }]}
+  >
+    <TextArea placeholder="Enter description" />
+  </Form.Item>
+
+  <Form.Item>
+    <Button
+      type="text"
+      htmlType="submit"
+      disabled={btnDisabled}
+      className={`w-[200px] md:!h-[30px] !shadow-zinc-500 !shadow-lg !text-white hover:!shadow-lg hover:!shadow-zinc-800 hover:!text-white !font-bold 
+        ${edit ? "!bg-orange-500 hover:!bg-orange-600" : "!bg-blue-500 hover:!bg-green-500 !rounded-none"}
+        ${btnDisabled ? "!bg-gray-400 hover:!bg-gray-400 cursor-not-allowed" : ""}`}
+    >
+      {btnText}
+    </Button>
+  </Form.Item>
+</Form>
+
           </Card>
 
 

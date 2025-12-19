@@ -2,7 +2,7 @@ import React from 'react'
 import dayjs from "dayjs"
 
 import { useState, useEffect } from 'react';
-import { Form, Input, Button, Card, Select, Table, Popconfirm, } from "antd"
+import { Form, Input, Button, Card, Select, Table, Popconfirm, Tooltip, } from "antd"
 const { Option } = Select;
 import UserLayout from '../../Shared/UserLayout';
 import TextArea from 'antd/es/input/TextArea';
@@ -35,7 +35,7 @@ const Sales = () => {
   const [unit, setUnit] = useState("");
   const [weight, setWeight] = useState(1);
   const [qty, setQty] = useState(0);
-  const [quantity,setQuantity]=useState(0)
+  const [quantity, setQuantity] = useState(0)
   const [unitCost, setUnitCost] = useState(0)
   const [exchange, setExchange] = useState(0)
   const [crncy, setCrncy] = useState("")
@@ -49,9 +49,10 @@ const Sales = () => {
   const [selectedProduct, setSelectedProduct] = useState("");
   const [customerEditData, setCustomerEditData] = useState("");
   const [btnDisabled, setBtnDisabled] = useState(false);
-  const [isWeight,setIsWeight]=useState(false)
+  const [isWeight, setIsWeight] = useState(false)
   const [btnText, setBtnText] = useState(edit ? "Update Purchase" : "Add Purchase");
   const [myCategory, setMyCategory] = useState(false);
+  const [currencyName, setCurrencyName] = useState("");
   const [form] = Form.useForm();
 
   //get branding
@@ -290,6 +291,7 @@ const Sales = () => {
         <th style="max-width: 300px; white-space: normal; word-wrap: break-word;">Details</th>
         <th style="font-size:14px; white-space:nowrap">Qty</th>
         <th style="font-size:14px; white-space:nowrap">Weight</th>
+        <th style="font-size:14px; white-space:nowrap">Total-Qty</th>
         <th style="font-size:14px; white-space:nowrap">Unit-Price USD</th>
         <th style="font-size:14px; white-space:nowrap">Exch Price (${record.currency})</th>
         <th style="font-size:14px; white-space:nowrap">Belongs To</th>
@@ -302,13 +304,14 @@ const Sales = () => {
         <td>1</td>
         <td style="max-width: 300px; white-space: normal; word-wrap: break-word;">${record.description}</td>
         <td style=" white-space: nowrap;word-wrap: break-word">${record.weight && record.weight > 0
-          ? Number(record.quantity) + " " + record.unit
-          : Number(record.quantity) + " " + record.unit
+          ? Number(record.quantity)
+          : Number(record.quantity)
         }</td>
            <td style=" white-space: nowrap;word-wrap: break-word">${record.weight && record.weight > 0
           ? Number(record.weight).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " kg"
           : record.quantity + " " + record.unit
         }</td>
+        <td style=" white-space: nowrap;word-wrap: break-word">${(record.quantity * record.weight).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kg</td>
         <td style="word-wrap: break-word; white-space:nowrap">${(record.unitCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
         <td style="word-wrap: break-word">${(record.exchangedAmt).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
         <td style="word-wrap: break-word">${record.companyName}</td>
@@ -318,7 +321,7 @@ const Sales = () => {
     </tbody>
     <tfoot>
       <tr>
-        <td colspan="7">Subtotal</td>
+        <td colspan="8">Subtotal</td>
         <td>${totalLocalCost}</td>
      
          <td>${totalCost}</td>
@@ -355,9 +358,13 @@ const Sales = () => {
     return setCustomerData(data);
   }
 
+  //handle unitcost change
+  const handleUnitCost = (e) => {
+    setUnitCost(e.target.value);
+  }
   //currency change
   const currencyChange = (e) => {
-    // e is the selected currency string, e.g., "AFN"
+    setCurrencyName(e)
     const selectedCurrency = currency.find((i) => i.currencyName === e);
 
     if (selectedCurrency) {
@@ -380,14 +387,14 @@ const Sales = () => {
   };
 
   //handle Product change
-    const handleProductChange = (value) => {
+  const handleProductChange = (value) => {
 
     setSelectedProduct(value);
     //purchase calculation
     if (Array.isArray(totalPurchase)) {
       const filteredPurchase = totalPurchase.filter((p) => p.productId === value);
       // sum the quantities
-      const calculatedQty = filteredPurchase.reduce((sum, item) => sum + (item.weight)*(item.quantity), 0);
+      const calculatedQty = filteredPurchase.reduce((sum, item) => sum + (item.weight) * (item.quantity), 0);
 
       // get unit from first matched item
       const unit = filteredPurchase.length > 0 ? filteredPurchase[0].unit : null;
@@ -397,7 +404,7 @@ const Sales = () => {
     }
     if (Array.isArray(salesData)) {
       const filteredSales = salesData.filter((p) => p.productId === value);
-      const calculatedSaleQty = filteredSales.reduce((total, item) => total + (item.weight)*(item.quantity), 0);
+      const calculatedSaleQty = filteredSales.reduce((total, item) => total + (item.weight) * (item.quantity), 0);
       const unit = filteredSales.length > 0 ? filteredSales[0].unit : null;
 
       setProductUnit(unit);
@@ -431,20 +438,18 @@ const Sales = () => {
 
   //handle Edit
   const handleEdit = async (record) => {
-
     setCustomerEditData(record);
-   
+    setEdit(true);
+    setIsWeight(true)
     form.setFieldsValue({
       ...record,
-
       salesDate: record?.salesDate ? dayjs(record?.salesDate) : record?.createdAt,
       category: record?.categoryName,
       qty: record?.quantity,
-      customer: record.customerName
+      customer: record.customerName,
+      customerId: record.customerId
     });
-    setEdit(true);
-    setIsWeight(true)
-  
+
   };
 
   //handle Pass
@@ -633,7 +638,7 @@ const Sales = () => {
 
   ];
 
-   // data source
+  // data source
   const dataSource = salesData
     ?.filter((item) => item.isPassed === false)
     .map((item) => ({
@@ -677,6 +682,7 @@ const Sales = () => {
         ...values,
         invoiceNo,
         quantity: qty,
+        currency: currencyName || "",
         weight: finalQty,
         salesDate: values.salesDate ? values.salesDate.toDate() : null,
         customerName: customerData?.fullname || "",
@@ -738,6 +744,8 @@ const Sales = () => {
 
   //update function
   const onUpdate = async (values) => {
+
+
     setBtnDisabled(true);
     setBtnText("Submitting...");
     try {
@@ -748,11 +756,12 @@ const Sales = () => {
       const qty = values.qty ?? customerEditData.quantity ?? 0;
       const weight = values.weight ?? customerEditData.weight ?? 1;
       const finalQty = weight * qty;
+
       const formattedValues = {
         ...customerEditData,
         ...values,
         weight,
-        quantity,
+        currency: currencyName || "",
         salesDate: values.salesDate ? values.salesDate.toDate() : customerEditData.salesDate,
         customerName: customerData?.fullname ?? customerEditData.customerName,
         customerId: values.customerId ?? customerEditData.customerId,
@@ -826,14 +835,14 @@ const Sales = () => {
   useEffect(() => {
     const rate = crncy || 1;
     setExchange(rate);
-  }, [crncy, currency]);
-  
+  }, [crncy, currency, unitCost]);
+
   // exchange amount calculation effect
   useEffect(() => {
     const quantity = qty * weight
     setexchangedAmt(Number(unitCost) * exchange);
     setQuantity(quantity)
-  }, [qty, unitCost, exchange]); // only recalc when these change
+  }, [qty, unitCost, exchange, crncy]); // only recalc when these change
 
   useEffect(() => {
     form.setFieldsValue({ exchangedAmt: exchangedAmt });
@@ -847,10 +856,10 @@ const Sales = () => {
     <UserLayout>
       <div>
         <ToastContainer position="top-right" autoClose={3000} />
-        <div className="p-4 bg-zinc-100">
+        <div className="p-4  bg-zinc-50">
           {/* Sales Form */}
-          <div className='flex w-full gap-4 items-center flex item-center justify-between bg-zinc-200 p-2'>
-            <h2 className='text-sm md:text-4xl p-2 text-white font-bold [text-shadow:2px_2px_4px_rgba(0,0,0,0.5)]'>Create Sale Record</h2>
+          <div className='flex w-full gap-4 items-center flex item-center justify-between bg-gradient-to-r from-zinc-300 to-orange-100 p-2'>
+            <h2 className='text-sm md:text-4xl p-2 text-white font-bold [text-shadow:2px_2px_4px_rgba(1,2,2,0.5)]'>Create Sale Record</h2>
             <div> {productQty && (
               <div className='text-yellow-200 bg-blue-900 font-bold p-2 mt-3 md:text-1xl text-sm mb-2'>
                 <span className='text-white'>Availible Qty:</span> {productQty - productSaleQty},{productUnit || null}
@@ -861,22 +870,18 @@ const Sales = () => {
             </div>
 
           </div>
-          <Card className="mb-0 shadow-md !rounded-none ">
+          <Card className="mb-0 shadow-md !rounded-none !bg-zinc-50 ">
             <Form
               form={form}
               layout="vertical"
-
               onFinish={edit ? onUpdate : onFinish}
-
               initialValues={{ userName: userName, salesDate: initialSalesDate }}
-              size='small'
-
-
             >
-              <div className='md:grid md:grid-cols-8  gap-2'>
+              <div className="md:grid md:grid-cols-8 gap-2">
                 <Form.Item name="_id" hidden>
                   <Input />
                 </Form.Item>
+
                 <Form.Item
                   label="Product Name"
                   name="productId"
@@ -891,6 +896,7 @@ const Sales = () => {
                     options={productOptions}
                   />
                 </Form.Item>
+
                 <Form.Item
                   label="Category"
                   name="categoryName"
@@ -905,14 +911,18 @@ const Sales = () => {
                     options={categoryOptions}
                   />
                 </Form.Item>
+
                 <Form.Item
                   label="Quantity"
-                  name="qty"
+                  name="quantity"
                   rules={[{ required: true, message: "Please enter item quantity" }]}
                 >
-                  <Input placeholder="Enter item quantity"
-                    onChange={(e) => setQty(Number(e.target.value))} />
+                  <Input
+                    placeholder="Enter item quantity"
+                    onChange={(e) => setQty(Number(e.target.value))}
+                  />
                 </Form.Item>
+
                 <Form.Item
                   label="Unit"
                   name="unit"
@@ -926,16 +936,15 @@ const Sales = () => {
                     options={units}
                   />
                 </Form.Item>
+
                 <Form.Item
                   label="Weight"
                   name="weight"
                   hidden={!(unit === "box" || isWeight)}
                 >
-                  <Input
-                    value={weight}
-                    onChange={handleWeightChange}
-                  />
+                  <Input value={weight} onChange={handleWeightChange} />
                 </Form.Item>
+
                 <Form.Item
                   label="Customer"
                   name="customerId"
@@ -949,8 +958,9 @@ const Sales = () => {
                     options={customerOptions}
                   />
                 </Form.Item>
+
                 <Form.Item
-                  label="company"
+                  label="Company"
                   name="companyId"
                   rules={[{ required: true, message: "Please Enter company name" }]}
                 >
@@ -961,6 +971,7 @@ const Sales = () => {
                     options={companyOptions}
                   />
                 </Form.Item>
+
                 <Form.Item
                   label="Warehouse"
                   name="warehouseId"
@@ -973,39 +984,48 @@ const Sales = () => {
                     options={stockOptions}
                   />
                 </Form.Item>
+
                 <Form.Item
                   label="Unit Cost"
                   name="unitCost"
                   rules={[{ required: true, message: "Please enter item Price" }]}
                 >
-                  <Input placeholder="Enter enter item Price" onChange={(e) => setUnitCost(Number(e.target.value))}
-                  />
+                  <Input placeholder="Enter enter item Price" onChange={handleUnitCost} />
                 </Form.Item>
+
+                <Form.Item label="Currency" name="currency">
+                  <Tooltip
+                    color="purple"
+                    title={
+                      <span className="text-white font-semibold">
+                        Make sure to change unit-cost or Amount before changing currency!
+                      </span>
+                    }
+                  >
+                    <Select
+                      showSearch
+                      placeholder="Enter Currency"
+                      optionFilterProp="label"
+                      options={currencyOptions}
+                      onChange={currencyChange}
+                    />
+                  </Tooltip>
+                </Form.Item>
+
                 <Form.Item
-                  label="Currnecy"
-                  name="currency"
+                  label={<span style={{ color: "red" }}>Exch Amt</span>}
+                  name="exchangedAmt"
                 >
-                  <Select
-                    showSearch
-                    placeholder="Enter Currency"
-                    optionFilterProp="label"
-                    options={currencyOptions}
-                    onChange={(value) => currencyChange(value)}
-                  />
-                </Form.Item>
-                <Form.Item label={<span style={{ color: 'red' }}>Exch Amt</span>} name="exchangedAmt">
                   <Input
                     readOnly
-                    value={(form.getFieldValue("exchangedAmt") || 0).toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
+                    value={(form.getFieldValue("exchangedAmt") || 0).toLocaleString(
+                      undefined,
+                      { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+                    )}
                   />
                 </Form.Item>
-                <Form.Item
-                  label="Country"
-                  name="countryName"
-                >
+
+                <Form.Item label="Country" name="countryName">
                   <Select
                     placeholder="Select a country"
                     showSearch
@@ -1021,57 +1041,46 @@ const Sales = () => {
                     ))}
                   </Select>
                 </Form.Item>
+
                 <Form.Item
                   label="Batch No"
                   name="batch"
                   rules={[{ required: true, message: "Please enter batch No" }]}
                 >
-                  <Input placeholder="Enter enter Batch No"
-                  />
+                  <Input placeholder="Enter enter Batch No" />
                 </Form.Item>
+
                 <Form.Item
                   label="Party"
                   name="party"
-                  rules={[{ required: true, message: "Please enter  Party No" }]}
+                  rules={[{ required: true, message: "Please enter Party No" }]}
                 >
-                  <Input placeholder="Enter enter Party No"
-                  />
+                  <Input placeholder="Enter enter Party No" />
                 </Form.Item>
-                <Form.Item
-                  label="Dealer"
-                  name="dealerId"
-                >
+
+                <Form.Item label="Dealer" name="dealerId">
                   <Select
                     showSearch
                     placeholder="Enter Dealer"
                     optionFilterProp="label"
                     options={dealerOptions}
-                    rules={[{ required: true, message: "Please Enter dealer name" }]}
                   />
                 </Form.Item>
+
                 <Form.Item
                   label="Comission"
                   name="comission"
                   rules={[{ required: true, message: "Please enter Comission" }]}
                 >
-                  <Input placeholder="Enter enter comission"
-                  />
+                  <Input placeholder="Enter enter comission" />
                 </Form.Item>
-                <Form.Item
-                  label="Sales Date"
-                  name="salesDate"
-                >
+
+                <Form.Item label="Sales Date" name="salesDate">
                   <DatePicker className="w-full" format="DD/MM/YYYY" />
                 </Form.Item>
-                <Form.Item
-                  label="userName"
-                  name="userName"
-                  value={userName}
-                >
-                  <Input value={userName}
-                    disabled
-                    className='!text-red-600'
-                  />
+
+                <Form.Item label="userName" name="userName">
+                  <Input value={userName} disabled className="!text-red-600" />
                 </Form.Item>
               </div>
 
@@ -1080,23 +1089,23 @@ const Sales = () => {
                 name="description"
                 rules={[{ required: true, message: "Please enter Description" }]}
               >
-                <TextArea placeholder="Enter enter description"
-                />
+                <TextArea placeholder="Enter enter description" />
               </Form.Item>
+
               <Form.Item>
                 <Button
                   type="text"
                   htmlType="submit"
                   disabled={btnDisabled}
-                  className={`w-[200px] md:!h-[30px] !text-white hover:!shadow-lg hover:!shadow-zinc-800 hover:!text-white !font-bold 
-                   ${edit ? "!bg-orange-500 hover:!bg-orange-600" : "!bg-blue-700 hover:!bg-green-500"}
-                  ${btnDisabled ? "!bg-gray-400 hover:!bg-gray-400 cursor-not-allowed" : ""}
-                 `}
+                  className={`w-[200px] md:!h-[30px] !shadow-zinc-500 !shadow-lg !text-white hover:!shadow-lg hover:!shadow-zinc-800 hover:!text-white !font-bold 
+        ${edit ? "!bg-orange-500 hover:!bg-orange-600" : "!bg-blue-500 hover:!bg-green-500 !rounded-none"}
+        ${btnDisabled ? "!bg-gray-400 hover:!bg-gray-400 cursor-not-allowed" : ""}`}
                 >
                   {btnText}
                 </Button>
               </Form.Item>
             </Form>
+
           </Card>
 
 
