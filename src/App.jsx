@@ -10,6 +10,8 @@ import CompanyPayment from './components/Shared/shared-components/payments/other
 
 // Lazy loaded components
 const Home = lazy(() => import("./components/Home"));
+const About = lazy(() => import("./components/Home/about"));
+const Contact = lazy(() => import("./components/Home/contact"));
 const Login = lazy(() => import('./components/Home/Login'));
 const Inventory = lazy(() => import('./components/Shared/shared-components/inventory'));
 const Sales = lazy(() => import("./components/Shared/shared-components/sales"));
@@ -45,6 +47,8 @@ function App() {
             {/* Home related routes */}
             <Route path='/' element={<Home />} />
             <Route path='/login' element={<Login />} />
+            <Route path='/about' element={<About />} />
+            <Route path='/contact' element={<Contact />} />
             <Route path='/*' element={<NotFound />} />
 
             {/* User related routes */}

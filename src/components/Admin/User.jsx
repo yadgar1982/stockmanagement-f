@@ -59,26 +59,33 @@ const User = () => {
   }
 
   const onUpdate = async (values) => {
-
-    try {
-      if (!token) {
-        toast.error("Your session has been expired please login again ")
-        setTimeout(() => {
-          navigate("/login")
-        }, 1000);
-        return
-      }
-      const httpReq = http(token);
-      const data = { ...values, role: roles };
-      const user = await httpReq.put(`/api/user/update/${userId._id}`, data);
-      toast.success("User updated successfully");
-      form.resetFields();
-      setEdit(false)
-      mutate("/api/user/get/all");
-    } catch (err) {
-      toast.error('Unable to Update Data', err.message)
+  try {
+    if (!token) {
+      toast.error("Your session has been expired please login again");
+      setTimeout(() => navigate("/login"), 1000);
+      return;
     }
+
+    const httpReq = http(token);
+
+    const data = { ...values, role: roles };
+
+
+    if (!data.password || data.password.trim() === "") {
+      delete data.password;
+    }
+
+    await httpReq.put(`/api/user/update/${userId._id}`, data);
+
+    toast.success("User updated successfully");
+    form.resetFields();
+    setEdit(false);
+    mutate("/api/user/get/all");
+
+  } catch (err) {
+    toast.error("Unable to Update Data");
   }
+};
 
   //Edit
   const handleEdit = (record) => {

@@ -1,6 +1,7 @@
 import React from "react";
 import { Button, Typography } from "antd";
 import HomeLayout from "../Shared/HomeLayout";
+import { MailOutlined, PhoneOutlined } from "@ant-design/icons";
 
 const { Title, Paragraph } = Typography;
 
@@ -8,45 +9,51 @@ const Home = () => {
   return (
     <HomeLayout>
       <div
-        className="!w-full !flex flex-col p-0 h-[97vh] p-4 bg-cover bg-center bg-no-repeat bg-[url('/home.jpg')] p-25 justify-start items-start"
+        className="!w-full !h-[85vh] !flex !flex-col !justify-start !items-start !text-start cursor-pointer !bg-cover !bg-center !bg-no-repeat !bg-[url('/home1.jpg')] p-4"
+        onClick={() => window.open("/about", "_blank")}
 
       >
-        <Title level={1} style={{ marginBottom: 20 }}
-          className="!text-2xl !text-center md:!text-4xl !font-bold !text-yellow-500 !text-shadow-sm !text-shadow-black"
-        >
-          Welcome to Stock Manager Pro
-        </Title>
-        <div className="flex flex-col gap-16 ">
-          <Paragraph className="!w-full !text-center md:!text-left !flex !flex-col !items-center !justify-center !text-lg font-bold md:!text-3xl !text-white !text-shadow-lg !text-shadow-black !hidden md:!block ">
-          Effortlessly manage your inventory and stay on top of your business.<br />
-          Click below to log in and get started.
-
-          
-        </Paragraph>
-        <Button
-            type="text"
-            size="large"
-            shape="round"
-            style={{
-              padding: "0 50px",
-              height: 50,
-              fontSize: 18,
-              width:150,
-              marginTop:40
+        
+       
+        
+         <div className=" !flex !flex-col !justify-start md:!items-start md:ml-15 md:mt-25">
+            <Button
+              type="primary"
+           
+              shape="round"
+              style={{
+                padding: "0 25px",
+                height: 45,
+                fontSize: 18,
+                fontWeight: 600,
+                borderRadius: 30,
+                background: "linear-gradient(90deg, #ff7f50, #ff4500)", 
+                color: "#fff",
+                boxShadow: "0 5px 15px rgba(0,0,0,0.2)",
+                transition: "all 0.3s ease",
               }}
-            className="!bg-orange-400 !shadow-lg shadow-black !font-bold !text-white hover:!bg-orange-300 hover:!text-blue-400"
-            onClick={() => (window.location.href = "/login")}
-          >
-            Login
-          </Button>
+              className="hover:scale-105 hover:shadow-xl hover:opacity-90"
+              onClick={() => window.open("/about", "_blank")}
+            >
+              See Who We Are
+            </Button>
+          </div>
+        <div className="flex flex-col gap-16 hidden md:flex flex-col mt-45 gap-16 w-full">
+          
+         
+          
         </div>
 
 
 
       </div>
 
-      <div className="w-full flex justify-center items-center p-3 bg-white height-[10vh]fixed bottom-0 left-0 border-t border-t-blue-200">
-        Developped By Yadgar Tech
+      <div className="w-full flex justify-center items-center p-3 bg-cyan-600 height-[15vh]fixed bottom-0 left-0 border-t border-t-blue-200 text-zinc-100 flex-col font-semibold">
+        <span><MailOutlined className="!text-yellow-300 !font-bold" />   : hadiagold@gmail.com</span>
+
+        <span><PhoneOutlined className="!text-yellow-300 !font-bold" />   : +9999999999<br /></span>
+
+
       </div>
 
     </HomeLayout>
