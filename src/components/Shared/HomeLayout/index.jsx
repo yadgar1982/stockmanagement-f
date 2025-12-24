@@ -21,7 +21,7 @@ const UserLayout = ({ children }) => {
     <Layout className='h-screen'>
    
       <Layout>
-        <Header style={{ padding: 0, background: colorBgContainer }} className='!bg-blue-200 !text-blue-500 !shadow-sm !shadow-black z-1 flex justify-between items-center !px-5'>
+        <Header style={{ padding: 0, background: colorBgContainer }} className='!bg-cyan-500 !text-blue-500   flex justify-between items-center !px-5'>
           {/* <Avatar className='!text-2xl !bg-white !text-orange-500 !font-bold' size={60}
             src="/logo.png"
           >
@@ -72,7 +72,7 @@ const UserLayout = ({ children }) => {
             margin: '0px 0px',
             padding: 1,
             minHeight: 280,
-            background: colorBgContainer,
+            // background: colorBgContainer,
 
           }}
         >

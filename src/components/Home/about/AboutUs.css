@@ -54,7 +54,7 @@
 
 /* Section Padding */
 .section-padding {
-  padding: 80px 20px;
+  padding: 50px 20px;
 }
 
 /* Gradient Background */
@@ -84,12 +84,13 @@
 
 /* Core Values */
 .core-values {
-  background:black;
+  background:rgb(69, 124, 158);
+
 }
 
 /* Stats Section */
 .stats-section {
-  background:black;
+  background:rgb(194, 193, 193);
 }
 
 .stats-card {

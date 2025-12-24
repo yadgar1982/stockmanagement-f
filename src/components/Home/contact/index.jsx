@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Form, Input, Button, Typography } from "antd";
 import { toast } from "react-toastify";
 import { http } from "../../Modules/http";
-import HomeLayout from "../../Shared/HomeLayout"
+
 const httpReq = http();
 const { Title, Paragraph } = Typography;
 
@@ -24,23 +24,25 @@ const ContactPage = () => {
   };
 
   return (
-   <HomeLayout>
-     <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-orange-100 to-blue-50 p-4">
-      <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl p-8 md:p-12">
-        <Title style={{ textAlign: "center", color: "#f97316" }}>Contact Us</Title>
-        <Paragraph style={{ textAlign: "center", color: "#1e3a8a", fontSize: "16px", marginBottom: "40px" }}>
-          Have questions or want to work with us? Send us a message and we will respond promptly!
+
+    <div className="w-full flex items-center justify-center bg-cyan-700 p-4">
+      <div className="md:w-3/5 bg-zinc-100  shadow-2xl p-10 md:p-16">
+        <Title style={{ textAlign: "center", color: "#1067a4ff", fontSize: "2.5rem", marginBottom: "0.5rem" }}>
+          Send Us a Message
+        </Title>
+        <Paragraph style={{ textAlign: "center", color: "#1e3a8a", fontSize: "1.125rem", marginBottom: "2rem" }}>
+          Have questions or want to work with us? Send a message and we'll respond promptly!
         </Paragraph>
 
-        <Form layout="vertical" onFinish={onFinish}>
+        <Form layout="vertical" onFinish={onFinish} className="space-y-6">
           <Form.Item
             label="Name"
             name="name"
             rules={[{ required: true, message: "Please enter your name" }]}
           >
-            <Input 
+            <Input
               placeholder="Your Name"
-              className="rounded-lg border-orange-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-300"
+              className="rounded-xl border border-orange-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300 shadow-sm"
             />
           </Form.Item>
 
@@ -49,9 +51,9 @@ const ContactPage = () => {
             name="subject"
             rules={[{ required: true, message: "Please enter your subject" }]}
           >
-            <Input 
+            <Input
               placeholder="Your Subject"
-              className="rounded-lg border-orange-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-300"
+              className="rounded-xl border border-orange-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300 shadow-sm"
             />
           </Form.Item>
 
@@ -63,9 +65,9 @@ const ContactPage = () => {
               { type: "email", message: "Please enter a valid email" },
             ]}
           >
-            <Input 
+            <Input
               placeholder="abc@gmail.com"
-              className="rounded-lg border-orange-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-300"
+              className="rounded-xl border border-orange-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300 shadow-sm"
             />
           </Form.Item>
 
@@ -75,9 +77,9 @@ const ContactPage = () => {
             rules={[{ required: true, message: "Please enter your message" }]}
           >
             <Input.TextArea
-              rows={5}
+              rows={6}
               placeholder="Your Message"
-              className="rounded-lg border-orange-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-300"
+              className="rounded-xl border border-orange-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300 shadow-sm resize-none"
             />
           </Form.Item>
 
@@ -87,15 +89,16 @@ const ContactPage = () => {
               htmlType="submit"
               loading={loading}
               block
-              className="bg-gradient-to-r from-orange-400 to-blue-500 hover:from-orange-500 hover:to-blue-600 text-white font-bold text-lg py-3 rounded-xl shadow-lg transition-all duration-300"
+              className="bg-gradient-to-r from-orange-400 to-blue-500 hover:from-orange-500 hover:to-blue-600 text-white font-bold text-lg py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
             >
               Send Message
             </Button>
           </Form.Item>
         </Form>
       </div>
+
     </div>
-   </HomeLayout>
+
   );
 };
 
