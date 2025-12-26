@@ -25,6 +25,7 @@ const Home = lazy(() => import("./components/Home"));
 const About = lazy(() => import("./components/Home/about"));
 const Contact = lazy(() => import("./components/Home/contact"));
 const Login = lazy(() => import("./components/Home/Login"));
+const User = lazy(() => import("./components/User/index"));
 const NotFound = lazy(() => import("./components/Home/pages/NotFound"));
 
 const Inventory = lazy(() => import("./components/Shared/shared-components/inventory"));
@@ -57,7 +58,11 @@ function App() {
       <ConfigProvider warning={() => null}>
         <ToastContainer position="top-center" autoClose={1500} />
       <Router>
-        <Suspense fallback={<Spin size="large" style={{ marginTop: 80 }} />}>
+        <Suspense  fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <Spin size="large" />
+      </div>
+    }>
           <Routes>
             
             {/* Public */}
@@ -68,6 +73,7 @@ function App() {
 
             {/* User */}
             <Route path="/inventory" element={<ProtectedRoute role="user"><Inventory /></ProtectedRoute>} />
+            <Route path="/user" element={<ProtectedRoute role="user"><User /></ProtectedRoute>} />
             <Route path="/purchase" element={<ProtectedRoute role="user"><Purchase /></ProtectedRoute>} />
             <Route path="/sales" element={<ProtectedRoute role="user"><Sales /></ProtectedRoute>} />
             <Route path="/warehouse" element={<ProtectedRoute role="user"><Warehouse /></ProtectedRoute>} />
