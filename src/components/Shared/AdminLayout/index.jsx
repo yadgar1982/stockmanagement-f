@@ -173,11 +173,11 @@ const AdminLayout = ({ children }) => {
         className="!bg-zinc-50 !border-r !border-zinc-200"
       >
 
-        <div className="w-full flex items-center !shadow-sm !shadow-black justify-center !z-10 p-0.5 bg-[#B8860B]">
+        <div className="w-full flex items-center !shadow-sm !shadow-black justify-center !z-10 p-0.5 ">
           <Avatar
             className="!text-2xl !bg-white !text-orange-500 !font-bold"
             size={60}
-            // src="/logo.pngd"
+            // src="/logo.png"
             icon={<UserOutlined />}
           />
         </div>
@@ -194,33 +194,33 @@ const AdminLayout = ({ children }) => {
       {/* Main layout */}
       <Layout
         style={{
-          marginLeft: collapsed ? 80 : siderWidth, // 👈 offset content based on collapsed state
-          transition: 'margin-left 0.2s', // smooth animation
+          marginLeft: collapsed ? 80 : siderWidth, 
+          transition: 'margin-left 0.2s',
           minHeight: '100vh',
         }}
       >
-       <Header
-  style={{
-    position: 'fixed',       // Fix the header at top
-    top: 0,                  // Start from top
-    left: 0,                 // Start from left
-    width: '100%',           // Full width
-    padding: '0 16px',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
-    zIndex: 1000,            // Make sure it stays above content
-  }}
-  className='!bg-[#B8860B] !shadow-sm !shadow-black'
->
+        <Header
+          style={{
+            position: 'fixed',       
+            top: 0,                  
+            left: 0,                
+            width: '100%',           
+            padding: '0 16px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            boxShadow: '0 1px 4px rgba(152, 135, 135, 0.1)',
+            zIndex: 1000,            // Make sure it stays above content
+          }}
+          className='!bg-cyan-500 !shadow-sm !shadow-zinc-500'
+        >
           <Button
             type="text"
             icon={
               collapsed ? (
-                <MenuUnfoldOutlined className="!text-yellow-100 !text-2xl" />
+                <MenuUnfoldOutlined className="!text-white !text-2xl" />
               ) : (
-                <MenuFoldOutlined className="!text-yellow-100 !text-2xl" />
+                <MenuFoldOutlined className="!text-white !text-2xl" />
               )
             }
             onClick={() => setCollapsed(!collapsed)}
@@ -235,7 +235,7 @@ const AdminLayout = ({ children }) => {
                          transition-all duration-300"
               onClick={logout}
             >
-              <span className='!text-lg'>Logout</span>
+              <span className='!text-lg text-cyan-700'>Logout</span>
               <LogoutOutlined />
 
             </Button>
@@ -246,7 +246,7 @@ const AdminLayout = ({ children }) => {
           style={{
             margin: 0,
             padding: 8,
-            paddingTop:75,
+            paddingTop: 75,
             background: colorBgContainer,
             minHeight: 'calc(100vh - 64px)', // subtract header height
 

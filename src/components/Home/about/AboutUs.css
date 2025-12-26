@@ -1,118 +1,127 @@
-/* General */
+/* ===== Global Page ===== */
 .about-page {
-  font-family: 'Poppins', sans-serif;
-  color: #333;
+  background: linear-gradient(180deg, #000000, #0b0b0b);
+  color: #ffffff;
+  overflow-x: hidden;
 }
 
-/* Hero Section */
+/* ===== Hero Section ===== */
 .hero-section {
   position: relative;
-  height: 80vh;
-  background: url('/hero-bg.jpg') center/cover no-repeat;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  overflow: hidden;
 }
 
 .hero-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 50, 0.6);
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.3),
+    rgba(0, 0, 0, 0.9)
+  );
   z-index: 1;
 }
 
 .hero-content {
   position: relative;
   z-index: 2;
-  color: #FFD700;
-  animation: fadeIn 1.5s ease-out;
+  border-radius: 0 0 40px 40px;
 }
 
-.hero-title {
-  font-size: 4rem;
-  font-weight: bold;
-}
-
-
-
-.hero-button {
-  background: #FFD700;
-  color: #000;
-  border: none;
-  font-weight: bold;
-  transition: transform 0.3s;
-}
-
-.hero-button:hover {
-  transform: scale(1.05);
-}
-
-/* Section Padding */
+/* ===== Sections ===== */
 .section-padding {
-  padding: 50px 20px;
+  padding: 80px 20px;
 }
 
-/* Gradient Background */
-.section-gradient {
-  background: black;
-}
-
-/* Hoverable Cards */
+/* ===== Glass Cards ===== */
 .hover-card {
-  height:auto;
-  border-radius: 5px;
-  text-align: justify;
-  padding: 40px 20px;
-  transition: transform 0.3s, box-shadow 0.3s;
+  background: rgba(255, 215, 0, 0.08) !important;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  backdrop-filter: blur(14px);
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  transition: all 0.4s ease;
 }
 
 .hover-card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+  transform: translateY(-12px) scale(1.02);
+  box-shadow: 0 30px 70px rgba(212, 175, 55, 0.4);
 }
 
-.card-icon {
-  font-size: 50px;
-  color: #1890ff;
-  margin-bottom: 15px;
+/* ===== Titles ===== */
+.ant-typography h2,
+.ant-typography h3 {
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 
-/* Core Values */
+/* ===== Gold Text ===== */
+.text-gold {
+  color: #d4af37 !important;
+}
+
+/* ===== About Text ===== */
 .core-values {
-  background:rgb(69, 124, 158);
-
+  background: radial-gradient(
+    circle at top,
+    rgba(212, 175, 55, 0.15),
+    transparent 70%
+  );
 }
 
-/* Stats Section */
-.stats-section {
-  background:rgb(194, 193, 193);
-}
-
+/* ===== Image Cards ===== */
 .stats-card {
-  border-radius: 15px;
-  text-align: center;
-  padding: 40px 20px;
-  transition: transform 0.3s, box-shadow 0.3s;
+  border-radius: 22px;
+  overflow: hidden;
+  position: relative;
+  transition: all 0.5s ease;
+}
+
+.stats-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(0, 0, 0, 0.75)
+  );
 }
 
 .stats-card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+  transform: scale(1.06);
+  box-shadow: 0 35px 80px rgba(212, 175, 55, 0.5);
 }
 
-.stats-icon {
-  font-size: 50px;
-  color: #FFD700;
-  margin-bottom: 15px;
+/* ===== Stats Section ===== */
+.stats-section {
+  background: linear-gradient(
+    180deg,
+    #000000,
+    #0d0d0d
+  );
 }
 
-/* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-30px); }
-  to { opacity: 1; transform: translateY(0); }
+/* ===== Animations ===== */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.section-padding,
+.stats-card,
+.hover-card {
+  animation: fadeUp 0.8s ease both;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .section-padding {
+    padding: 50px 15px;
+  }
 }

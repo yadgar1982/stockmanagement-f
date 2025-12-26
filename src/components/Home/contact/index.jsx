@@ -2,11 +2,12 @@ import React, { useState } from "react";
 import { Form, Input, Button, Typography } from "antd";
 import { toast } from "react-toastify";
 import { http } from "../../Modules/http";
-
+import { useTranslation } from 'react-i18next'
 const httpReq = http();
 const { Title, Paragraph } = Typography;
 
 const ContactPage = () => {
+   const { t } = useTranslation('about');
   const [loading, setLoading] = useState(false);
 
   const onFinish = async (values) => {
@@ -25,40 +26,40 @@ const ContactPage = () => {
 
   return (
 
-    <div className="w-full flex items-center justify-center bg-cyan-700 p-4">
-      <div className="md:w-3/5 bg-zinc-100  shadow-2xl p-10 md:p-16">
+    <div className="w-full flex items-center justify-center bg-cyan-700 ">
+      <div className="md:w-full bg-zinc-100  shadow-2xl p-10 md:p-16">
         <Title style={{ textAlign: "center", color: "#1067a4ff", fontSize: "2.5rem", marginBottom: "0.5rem" }}>
-          Send Us a Message
+          {(t('Send Us a Message'))}
         </Title>
         <Paragraph style={{ textAlign: "center", color: "#1e3a8a", fontSize: "1.125rem", marginBottom: "2rem" }}>
-          Have questions or want to work with us? Send a message and we'll respond promptly!
+          {(t('Have questions or want to work with us? Send a message and we will respond promptly!'))}
         </Paragraph>
 
         <Form layout="vertical" onFinish={onFinish} className="space-y-6">
           <Form.Item
-            label="Name"
+            label={(t('Name'))}
             name="name"
             rules={[{ required: true, message: "Please enter your name" }]}
           >
             <Input
-              placeholder="Your Name"
+              placeholder={(t("Your Name"))}
               className="rounded-xl border border-orange-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300 shadow-sm"
             />
           </Form.Item>
 
           <Form.Item
-            label="Subject"
+            label={(t("Subject"))}
             name="subject"
             rules={[{ required: true, message: "Please enter your subject" }]}
           >
             <Input
-              placeholder="Your Subject"
+              placeholder={(t("Your Subject"))}
               className="rounded-xl border border-orange-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300 shadow-sm"
             />
           </Form.Item>
 
           <Form.Item
-            label="Email"
+            label={(t("Email"))}
             name="email"
             rules={[
               { required: true, message: "Please enter your email" },
@@ -72,13 +73,13 @@ const ContactPage = () => {
           </Form.Item>
 
           <Form.Item
-            label="Message"
+            label={(t("Message"))}
             name="message"
             rules={[{ required: true, message: "Please enter your message" }]}
           >
             <Input.TextArea
               rows={6}
-              placeholder="Your Message"
+              placeholder={(t("Your Message"))}
               className="rounded-xl border border-orange-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300 shadow-sm resize-none"
             />
           </Form.Item>
@@ -91,7 +92,7 @@ const ContactPage = () => {
               block
               className="bg-gradient-to-r from-orange-400 to-blue-500 hover:from-orange-500 hover:to-blue-600 text-white font-bold text-lg py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
             >
-              Send Message
+              {(t("Send Message"))}
             </Button>
           </Form.Item>
         </Form>

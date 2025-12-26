@@ -4,7 +4,7 @@ import HomeLayout from "../../Shared/HomeLayout";
 import Cookies from "universal-cookie";
 import { http, trimData } from "../../Modules/http";
 import { useNavigate } from "react-router-dom";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 
 const cookies = new Cookies();
 
@@ -14,12 +14,11 @@ const Login = () => {
   const [loader, setLoader] = useState(false);
   const [forgotModal, setForgotModal] = useState(false);
 
-  // 🔐 OTP states
+//otp state
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
-
-  /* ================= LOGIN ================= */
+ 
   const onFinish = async (values) => {
     setLoader(true);
     try {
@@ -43,7 +42,7 @@ const Login = () => {
     }
   };
 
-  /* ================= SEND OTP ================= */
+  //Send Otp
   const sendOtp = async (values) => {
     setLoader(true);
     try {
@@ -58,7 +57,7 @@ const Login = () => {
     setLoader(false);
   };
 
-  /* ================= VERIFY OTP ================= */
+// verify Otp
   const verifyOtp = async (values) => {
     setLoader(true);
     try {
@@ -76,13 +75,13 @@ const Login = () => {
     setLoader(false);
   };
 
-  /* ================= RESET PASSWORD ================= */
+
+//reset passwrod
   const resetPassword = async (values) => {
     if (values.passworda !== values.passwordb) {
       toast.error("Passwords do not match");
       return;
     }
-
     setLoader(true);
     try {
       const httpReq = http();
@@ -105,7 +104,7 @@ const Login = () => {
     <HomeLayout>
       <div className="flex w-full items-center justify-center h-screen bg-gradient-to-br from-zinc-50 to-zinc-200  md:grid md:grid-cols-3 ">
         <div ></div>
-       <div className="w-full px-4 md:w-[75%] h-screen md:bg-cyan-700 flex justify-center items-center"> 
+       <div className="w-full px-4 md:w-[75%] h-screen  flex justify-center items-center"> 
         <div className=" w-full max-w-md bg-zinc-100 rounded-2xl shadow-2xl p-8">
           <h2 className="text-center text-2xl font-extrabold text-blue-900 mb-6">
             Login Here
@@ -131,7 +130,7 @@ const Login = () => {
               htmlType="submit"
               block
               size="large"
-              className="rounded-lg font-semibold bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-indigo-500 hover:to-blue-500"
+              className="rounded-lg font-semibold  hover:from-indigo-500 hover:to-blue-500"
               loading={loader}
             >
               Login

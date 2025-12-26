@@ -48,10 +48,10 @@ const Home = () => {
 
       </div>
 
-      <div className="w-full flex justify-center items-center p-3 bg-zinc-600 height-[15vh]fixed bottom-0 left-0  text-zinc-100 flex-col font-semibold">
-        <span><MailOutlined className="!text-yellow-300 !font-bold" />   : hadiagold@gmail.com</span>
+      <div className="w-full flex justify-center items-center p-3 bg-zinc-600 height-[15vh]fixed bottom-0 left-0  text-yellow-300 flex-col font-semibold">
+        <span><MailOutlined className="!text-yellow-300 !font-bold" />   : hadiagroup2023@gmail.com</span>
 
-        <span><PhoneOutlined className="!text-yellow-300 !font-bold" />   : +9999999999<br /></span>
+        <span><PhoneOutlined className="!text-yellow-300 !font-bold" />   : +7 747 420 3722<br /></span>
 
 
       </div>
