@@ -26,12 +26,12 @@ const ContactPage = () => {
 
   return (
 
-    <div className="w-full flex items-center justify-center bg-cyan-700 ">
-      <div className="md:w-full bg-zinc-100  shadow-2xl p-10 md:p-16">
-        <Title style={{ textAlign: "center", color: "#1067a4ff", fontSize: "2.5rem", marginBottom: "0.5rem" }}>
+    <div className="w-full flex items-center justify-center bg-[#ffee8d] ">
+      <div className="md:w-full bg-[#e8e1b8]  shadow-2xl p-10 md:p-16">
+        <Title style={{ textAlign: "center", color: "#4c4102ff", fontSize: "2.5rem", marginBottom: "0.5rem" }}>
           {(t('Send Us a Message'))}
         </Title>
-        <Paragraph style={{ textAlign: "center", color: "#1e3a8a", fontSize: "1.125rem", marginBottom: "2rem" }}>
+        <Paragraph style={{ textAlign: "center", color: "#2c2604ff", fontSize: "1.125rem", marginBottom: "2rem" }}>
           {(t('Have questions or want to work with us? Send a message and we will respond promptly!'))}
         </Paragraph>
 
@@ -86,11 +86,11 @@ const ContactPage = () => {
 
           <Form.Item>
             <Button
-              type="primary"
+              type="text"
               htmlType="submit"
               loading={loading}
               block
-              className="bg-gradient-to-r from-orange-400 to-blue-500 hover:from-orange-500 hover:to-blue-600 text-white font-bold text-lg py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
+              className="!bg-[#6b5c06] hover:!bg-orange-700 !text-white font-bold text-lg py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
             >
               {(t("Send Message"))}
             </Button>

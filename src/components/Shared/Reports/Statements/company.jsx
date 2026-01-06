@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Button, Form, Select, DatePicker, Modal } from "antd";
+import { Button, Form, Select, DatePicker, Modal, notification, Tooltip } from "antd";
 import { useDispatch, useSelector } from 'react-redux';
 import dayjs from "dayjs";
 import { PrinterOutlined } from '@ant-design/icons';
@@ -9,32 +9,38 @@ import { fetchSales } from '../../../../redux/slices/salesSlice';
 import { fetchPayment } from '../../../../redux/slices/paymentSlice';
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
-import { toast } from 'react-toastify';
-
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
+import { Table, Tag } from "antd";
+import 'antd/dist/reset.css';
+
+import { toast } from 'react-toastify';
+const logo = import.meta.env.VITE_LOGO_URL;
+
+//get branding info: 
+const branding = JSON.parse(localStorage.getItem("branding"))
+
 const { RangePicker } = DatePicker;
 
-const branding = JSON.parse(localStorage.getItem("branding"));
-
 const Statements = () => {
-  const [form]=Form.useForm();
   const dispatch = useDispatch();
-  const logo = import.meta.env.VITE_LOGO_URL;
 
   const [coId, setCoId] = useState(null);
   const [myCompanyData, setMyCompanyData] = useState(null);
-  const [myPurchaseData, setMyPurchaseData] = useState([]);
   const [mySaleData, setMySaleData] = useState([]);
+  const [myPurchaseData, setMyPurchaseData] = useState([]);
   const [myPaymentData, setMyPaymentData] = useState([]);
   const [dateRange, setDateRange] = useState([]);
   const [filteredStatement, setFilteredStatement] = useState([]);
   const [myCurrency, setMyCurrency] = useState([]);
-  const [selectedCurrency, setSelectedCurrency] = useState(null);
+  const [selectedCurrency, setSelectedCurrency] = useState([]);
+  const [tableData, setTableData] = useState([]);
+
+  const [closingBalance, setClosingBalance] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { companys } = useSelector(state => state.company);
-  const allCompany = companys?.data || [];
+  const allCompanys = companys?.data || [];
 
   const { purchase: purchases } = useSelector(state => state.purchase);
   const allPurchase = purchases || [];
@@ -44,7 +50,6 @@ const Statements = () => {
 
   const { payment: payments } = useSelector(state => state.payments);
   const allPayment = payments || [];
-
   // Fetch data
   useEffect(() => {
     dispatch(fetchCompany());
@@ -53,10 +58,30 @@ const Statements = () => {
     dispatch(fetchSales());
   }, [dispatch]);
 
+
   // company selection
-  const handlecompanystatement = (value) => {
+  const handleCompanyStatement = (value) => {
     setCoId(value);
   };
+
+  // Prepare company data
+  useEffect(() => {
+    if (!coId) return;
+    const companyData = allCompanys.find(s => s._id === coId);
+    setMyCompanyData(companyData);
+    setMySaleData(allSales.filter(p => p.companyId === coId));
+    setMyPurchaseData(allPurchase.filter(p => p.companyId === coId));
+    setMyPaymentData(allPayment.filter(p => p.companyId === coId));
+
+    setFilteredStatement([]);
+    setDateRange([]);
+  }, [coId, allCompanys, allPurchase, allPayment, allSales]);
+
+
+
+
+  // data to print
+
   const handleData = () => {
     if (!myCompanyData) return toast.error("Select a Company first to get statement!");
     if (!selectedCurrency) return toast.error("Select Currency to get Data");
@@ -80,10 +105,11 @@ const Statements = () => {
     handlePrintStatement(dataToPrint);
   };
 
+
   // Prepare company data
   useEffect(() => {
     if (!coId) return;
-    const companyData = allCompany.find(s => s._id === coId);
+    const companyData = allCompanys.find(s => s._id === coId);
     setMyCompanyData(companyData);
     setMySaleData(allSales.filter(p => p.companyId === coId));
     setMyPurchaseData(allPurchase.filter(p => p.companyId === coId));
@@ -91,36 +117,35 @@ const Statements = () => {
 
     setFilteredStatement([]);
     setDateRange([]);
-  }, [coId, allCompany, allPurchase, allPayment, allSales]);
+  }, [coId, allCompanys, allPurchase, allPayment, allSales]);
 
   // Statement with running balance
   const statementWithBalance = useMemo(() => {
     const purchaseEntries = myPurchaseData.map(p => ({
       date: new Date(p.purchaseDate || p.createdAt),
       description: p.description || "Purchase",
-      credit: 0,
-      debit: p?.totalCost || 0,
-      localCredit: 0,
-      localDebit: p?.totalLocalCost || 0,
-      currency: p?.currency,
-      quantity: p?.quantity,
-      unit: p?.unit
+      credit: p.totalCost || 0,
+      debit: 0,
+      localCredit: p?.totalExComission || 0,
+      localDebit: 0,
+      currency: p.currency,
+      quantity: p.quantity,
+      unit: p.unit
     }));
 
     const salesEntries = mySaleData.map(p => ({
-      date: new Date(p?.saleDate || p?.createdAt),
-      description: p?.description || "Sale",
-      credit: p?.totalCost || 0,
-      debit: 0,
-      localCredit: p?.totalLocalCost || 0,
+      date: new Date(p.saleDate || p.createdAt),
+      description: p.description || "Sale",
+      credit: 0,
+      debit: p.totalCost || 0,
+      localCredit: p?.totalExComission || 0,
       localDebit: 0,
-      currency: p?.currency,
-      quantity: p?.quantity,
-      unit: p?.unit
+      currency: p.currency,
+      quantity: p.quantity,
+      unit: p.unit
     }));
 
-    
-      const paymentEntries = myPaymentData.map(p => ({
+    const paymentEntries = myPaymentData.map(p => ({
       date: new Date(p.paymentDate || p.createdAt),
       description: p?.description || "Payment",
       credit: p?.paymentType?.toLowerCase() === "cr" ? Number(p.amount) : 0,
@@ -130,11 +155,10 @@ const Statements = () => {
       currency: p.currency,
     }));
 
-
     const allEntries = [...purchaseEntries, ...salesEntries, ...paymentEntries].sort((a, b) => a.date - b.date);
 
-    // Extract currencies
-    const currencies = [...new Set(allEntries.map(item => item.currency))];
+    //sort currency
+    const currencies = [...new Set(allEntries.map((item) => item.currency))];
     setMyCurrency(currencies);
 
     let runningBalance = 0;
@@ -144,30 +168,64 @@ const Statements = () => {
     });
   }, [myPurchaseData, myPaymentData, mySaleData]);
 
+
   // Date filter
   useEffect(() => {
+    // No date range → show all data
     if (!dateRange || dateRange.length !== 2 || !dateRange[0] || !dateRange[1]) {
       setFilteredStatement(statementWithBalance);
       return;
     }
+
     const [start, end] = dateRange;
 
     const filtered = statementWithBalance.filter(
       e =>
-        dayjs(e.date).isSameOrAfter(start, "day") &&
-        dayjs(e.date).isSameOrBefore(end, "day")
+        dayjs(e.date).startOf('day').isSameOrAfter(dayjs(start).startOf('day')) &&
+        dayjs(e.date).startOf('day').isSameOrBefore(dayjs(end).startOf('day'))
     );
+    setFilteredStatement(filtered.length ? filtered : []);
 
-    if (filtered.length === 0) {
-      setFilteredStatement(null);
-      return;
-    }
+    // Matches found
     setFilteredStatement(filtered);
   }, [dateRange, statementWithBalance]);
 
+
   const handleCurrencyStatement = (e) => {
-    setSelectedCurrency(e);
+
+    setSelectedCurrency(e)
   }
+
+
+
+  // update table data based on filters
+  useEffect(() => {
+    let data = statementWithBalance;
+    if (selectedCurrency) {
+      data = data.filter(
+        r => String(r.currency).toUpperCase() === String(selectedCurrency).toUpperCase()
+      );
+    }
+
+    // Filter by date range if provided
+    if (dateRange && dateRange.length === 2 && dateRange[0] && dateRange[1]) {
+      const [start, end] = dateRange;
+      data = data.filter(
+        e =>
+          dayjs(e.date).isSameOrAfter(start, "day") &&
+          dayjs(e.date).isSameOrBefore(end, "day")
+      );
+    }
+
+    // Recalculate running balance after filtering
+    let runningBalance = 0;
+    const finalData = data.map(item => {
+      runningBalance += (item.credit || 0) - (item.debit || 0);
+      return { ...item, balance: runningBalance };
+    });
+
+    setTableData(finalData);
+  }, [coId, selectedCurrency, dateRange, statementWithBalance]);
 
   const handlePrintStatement = (dataToPrint) => {
     if (!selectedCurrency) return;
@@ -185,114 +243,114 @@ const Statements = () => {
     let runningBalance = 0; // Initialize running balance
 
     newWindow.document.body.innerHTML = `
- <div style="font-family: Arial; padding: 10px; background: white; color: #212529;">
-   <div style="
-     display: flex; 
-     align-items: center; 
-     justify-content: center; 
-     flex-wrap: wrap;
-     gap: 10px;
-     margin-bottom: 10px;
-   ">
-     <header style="width: 100%; text-align: center; margin-bottom: 20px;">
-       <div style="
-         display: flex;
-         align-items: center;
-         justify-content: center;
-         flex-wrap: wrap;
-         position: relative;
-         margin-bottom: 10px;
-       ">
-         <div style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%);">
-           <img 
-             src="${logo}" 
-             alt="${branding[0].name} Logo" 
-             style="height: 65px; width: auto; object-fit: contain;"
-           />
-         </div>
-         <div style="text-align: center;">
-           <h2 style="margin: 0; font-size: 22px; color: #023e8a;">${branding[0].name}</h2>
-           <p style="margin: 3px 0; font-size: 13px; color: #555;">${branding[0].address}</p>
-           <p style="margin: 3px 0; font-size: 13px; color: #555;">${branding[0].mobile}</p>
-           <a href="mailto:${branding[0].email}" style="font-size: 13px; color: #0077b6; text-decoration: none;">
-             ${branding[0].email}
-           </a>
-         </div>
-       </div>
- 
-       <hr style="border: 1px solid #0077b6; margin: 15px auto 10px; width: 100%;" />
- 
-       <div style="margin-top: 5px; text-align: left;">
-         <h1 style="margin: 0; text-align: center; font-size: 24px; color: #5a5b5cff;">Financial Statement</h1>
-         <p><strong>Name:</strong> ${myCompanyData.fullname}</p>
-         <p><strong>Account No:</strong> ${myCompanyData.accountNo}</p>
-         <p><strong>Mobile:</strong> ${myCompanyData.mobile}</p>
-         <p><strong>Currency: ${selectedCurrency}</strong></p>
-       </div>
-     </header>
- 
-     <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-       <thead>
-         <tr>
-           <th style="border:1px solid #dee2e6;padding:8px;">Date</th>
-           <th style="border:1px solid #dee2e6;padding:8px;">Description</th>
-           <th style="border:1px solid #dee2e6;padding:8px;">Quanty</th>
-           <th style="border:1px solid #dee2e6;padding:8px;">Credit</th>
-           <th style="border:1px solid #dee2e6;padding:8px;">Debit</th>
-           <th style="border:1px solid #dee2e6;padding:8px;">Balance</th>
-         </tr>
-       </thead>
-       <tbody>
-         ${dataToPrint.map((e) => {
+<div style="font-family: Arial; padding: 10px; background: white; color: #212529;">
+  <div style="
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+  ">
+    <header style="width: 100%; text-align: center; margin-bottom: 20px;">
+      <div style="
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        position: relative;
+        margin-bottom: 10px;
+      ">
+        <div style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%);">
+          <img 
+            src="${logo}" 
+            alt="${branding[0].name} Logo" 
+            style="height: 65px; width: auto; object-fit: contain;"
+          />
+        </div>
+        <div style="text-align: center;">
+          <h2 style="margin: 0; font-size: 14px; color: #023e8a;">${branding[0].name}</h2>
+          <p style="margin: 3px 0; font-size: 14px; color: #555;">${branding[0].address}</p>
+          <p style="margin: 3px 0; font-size: 14px; color: #555;">${branding[0].mobile}</p>
+          <a href="mailto:${branding[0].email}" style="font-size: 12px; color: #0077b6; text-decoration: none;">
+            ${branding[0].email}
+          </a>
+        </div>
+      </div>
+
+      <hr style="border: 1px solid #0077b6; margin: 15px auto 10px; width: 100%;" />
+
+      <div style="text-align:left; margin-top:5px;">
+        <div style="font-size:14px; font-weight:bold; color:#5a5b5cff;">Financial Statement</div>
+        <div style="font-size:12px; color:#5a5b5cff;"><strong>Name:</strong> ${myCompanyData.fullname}</div>
+        <div style="font-size:12px; color:#5a5b5cff;"><strong>Account No:</strong> ${myCompanyData.accountNo}</div>
+        <div style="font-size:12px; color:#5a5b5cff;"><strong>Mobile:</strong> ${myCompanyData.mobile}</div>
+        <div style="font-size:12px; color:#5a5b5cff;"><strong>Currency: USD</strong></div>
+      </div>
+    </header>
+
+   <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; color: #212529;">
+  <thead>
+    <tr style="background-color: #f8f9fa; text-align: left;">
+      <th style="border-bottom: 1px solid #dee2e6; padding:4px 6px;">Date</th>
+      <th style="border-bottom: 1px solid #dee2e6; padding:4px 6px;">Description</th>
+      <th style="border-bottom: 1px solid #dee2e6; padding:4px 6px; text-align:right;">Credit</th>
+      <th style="border-bottom: 1px solid #dee2e6; padding:4px 6px; text-align:right;">Debit</th>
+      <th style="border-bottom: 1px solid #dee2e6; padding:4px 6px; text-align:right;">Balance</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${dataToPrint.map((e, index) => {
       const credit = e.localCredit || 0;
       const debit = e.localDebit || 0;
-
       runningBalance += credit - debit; // running balance
+      const rowColor = index % 2 === 0 ? '#ffffff' : '#f1f3f5'; // alternating row colors
       return `
-             <tr>
-               <td style="border:1px solid #dee2e6;padding:8px;">${dayjs(e.date).format("DD/MM/YYYY")}</td>
-               <td style="border:1px solid #dee2e6;padding:8px;">${e.description || ""}</td>
-               <td style="border:1px solid #dee2e6;padding:8px;">${e.quantity != null ? e.quantity.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""}${e.unit ? " " + e.unit : ""}</td>
-               <td style="border:1px solid #dee2e6;padding:8px;text-align:right;">${credit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-               <td style="border:1px solid #dee2e6;padding:8px;text-align:right;">${debit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-               <td style="border:1px solid #dee2e6;padding:8px;text-align:right;color:${runningBalance < 0 ? "red" : "black"};">${runningBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-             </tr>
-           `;
-    }).join("")}
-       </tbody>
-       <tfoot>
-         <tr>
-           <td colspan="2" style="font-weight:bold;border:1px solid #dee2e6;padding:8px;">Totals</td>
-           <td style="font-weight:bold;border:1px solid #dee2e6;padding:8px; text-align:left;">${totalQty.toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })} ${unit} </td>
-           <td style="font-weight:bold;border:1px solid #dee2e6;padding:8px;text-align:right;">${totalCredit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-           <td style="font-weight:bold;border:1px solid #dee2e6;padding:8px;text-align:right;">${totalDebit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-           <td style="font-weight:bold;border:1px solid #dee2e6;padding:8px;text-align:right;">${closingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-         </tr>
-       </tfoot>
-     </table>
- 
-     <p>Thank you for your business.</p>
-     <footer style="
-       position: fixed;
-       bottom: 0;
-       left: 0;
-       width: 100%;
-       text-align: center;
-       font-size: 12px;
-       color: #868e96;
-       background: white;
-       padding: 8px 0;
-       border-top: 1px solid #dee2e6;
-     ">
-       Generated on ${dayjs().format("DD/MM/YYYY")}<br/>
-       Powered by ${branding[0].name}
-     </footer>
- </div>
-     `;
+        <tr style="background-color: ${rowColor};">
+          <td style="padding:3px 6px;">${dayjs(e.date).format("DD/MM/YYYY")}</td>
+          <td style="padding:3px 6px;">${e.description || ""}</td>
+          <td style="padding:3px 6px; text-align:right;">${credit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td style="padding:3px 6px; text-align:right;">${debit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td style="padding:3px 6px; text-align:right; color:${runningBalance < 0 ? "red" : "black"};">
+            ${runningBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </td>
+        </tr>
+      `;
+    }).join('')}
+  </tbody>
+  <tfoot>
+    <tr style="font-weight:bold; border-top: 1px solid #dee2e6; background-color: #f8f9fa;">
+      <td colspan="2" style="padding:4px 6px;">Totals</td>
+      <td style="padding:4px 6px; text-align:right;">${totalCredit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+      <td style="padding:4px 6px; text-align:right;">${totalDebit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+      <td style="padding:4px 6px; text-align:right;">${closingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+    </tr>
+  </tfoot>
+</table>
 
+
+    <p style="font-weight:bold;font-size:12px; border-top: 1px solid #dee2e6; background-color: #f8f9fa;">Thank you for your business.</p>
+    <footer style="
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      font-size: 12px;
+      color: #868e96;
+      background: white;
+      padding: 8px 0;
+      border-top: 1px solid #dee2e6;
+    ">
+      Generated on ${dayjs().format("DD/MM/YYYY HH:mm")}<br/>
+      Powered by ${branding[0].name}
+    </footer>
+</div>
+    `;
 
     newWindow.print();
   };
+
   //USD statement
   const handleUSDData = () => {
 
@@ -308,7 +366,6 @@ const Statements = () => {
 
     handleUSDStatement(dataToPrint);
   };
-
   const handleUSDStatement = (dataToPrint) => {
     if (!selectedCurrency) return;
 
@@ -322,171 +379,428 @@ const Statements = () => {
     newWindow.document.title = `Statement - ${myCompanyData.fullname}`;
 
     newWindow.document.body.innerHTML = `
-       <div style="font-family: Arial; padding: 10px; background: white; color: #212529;">
-          <div style="
-       display: flex; 
-       align-items: center; 
-       justify-content: center; 
-       flex-wrap: wrap;
-       gap: 10px;
-       margin-bottom: 10px;
-     ">
-        <header style="width: 100%; text-align: center; margin-bottom: 20px;">
-     <div style="
-       display: flex;
-       align-items: center;
-       justify-content: center;
-       flex-wrap: wrap;
-       position: relative;
-       margin-bottom: 10px;
-     ">
-       <!-- Left-aligned logo -->
-       <div style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%);">
-         <img 
-           src="${logo}" 
-           alt="${branding[0].name} Logo" 
-           style="height: 65px; width: auto; object-fit: contain;"
-         />
-       </div>
-   
-       <!-- Centered company info -->
-       <div style="text-align: center;">
-         <h2 style="margin: 0; font-size: 22px; color: #023e8a;">${branding[0].name}</h2>
-         <p style="margin: 3px 0; font-size: 13px; color: #555;">${branding[0].address}</p>
-         <p style="margin: 3px 0; font-size: 13px; color: #555;">${branding[0].mobile}</p>
-         <a href="mailto:${branding[0].email}" 
-            style="font-size: 13px; color: #0077b6; text-decoration: none;">
-           ${branding[0].email}
-         </a>
-       </div>
-     </div>
-   
-     <!-- Divider line -->
-     <hr style="border: 1px solid #0077b6; margin: 15px auto 10px; width: 100%;" />
-   
-     <!-- Statement Title -->
-     <div style="margin-top: 5px; text-align: left;">
-     <h1 style="margin: 0; text-align: center; font-size: 24px; color: #5a5b5cff;">Financial Statement</h1>
-     <p><strong>Name:</strong> ${myCompanyData.fullname}
-     </p>
-     <p><strong>Account No:</strong> ${myCompanyData.accountNo}
-     </p>
-     <p><strong>Mobile:</strong> ${myCompanyData.mobile}
-     </p>
-     <p><strong>Currency: USD</strong></p>
-   </div>
-   </header>
-      
-   
-         
-         <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-           <thead>
-             <tr>
-               <th style="border:1px solid #dee2e6;padding:8px;">Date</th>
-               <th style="border:1px solid #dee2e6;padding:8px;">Description</th>
-               <th style="border:1px solid #dee2e6;padding:8px;">Credit</th>
-               <th style="border:1px solid #dee2e6;padding:8px;">Debit</th>
-               <th style="border:1px solid #dee2e6;padding:8px;">Balance</th>
-             </tr>
-           </thead>
-           <tbody>
-             ${dataToPrint
-        .map((e) => {
-          const credit = e.credit || 0;
-          const debit = e.debit || 0;
-          const balance = e.balance;
-          return `
-                 <tr>
-                   <td style="border:1px solid #dee2e6;padding:8px;">${dayjs(
-            e.date
-          ).format("DD/MM/YYYY")}</td>
-                   <td style="border:1px solid #dee2e6;padding:8px;">${e.description || ""}</td>
-                   <td style="border:1px solid #dee2e6;padding:8px;text-align:right;">${credit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                   <td style="border:1px solid #dee2e6;padding:8px;text-align:right;">${debit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                   <td style="border:1px solid #dee2e6;padding:8px;text-align:right;color:${balance <= 0 ? "red" : "black"
-            };">${balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                 </tr>
-               `;
-        })
-        .join("")}
-           </tbody>
-           <tfoot>
-             <tr>
-               <td colspan="2" style="font-weight:bold;border:1px solid #dee2e6;padding:8px;">Totals</td>
-               <td style="font-weight:bold;border:1px solid #dee2e6;padding:8px;text-align:right;">${totalCredit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-               <td style="font-weight:bold;border:1px solid #dee2e6;padding:8px;text-align:right;">${totalDebit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-               <td style="font-weight:bold;border:1px solid #dee2e6;padding:8px;text-align:right;">${closingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-             </tr>
-           </tfoot>
-         </table>
-   
-         <p>Thank you for your business.</p>
-         <footer style="
-     position: fixed;
-     bottom: 0;
-     left: 0;
-     width: 100%;
-     text-align: center;
-     font-size: 12px;
-     color: #868e96;
-     background: white;
-     padding: 8px 0;
-     border-top: 1px solid #dee2e6;
-   ">
-     Generated on ${dayjs().format("DD/MM/YYYY HH:mm")}<br/>
-     Powered by ${branding[0].name}
-   </footer>
-       </div>
-     `;
+    <div style="font-family: Arial; padding: 10px; background: white; color: #212529;">
+       <div style="
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+  ">
+     <header style="width: 100%; text-align: center; margin-bottom: 20px;">
+  <div style="
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    position: relative;
+    margin-bottom: 10px;
+  ">
+    <!-- Left-aligned logo -->
+    <div style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%);">
+      <img 
+        src="${logo}" 
+        alt="${branding[0].name} Logo" 
+        style="height: 65px; width: auto; object-fit: contain;"
+      />
+    </div>
 
+    <!-- Centered company info -->
+    <div style="text-align: center;">
+      <h2 style="margin: 0; font-size: 22px; color: #023e8a;">${branding[0].name}</h2>
+      <p style="margin: 3px 0; font-size: 13px; color: #555;">${branding[0].address}</p>
+      <p style="margin: 3px 0; font-size: 13px; color: #555;">${branding[0].mobile}</p>
+      <a href="mailto:${branding[0].email}" 
+         style="font-size: 13px; color: #0077b6; text-decoration: none;">
+        ${branding[0].email}
+      </a>
+    </div>
+  </div>
+
+  <!-- Divider line -->
+  <hr style="border: 1px solid #0077b6; margin: 15px auto 10px; width: 100%;" />
+
+  <!-- Statement Title -->
+  <div style="text-align:left; margin-top:5px;">
+  <div style="font-size:14px; font-weight:bold; color:#5a5b5cff;">Financial Statement</div>
+  <div style="font-size:12px; color:#5a5b5cff;"><strong>Name:</strong> ${myCompanyData.fullname}</div>
+  <div style="font-size:12px; color:#5a5b5cff;"><strong>Account No:</strong> ${myCompanyData.accountNo}</div>
+  <div style="font-size:12px; color:#5a5b5cff;"><strong>Mobile:</strong> ${myCompanyData.mobile}</div>
+  <div style="font-size:12px; color:#5a5b5cff;"><strong>Currency: USD</strong></div>
+</div>
+</header>
+   
+
+      
+      <table style="
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-top: 15px;
+    color: #212529;
+">
+  <thead>
+    <tr style="background-color: #f1f3f5; text-align: left;">
+      <th style="border-bottom: 1px solid #dee2e6; padding:4px 6px;">Date</th>
+      <th style="border-bottom: 1px solid #dee2e6; padding:4px 6px;">Description</th>
+      <th style="border-bottom: 1px solid #dee2e6; padding:4px 6px; text-align:right;">Credit</th>
+      <th style="border-bottom: 1px solid #dee2e6; padding:4px 6px; text-align:right;">Debit</th>
+      <th style="border-bottom: 1px solid #dee2e6; padding:4px 6px; text-align:right;">Balance</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${dataToPrint.map(e => {
+      const credit = e.credit || 0;
+      const debit = e.debit || 0;
+      const balance = e.balance;
+      return `
+        <tr>
+          <td style="padding:3px 6px;">${dayjs(e.date).format("DD/MM/YYYY")}</td>
+          <td style="padding:3px 6px;">${e.description || ""}</td>
+          <td style="padding:3px 6px; text-align:right;">${credit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td style="padding:3px 6px; text-align:right;">${debit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td style="padding:3px 6px; text-align:right; color:${balance <= 0 ? "red" : "black"};">
+            ${balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </td>
+        </tr>
+      `;
+    }).join('')}
+  </tbody>
+  <tfoot>
+    <tr style="font-weight:bold; border-top: 1px solid #dee2e6;">
+      <td colspan="2" style="padding:4px 6px;">Totals</td>
+      <td style="padding:4px 6px; text-align:right;">${totalCredit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+      <td style="padding:4px 6px; text-align:right;">${totalDebit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+      <td style="padding:4px 6px; text-align:right;">${closingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+    </tr>
+  </tfoot>
+</table>
+
+      <p style="font-weight:bold; border-top: 1px solid #dee2e6;font-size:12px; background-color: #f8f9fa;">Thank you for your business.</p>
+      <footer style="
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  font-size: 12px;
+  color: #868e96;
+  background: white;
+  padding: 8px 0;
+  border-top: 1px solid #dee2e6;
+">
+  Generated on ${dayjs().format("DD/MM/YYYY HH:mm")}<br/>
+  Powered by ${branding[0].name}
+</footer>
+    </div>
+  `;
 
     newWindow.print();
   };
 
-  const showModal = () => setIsModalOpen(true);
+  //all companyss balance
+
+const allCompanysBalance = useMemo(() => {
+  if (!allCompanys?.length) return [];
+
+  return allCompanys.map(company => {
+    // Total sales amount (company should receive)
+    const totalSales = allSales
+      .filter(s => s.companyId === company._id)
+      .reduce((sum, s) => sum + Number(s.totalCost || 0), 0);
+
+    // Total purchase amount (company paid)
+    const totalPurchases = allPurchase
+      .filter(p => p.companyId === company._id)
+      .reduce((sum, p) => sum + Number(p.totalCost || 0), 0);
+
+    // Payments (CR & DR)
+    const { totalCr, totalDr } = allPayment
+      .filter(p => p.companyId === company._id)
+      .reduce(
+        (acc, p) => {
+          const amount = Number(p.amount || 0);
+          if (p.paymentType?.toLowerCase() === "cr") acc.totalCr += amount;
+          if (p.paymentType?.toLowerCase() === "dr") acc.totalDr += amount;
+          return acc;
+        },
+        { totalCr: 0, totalDr: 0 }
+      );
+
+    const netPayments = totalCr - totalDr;
+
+    // Final balance
+    const balance = netPayments - (totalSales - totalPurchases);
+
+    return {
+      key: company._id,
+      companysName: company.fullname,
+      accountNo: company.accountNo,
+      mobile: company.mobile,
+      balance,
+    };
+  });
+}, [allCompanys, allSales, allPurchase, allPayment]);
+
+ const handlePrintAllCompanies = () => {
+  if (!allCompanysBalance?.length) {
+    return toast.error("No companies data available to print!");
+  }
+
+  const newWindow = window.open("", "_blank");
+  if (!newWindow) return;
+
+  const brand = branding?.[0] || {};
+  const totalBalance = allCompanysBalance.reduce(
+    (sum, s) => sum + Number(s.balance || 0),
+    0
+  );
+
+  newWindow.document.title = "All dealers Balances";
+ 
+     newWindow.document.body.innerHTML = `
+     <div style="font-family: Arial; padding: 10px; background: white; color: #212529;">
+       <header style="width: 100%; text-align: center; margin-bottom: 20px;">
+         <div style="display: flex; align-items: center; justify-content: center; flex-wrap: wrap; position: relative; margin-bottom: 10px;">
+           <div style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%);">
+             <img 
+               src="${logo}" 
+               alt="${branding[0].name} Logo" 
+               style="height: 65px; width: auto; object-fit: contain;"
+             />
+           </div>
+           <div style="text-align: center;">
+             <h2 style="margin: 0; font-size: 16px; color: #023e8a;">${branding[0].name}</h2>
+             <p style="margin: 3px 0; font-size: 12px; color: #555;">${branding[0].address}</p>
+             <p style="margin: 3px 0; font-size: 12px; color: #555;">${branding[0].mobile}</p>
+             <a href="mailto:${branding[0].email}" style="font-size: 12px; color: #0077b6; text-decoration: none;">
+               ${branding[0].email}
+             </a>
+           </div>
+         </div>
+ 
+         <hr style="border: 1px solid #686a6cff; margin: 15px auto 10px; width: 100%;" />
+ 
+         <div style="text-align:left; margin-top:5px;">
+           <div style="font-size:14px; font-weight:bold; color:#5a5b5cff;">All dealers Balances</div>
+           <div style="font-size:12px; color:#5a5b5cff;">Generated on: ${dayjs().format("DD/MM/YYYY HH:mm")}</div>
+         </div>
+       </header>
+ 
+       <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; color: #212529;">
+         <thead>
+           <tr style="background-color: #f8f9fa; text-align: left;">
+             <th style="border-bottom: 1px solid #dee2e6; padding:4px 6px;">dealer</th>
+             <th style="border-bottom: 1px solid #dee2e6; padding:4px 6px;">Account No</th>
+             <th style="border-bottom: 1px solid #dee2e6; padding:4px 6px;">Mobile</th>
+             <th style="border-bottom: 1px solid #dee2e6; padding:4px 6px; text-align:right;">Balance</th>
+           </tr>
+         </thead>
+         <tbody>
+           ${allCompanysBalance.map((s, index) => {
+       const rowColor = index % 2 === 0 ? "#ffffff" : "#f1f3f5";
+       return `
+               <tr style="background-color: ${rowColor};">
+                 <td style="padding:3px 6px;">${s.companysName}</td>
+                 <td style="padding:3px 6px;">${s.accountNo || ""}</td>
+                 <td style="padding:3px 6px;">${s.mobile || ""}</td>
+                 <td style="padding:3px 6px; text-align:right; color:${s.balance < 0 ? "red" : "black"};">
+                   ${s.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    USD
+                 </td>
+               </tr>
+             `;
+     }).join('')}
+         </tbody>
+         <tfoot>
+           <tr style="font-weight:bold; border-top: 1px solid #dee2e6; background-color: #f8f9fa;">
+             <td colspan="3" style="padding:4px 6px;">Total dealer Balance</td>
+             <td style="padding:4px 6px; text-align:right; color: ${totalBalance < 0 ? "red" : "black"};">
+                   ${totalBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+             </td>
+           </tr>
+         </tfoot>
+       </table>
+ 
+      
+       <footer style="
+         position: fixed;
+         bottom: 0;
+         left: 0;
+         width: 100%;
+         text-align: center;
+         font-size: 12px;
+         color: #868e96;
+         background: white;
+         padding: 8px 0;
+         border-top: 1px solid #dee2e6;
+       ">
+         Powered by ${branding[0].name}
+       </footer>
+     </div>
+   `;
+ 
+     newWindow.print();
+};
+
+
+  const columns = [
+    {
+      title: "Date",
+      dataIndex: "date",
+      key: "date",
+      render: (text) => new Date(text).toLocaleDateString(),
+      sorter: (a, b) => new Date(a.date) - new Date(b.date),
+    },
+    {
+      title: "Description",
+      dataIndex: "description",
+      key: "description",
+      render: (text) => <b>{text}</b>,
+    },
+
+    {
+      title: "Credit",
+      dataIndex: "credit",
+      key: "credit",
+      render: (amount, record) => `${amount} ${record.currency}`,
+      sorter: (a, b) => a.credit - b.credit,
+      align: "right",
+    },
+    {
+      title: "Debit",
+      dataIndex: "debit",
+      key: "debit",
+      render: (amount, record) => `${amount} ${record.currency}`,
+      sorter: (a, b) => a.debit - b.debit,
+      align: "right",
+    },
+    {
+      title: "Balance",
+      dataIndex: "balance",
+      key: "balance",
+      render: (balance, record) => `${balance} ${record.currency}`,
+
+      align: "right",
+    },
+
+  ];
 
   return (
-    <div className="relative w-84 md:w-screen bg-orange-50 h-[77vh] ">
-      <img src={logo} alt="Watermark" className="absolute inset-0 m-auto opacity-15 w-7/9 h-7/9 object-contain pointer-events-none" />
-      <div className='flex flex-col gap-4 p-2'>
-        <h1 className="md:text-3xl text-2xl text-orange-500 font-extrabold drop-shadow-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>
-          Share Holders (Belong to) Financial Statements:
-        </h1>
-        <Button type="text" className='!bg-orange-400 !text-white md:!w-25 !w-25 md:!text-lg hover:!bg-green-500 !font-bold !shadow-lg !shadow-black' onClick={showModal}>
-          <PrinterOutlined className='!font-bold md:!text-2xl' />
-        </Button>
 
-        <Modal title="Print company Statement" footer={null} open={isModalOpen} onCancel={() => setIsModalOpen(false)} className='md:!w-100 !w-80'>
-          <Form layout="vertical" form={form}>
-            <Form.Item label="company Name" name="companyId" rules={[{ required: true, message: "Please select a company" }]}>
-              <Select onChange={handlecompanystatement} showSearch placeholder="Select a company" optionFilterProp="label" options={allCompany.map(s => ({ label: `${s.fullname}  ( Acc No: ${s.accountNo} )`, value: s._id }))} />
+    <div className="w-screen  flex flex-col gap-6 overflow-auto bg-white !justify-center ">
+      <h1 className="md:text-xl text-sm px-8  text-zinc-500 font-extrabold !mt-5" style={{ fontFamily: 'Poppins, sans-serif' }}>
+        Company Financial Statements:
+      </h1>
+      <Button
+        type="default"
+        onClick={handlePrintAllCompanies} // your print function
+        className=" !mx-8 !text-white !font-bold !bg-green-600 hover:!bg-green-500 !w-[10rem] text-white"
+      >
+        Print All Companies
+      </Button>
+      {/* Form container - small width on large screens, full width on mobile */}
+      <div className=" md:w-[350px] bg-white flex pmb-9 p-4 mx-8 border border-zinc-200 items-center justify-center">
+        <Form layout="horizontal" className="flex flex-col gap-0">
+
+          <div className="flex gap-1 !justify-between">
+            <Form.Item
+              name="companyId"
+              rules={[{ required: true, message: "Please select a company" }]}
+              className="m-0 "
+
+            >
+              <Select
+                onChange={handleCompanyStatement}
+                showSearch
+                placeholder="company"
+                optionFilterProp="label"
+                className="!h-8 !w-[150px] !max-w-[150px] text-sm !overflow-hidden"
+
+                optionLabelProp="label"
+                options={allCompanys.map((s) => ({
+                  label: (
+                    <span className="truncate block" title={`${s.fullname} (Acc No: ${s.accountNo})`}>
+                      {`${s.fullname} (Acc No: ${s.accountNo})`}
+                    </span>
+                  ),
+                  value: s._id,
+                }))}
+
+              />
             </Form.Item>
 
-            <Form.Item label="Currency" name="currencyId" rules={[{ required: true, message: "Please select a Currency" }]}>
-              <Select onChange={handleCurrencyStatement} showSearch placeholder="Select a Currency" optionFilterProp="label" options={myCurrency.map(s => ({ label: s, value: s }))} />
-            </Form.Item>
 
-            <Form.Item label="Select Date">
-              <RangePicker className="!w-[100%]" value={dateRange.length ? dateRange : undefined} onChange={(dates) => setDateRange(dates || [])} allowClear />
+            <Form.Item
+              name="currencyId"
+              rules={[{ required: true, message: "Please select a currency" }]}
+              className="!rounded-none m-0"
+            >
+              <Select
+                onChange={handleCurrencyStatement}
+                showSearch
+                placeholder="Currency"
+                optionFilterProp="label"
+                className="!h-8 text-sm !w-20 !overflow-hidden !rounded-none"
+                options={myCurrency.map(s => ({ label: s, value: s }))}
+              />
             </Form.Item>
+          </div>
 
-            <Form.Item>
-              <Button className='!bg-zinc-500' onClick={handleData}>
-                <PrinterOutlined className='md:!text-2xl !w-full !font-bold !text-white !p-4' />
-              </Button>
-            </Form.Item>
+          {/* Date range picker */}
+          <Form.Item name="dateRange" className="m-0">
+            <RangePicker className="!w-[100%]" value={dateRange.length ? dateRange : undefined} onChange={(dates) => setDateRange(dates || [])} allowClear />
+          </Form.Item>
 
-            <Form.Item>
-              <span className='p-2 items-center flex'>Click here to get all Statement in USD</span>
-              <hr className='!text-zinc-200 mb-3' />
-              <Button className='!bg-blue-500 !text-white' onClick={handleUSDData}>
-                <PrinterOutlined className='md:!text-2xl !w-full !font-bold !text-white !p-4' />
-              </Button>
-            </Form.Item>
-          </Form>
-        </Modal>
+          {/* Buttons row: two columns, no gap */}
+          <div className="flex gap-2">
+            <Button
+              className="!bg-zinc-400 !text-lg hover:!bg-zinc-300 !border-zinc-400 !text-white hover:!text-black flex-1 !h-8 !rounded-none"
+              onClick={handleData}
+            >
+              <PrinterOutlined />
+            </Button>
+            <Button
+              className="!bg-zinc-400 !text-lg hover:!bg-zinc-300 !border-zinc-400 !text-white hover:!text-black flex-1 !h-8 !rounded-none ml-0"
+              onClick={handleUSDData}
+            >
+              <PrinterOutlined />
+              <span className="hidden md:inline"> All Statement in $</span>
+            </Button>
+          </div>
+        </Form>
+
+      </div>
+
+      {/* Table Section - full width */}
+      <div className="w-full bg-zinc-50 px-4 h-auto py-4 ">
+        <h2 className="text-zinc-500 text-[10px] md:text-lg font-semibold mb-0">Statement</h2>
+
+        <div className="w-full overflow-x-auto ">
+          <Table
+            columns={columns}
+            dataSource={tableData.map((item, index) => ({ ...item, key: index }))}
+            bordered
+            pagination={{ pageSize: 5 }}
+            scroll={{ x: '100%' }}
+            className="w-full"
+            size="small"
+          />
+        </div>
+
+        {tableData.length > 0 && (
+          <div className="text-right font-bold h-10 !text-[14px] md:text-base">
+            Total Balance: $
+            {tableData
+              .reduce((sum, item) => sum + (item.credit || 0) - (item.debit || 0), 0)
+              .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </div>
+        )}
       </div>
     </div>
+
+
   );
 };
 

@@ -436,7 +436,9 @@ const Purchase = () => {
   };
 
   const handleEdit = async (record) => {
+    toast.warning("Please refill the whole red color fields before updating! ")
     setSupplierEditData(record);
+
     setEdit(true);
     setIsWeight(true)
     form.setFieldsValue({
@@ -447,7 +449,9 @@ const Purchase = () => {
       supplierId: record.supplierId,
     });
 
-
+    setTimeout(() => {
+      setEditText(" ")
+    }, 3000);
 
     const httpReq = http();
     const { data: purchase } = await httpReq.get(`/api/purchase/get/${record._id}`);
@@ -886,7 +890,13 @@ const Purchase = () => {
   return (
     <UserLayout>
       <div>
-        <ToastContainer position="top-right" autoClose={3000} />
+        <ToastContainer
+          position="top-center"
+          autoClose={3000}
+          className="mt-4"
+          toastClassName="bg-gray-500 !text-zinc-700 md:text-lg font-semibold rounded-md shadow-lg"
+         
+        />
         <div className="p-4 bg-zinc-100">
           {/* Purchase Form */}
           <div className='flex w-full gap-4 items-center flex item-center justify-between bg-gradient-to-r from-zinc-300 to-orange-100  px-4'>
@@ -895,7 +905,9 @@ const Purchase = () => {
               <div className='!text-yellow-200  bg-blue-900 mt-3 md:text-1xl text-sm mb-2 p-2'>
                 <span className='text-white'>Availible Qty:</span> {Number(productQty) - Number(productPurchaseQty)},{productUnit || null}
               </div>
+
             )}</div>
+
             <div className='mb-4 w-[50%] flex justify-end p-2 '>
               <ExchangeCalculator />
             </div>
@@ -904,256 +916,248 @@ const Purchase = () => {
           </div>
           <Card className="mb-0 shadow-md !rounded-none !bg-zinc-50 ">
             <Form
-  form={form}
-  layout="vertical"
-  onFinish={edit ? onUpdate : onFinish}
-  initialValues={{ userName: userName, purchaseDate: initialPurchaseDate }}
->
-  <div className='md:grid md:grid-cols-8 gap-1'>
-    
-    <Form.Item name="_id" hidden>
-      <Input />
-    </Form.Item>
+              form={form}
+              layout="vertical"
+              onFinish={edit ? onUpdate : onFinish}
+              initialValues={{ userName: userName, purchaseDate: initialPurchaseDate }}
+            >
+              <div className='md:grid md:grid-cols-8 gap-1'>
 
-    <Form.Item
-      label="Product Name"
-      name="productId"
-      rules={[{ required: true, message: "Please select a product" }]}
-      className="!mb-0"
-    >
-      <Select
-        showSearch
-        placeholder="Select a Product"
-        optionFilterProp="label"
-        onChange={handleProductChange}
-        options={productOptions}
-      />
-    </Form.Item>
+                <Form.Item name="_id" hidden>
+                  <Input />
+                </Form.Item>
 
-    <Form.Item
-      label="Quantity"
-      name="quantity"
-      rules={[{ required: true, message: "Please enter item quantity" }]}
-    >
-      <Input
-        placeholder="Enter item quantity"
-        value={qty}
-        onChange={(e) => setQty(Number(e.target.value))}
-      />
-    </Form.Item>
+                <Form.Item
+                  label="Product Name"
+                  name="productId"
+                  rules={[{ required: true, message: "Please select a product" }]}
+                  className="!mb-0"
+                >
+                  <Select
+                    showSearch
+                    placeholder="Select a Product"
+                    optionFilterProp="label"
+                    onChange={handleProductChange}
+                    options={productOptions}
+                  />
+                </Form.Item>
 
-    <Form.Item
-      label="Unit"
-      name="unit"
-      rules={[{ required: true, message: "Please enter unit name" }]}
-    >
-      <Select
-        value={unit}
-        onChange={(e) => setUnit(e)}
-        showSearch
-        placeholder="Select a Unit"
-        optionFilterProp="label"
-        options={units}
-      />
-    </Form.Item>
+                <Form.Item
+                  label={<span className='text-red-500  font-semibold'>Quantity</span>}
+                  name="quantity"
+                  rules={[{ required: true, message: "Please enter item quantity" }]}
+                >
+                  <Input
+                    placeholder="Enter item quantity"
+                    value={qty}
+                    onChange={(e) => setQty(Number(e.target.value))}
+                  />
+                </Form.Item>
+                <Form.Item
+                  label={<span className='text-red-500  font-semibold'>Unit Cost</span>}
+                  name="unitCost"
+                  rules={[{ required: true, message: "Please enter item Price" }]}
+                >
+                  <Input
+                    placeholder="Enter item Price"
+                    value={unitCost}
+                    onChange={handleUnitCost}
+                  />
+                </Form.Item>
+                <Form.Item
+                  label="Unit"
+                  name="unit"
+                  rules={[{ required: true, message: "Please enter unit name" }]}
+                >
+                  <Select
+                    value={unit}
+                    onChange={(e) => setUnit(e)}
+                    showSearch
+                    placeholder="Select a Unit"
+                    optionFilterProp="label"
+                    options={units}
+                  />
+                </Form.Item>
 
-    <Form.Item
-      label="Weight"
-      name="weight"
-      hidden={!(unit === "box" || isWeight)}
-    >
-      <Input
-        value={weight}
-        onChange={handleWeightChange}
-      />
-    </Form.Item>
+                <Form.Item
+                  label={<span className='text-red-500  font-semibold'>Weight</span>}
+                  name="weight"
+                  hidden={!(unit === "box" || isWeight)}
+                >
+                  <Input
+                    value={weight}
+                    onChange={handleWeightChange}
+                  />
+                </Form.Item>
+                <Form.Item
+                  label={<span className='text-red-500  font-semibold'>Currency</span>}
+                  name="currency"
+                >
+                  <Select
+                    value={currencyName}
+                    showSearch
+                    placeholder="Enter Currency"
+                    optionFilterProp="label"
+                    options={currencyOptions}
+                    onChange={currencyChange}
+                  />
 
-    <Form.Item
-      label="Supplier Name"
-      name="supplierId"
-      rules={[{ required: true, message: "Please enter supplier name" }]}
-    >
-      <Select
-        value={supplierData?.supplierId || undefined}
-        onChange={(e) => supplierChange(e)}
-        showSearch
-        placeholder="Select a Supplier"
-        optionFilterProp="label"
-        options={supplierOptions}
-      />
-    </Form.Item>
+                </Form.Item>
 
-    <Form.Item
-      label="Company"
-      name="companyId"
-      rules={[{ required: true, message: "Please Enter company name" }]}
-    >
-      <Select
-        value={form.getFieldValue("companyId")}
-        showSearch
-        placeholder="Select a Company"
-        optionFilterProp="label"
-        options={companyOptions}
-      />
-    </Form.Item>
+                <Form.Item
+                  name="exchangedAmt"
+                  label={<span className='text-blue-500  font-semibold'>Exch Amt</span>}
+                >
+                  <Input readOnly value={exchangedAmt} />
+                </Form.Item>
 
-    <Form.Item
-      label="Warehouse"
-      name="warehouseId"
-      rules={[{ required: true, message: "Please Enter warehouse name" }]}
-    >
-      <Select
-        value={form.getFieldValue("warehouseId")}
-        showSearch
-        placeholder="Select a Warehouse"
-        optionFilterProp="label"
-        options={stockOptions}
-      />
-    </Form.Item>
+                <Form.Item
+                  label="Sale Price"
+                  name="salePrice"
+                >
+                  <Input disabled value={salePrice} />
+                </Form.Item>
 
-    <Form.Item
-      label="Unit Cost"
-      name="unitCost"
-      rules={[{ required: true, message: "Please enter item Price" }]}
-    >
-      <Input
-        placeholder="Enter item Price"
-        value={unitCost}
-        onChange={handleUnitCost}
-      />
-    </Form.Item>
+                <Form.Item
+                  label="Supplier Name"
+                  name="supplierId"
+                  rules={[{ required: true, message: "Please enter supplier name" }]}
+                >
+                  <Select
+                    value={supplierData?.supplierId || undefined}
+                    onChange={(e) => supplierChange(e)}
+                    showSearch
+                    placeholder="Select a Supplier"
+                    optionFilterProp="label"
+                    options={supplierOptions}
+                  />
+                </Form.Item>
 
-    <Form.Item
-      label="Currency"
-      name="currency"
-    >
-      <Tooltip
-        color='purple'
-        title={
-          <span className="text-white font-semibold">
-            Make sure to change unit-cost or Amount before changing currency!
-          </span>
-        }
-      >
-        <Select
-          value={currencyName}
-          showSearch
-          placeholder="Enter Currency"
-          optionFilterProp="label"
-          options={currencyOptions}
-          onChange={currencyChange}
-        />
-      </Tooltip>
-    </Form.Item>
+                <Form.Item
+                  label="Company"
+                  name="companyId"
+                  rules={[{ required: true, message: "Please Enter company name" }]}
+                >
+                  <Select
+                    value={form.getFieldValue("companyId")}
+                    showSearch
+                    placeholder="Select a Company"
+                    optionFilterProp="label"
+                    options={companyOptions}
+                  />
+                </Form.Item>
 
-    <Form.Item
-      name="exchangedAmt"
-      label={<span style={{ color: 'red' }}>Exch Amt</span>}
-    >
-      <Input readOnly value={exchangedAmt} />
-    </Form.Item>
+                <Form.Item
+                  label="Warehouse"
+                  name="warehouseId"
+                  rules={[{ required: true, message: "Please Enter warehouse name" }]}
+                >
+                  <Select
+                    value={form.getFieldValue("warehouseId")}
+                    showSearch
+                    placeholder="Select a Warehouse"
+                    optionFilterProp="label"
+                    options={stockOptions}
+                  />
+                </Form.Item>
 
-    <Form.Item
-      label="Sale Price"
-      name="salePrice"
-    >
-      <Input disabled value={salePrice} />
-    </Form.Item>
 
-    <Form.Item
-      label="Country"
-      name="countryName"
-    >
-      <Select
-        placeholder="Select a country"
-        showSearch
-        optionFilterProp="children"
-        filterOption={(input, option) =>
-          option.children.toLowerCase().includes(input.toLowerCase())
-        }
-      >
-        {countries.map((country) => (
-          <Option key={country.value} value={country.value}>
-            {country.label}
-          </Option>
-        ))}
-      </Select>
-    </Form.Item>
 
-    <Form.Item
-      label="Batch No"
-      name="batch"
-      rules={[{ required: true, message: "Please enter batch No" }]}
-    >
-      <Input placeholder="Enter Batch No" />
-    </Form.Item>
 
-    <Form.Item
-      label="Party No"
-      name="party"
-      rules={[{ required: true, message: "Please enter Party No" }]}
-    >
-      <Input placeholder="Enter Party No" />
-    </Form.Item>
+                <Form.Item
+                  label="Country"
+                  name="countryName"
+                >
+                  <Select
+                    placeholder="Select a country"
+                    showSearch
+                    optionFilterProp="children"
+                    filterOption={(input, option) =>
+                      option.children.toLowerCase().includes(input.toLowerCase())
+                    }
+                  >
+                    {countries.map((country) => (
+                      <Option key={country.value} value={country.value}>
+                        {country.label}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
 
-    <Form.Item
-      label="Dealer"
-      name="dealerId"
-    >
-      <Select
-        value={form.getFieldValue("dealerId")}
-        showSearch
-        placeholder="Enter Dealer"
-        optionFilterProp="label"
-        options={dealerOptions}
-      />
-    </Form.Item>
+                <Form.Item
+                  label="Batch No"
+                  name="batch"
+                  rules={[{ required: true, message: "Please enter batch No" }]}
+                >
+                  <Input placeholder="Enter Batch No" />
+                </Form.Item>
 
-    <Form.Item
-      label="Comission"
-      name="comission"
-      rules={[{ required: true, message: "Please enter Comission" }]}
-    >
-      <Input placeholder="Enter comission" />
-    </Form.Item>
+                <Form.Item
+                  label="Party No"
+                  name="party"
+                  rules={[{ required: true, message: "Please enter Party No" }]}
+                >
+                  <Input placeholder="Enter Party No" />
+                </Form.Item>
 
-    <Form.Item
-      label="Purchase Date"
-      name="purchaseDate"
-    >
-      <DatePicker className="w-full" format="MM/DD/YYYY" />
-    </Form.Item>
+                <Form.Item
+                  label="Dealer"
+                  name="dealerId"
+                >
+                  <Select
+                    value={form.getFieldValue("dealerId")}
+                    showSearch
+                    placeholder="Enter Dealer"
+                    optionFilterProp="label"
+                    options={dealerOptions}
+                  />
+                </Form.Item>
 
-    <Form.Item
-      label="userName"
-      name="userName"
-    >
-      <Input disabled className='!text-red-600' />
-    </Form.Item>
+                <Form.Item
+                  label="Comission"
+                  name="comission"
+                  rules={[{ required: true, message: "Please enter Comission" }]}
+                >
+                  <Input placeholder="Enter comission" />
+                </Form.Item>
 
-  </div>
+                <Form.Item
+                  label="Purchase Date"
+                  name="purchaseDate"
+                >
+                  <DatePicker className="w-full" format="MM/DD/YYYY" />
+                </Form.Item>
 
-  <Form.Item
-    label="Description"
-    name="description"
-    rules={[{ required: true, message: "Please enter Description" }]}
-  >
-    <TextArea placeholder="Enter description" />
-  </Form.Item>
+                <Form.Item
+                  label="userName"
+                  name="userName"
+                >
+                  <Input disabled className='!text-red-600' />
+                </Form.Item>
 
-  <Form.Item>
-    <Button
-      type="text"
-      htmlType="submit"
-      disabled={btnDisabled}
-      className={`w-[200px] md:!h-[30px] !shadow-zinc-500 !shadow-lg !text-white hover:!shadow-lg hover:!shadow-zinc-800 hover:!text-white !font-bold 
+              </div>
+
+              <Form.Item
+                label="Description"
+                name="description"
+                rules={[{ required: true, message: "Please enter Description" }]}
+              >
+                <TextArea placeholder="Enter description" />
+              </Form.Item>
+
+              <Form.Item>
+                <Button
+                  type="text"
+                  htmlType="submit"
+                  disabled={btnDisabled}
+                  className={`w-[200px] md:!h-[30px] !shadow-zinc-500 !shadow-lg !text-white hover:!shadow-lg hover:!shadow-zinc-800 hover:!text-white !font-bold 
         ${edit ? "!bg-orange-500 hover:!bg-orange-600" : "!bg-blue-500 hover:!bg-green-500 !rounded-none"}
         ${btnDisabled ? "!bg-gray-400 hover:!bg-gray-400 cursor-not-allowed" : ""}`}
-    >
-      {btnText}
-    </Button>
-  </Form.Item>
-</Form>
+                >
+                  {btnText}
+                </Button>
+              </Form.Item>
+            </Form>
 
           </Card>
 

@@ -1,129 +1,156 @@
 import React, { useState } from 'react';
 
-import { Card, Divider, Tabs,Tooltip } from "antd";
-import { StockOutlined, AccountBookOutlined, UserOutlined, ShopOutlined, TeamOutlined, BankOutlined } from '@ant-design/icons';
+import { Card, Divider, Tabs, Tooltip } from "antd";
+import { StockOutlined, AccountBookOutlined, UserOutlined, ShopOutlined, TeamOutlined, BankOutlined, SolutionOutlined, HomeOutlined } from '@ant-design/icons';
 import UserLayout from '../Shared/UserLayout'
 import SupplierStatements from '../Shared/Reports/Statements/supplier';
 import CustomerStatements from '../Shared/Reports/Statements/customer';
 import DealerStatements from '../Shared/Reports/Statements/dealer';
 import Company from '../Shared/Reports/Statements/company';
 import Warehouse from '../Shared/Reports/Statements/Warehouse';
+import Cashbook from '../Shared/Reports/Statements/cashbook';
 const User = () => {
   const [size, setSize] = useState('small');
 
   const items = [
-   {
-  key: "1",
-  label: (
-    <Tooltip title="Supplier">
-      <span className="hidden md:block">Supplier</span>
-    </Tooltip>
-  ),
-  icon: (
-    <Tooltip title="Supplier">
-      <ShopOutlined className="md:!hidden flex justify-center items-center text-lg pt-4" />
-    </Tooltip>
-  ),
-  children: (
-    <div className="bg-white h-screen w-full">
-      <SupplierStatements />
-    </div>
-  ),
-},
+    {
+      key: "1",
+      label: (
+        <div className="bg-yellow-600 hover:bg-blue-600 text-white px-4 py-4 mx-1  flex items-center justify-center font-bold">
+          <Tooltip title="Supplier">
+            <span className="hidden md:block text-center">Supplier</span>
+             <TeamOutlined className="md:!hidden text-lg" />
+          </Tooltip>
+        </div>
+      ),
+     
+      children: (
+        <div className="!bg-zinc-100 w-full h-full">
+          <SupplierStatements />
+        </div>
+      ),
+    },
+    {
+      key: "2",
+      label: (
+        <div className="bg-yellow-600 hover:bg-blue-600 text-white px-4 py-4 flex items-center justify-center font-bold">
+          <Tooltip title="Customer">
+            <span className="hidden md:block text-center">Customer</span>
+            <UserOutlined className="block md:!hidden text-lg" />
 
-{
-  key: "2",
-  label: (
-    <Tooltip title="Customer">
-      <span className="hidden md:block">Customer</span>
-    </Tooltip>
-  ),
-  icon: (
-    <Tooltip title="Customer">
-      <TeamOutlined className="md:!hidden flex justify-center text-lg pt-4" />
-    </Tooltip>
-  ),
-  children: (
-    <div className="bg-white h-screen w-full">
-      <CustomerStatements />
-    </div>
-  ),
-},
-
-{
-  key: "3",
-  label: (
-    <Tooltip title="Dealer">
-      <span className="hidden md:block">Dealer</span>
-    </Tooltip>
-  ),
-  icon: (
-    <Tooltip title="Dealer">
-      <UserOutlined className="md:!hidden flex justify-center text-lg pt-4" />
-    </Tooltip>
-  ),
-  children: (
-    <div className="bg-white h-screen w-full">
-      <DealerStatements/>
-    </div>
-  ),
-},
-
-{
-  key: "4",
-  label: (
-    <Tooltip title="Belong-To">
-      <span className="hidden md:block">Belong-to</span>
-    </Tooltip>
-  ),
-  icon: (
-    <Tooltip title="Belong-To">
-      <BankOutlined className="md:!hidden flex justify-center text-lg pt-4" />
-    </Tooltip>
-  ),
-  children: (
-    <div className="bg-white h-screen w-full">
-      <Company/>
-    </div>
-  ),
-},
-{
-  key: "5",
-  label: (
-    <Tooltip title="Warehouse">
-      <span className="hidden md:block">Warehouse</span>
-    </Tooltip>
-  ),
-  icon: (
-    <Tooltip title="Warehouse">
-      <BankOutlined className="md:!hidden flex justify-center text-lg pt-4" />
-    </Tooltip>
-  ),
-  children: (
-    <div className="bg-white h-screen w-full">
-      <Warehouse/>
-    </div>
-  ),
-},
-
-
-
+          </Tooltip>
+        </div>
+      ),
+     
+      children: (
+        <div className="!bg-zinc-100 h-full w-full">
+          <CustomerStatements />
+        </div>
+      ),
+    },
+    {
+      key: "3",
+      label: (
+        <div className="bg-yellow-600  hover:bg-blue-600 text-white px-4 py-4 flex mx-1 items-center justify-center font-bold">
+          <Tooltip title="Dealer">
+            <span className="hidden md:block text-center">Dealer</span>
+              <SolutionOutlined className="md:!hidden text-lg" />
+          </Tooltip>
+        </div>
+      ),
+      children: (
+        <div className="!bg-zinc-100 h-full w-full">
+          <DealerStatements />
+        </div>
+      ),
+    },
+    {
+      key: "4",
+      label: (
+        <div className="bg-yellow-600  hover:bg-blue-600 text-white px-4 py-4  flex  items-center justify-center font-bold">
+          <Tooltip title="Belong-To">
+            <span className="hidden md:block text-center">Belong-to</span>
+            <BankOutlined className="md:!hidden text-lg" />
+          </Tooltip>
+        </div>
+      ),
+      children: (
+        <div className="!bg-zinc-100 h-full w-full">
+          <Company />
+        </div>
+      ),
+    },
+    {
+      key: "5",
+      label: (
+        <div className="bg-yellow-600  hover:bg-blue-600 text-white px-4 py-4 mx-1 flex items-center justify-center font-bold">
+          <Tooltip title="Warehouse">
+            <span className="hidden md:block text-center text-center">Warehouse</span>
+             <HomeOutlined className="md:!hidden text-lg" />
+          </Tooltip>
+        </div>
+      ),
+     
+      children: (
+        <div className="!bg-zinc-100 h-full w-full">
+          <Warehouse />
+        </div>
+      ),
+    },
+    {
+      key: "6",
+      label: (
+        <div className="bg-yellow-600 w-full hover:bg-blue-600 text-white px-4 py-4  flex items-center justify-center font-bold">
+          <Tooltip title="Cashbook">
+            <span className="hidden md:block text-center">Cashbook</span>
+            <AccountBookOutlined className="md:!hidden text-lg" />
+          </Tooltip>
+        </div>
+      ),
+     
+      children: (
+        <div className="!bg-zinc-100 h-full w-full">
+          <Cashbook />
+        </div>
+      ),
+    },
   ];
+
 
 
   return (
     <UserLayout>
 
-      <div className='w-full justify-center items-center flex p-5'> <h1 className='text-blue-200 text-shadow-black text-shadow-lg md:text-6xl md:font-bold '>Reports & Statements:</h1></div>
-      <div className="!w-screen !h-screen">
-        
+      <div className="w-full flex justify-center items-center py-6">
+        <h1
+          className="
+      text-orange-500
+      text-center
+      text-xl
+      sm:text-3xl
+      md:text-5xl
+      font-bold
+      drop-shadow-lg
+    "
+        >
+          Reports & Statements
+        </h1>
+      </div>
+      <div
+        className="w-full h-auto bg-zinc-50 flex flex-col justify-center items-center "
+      >
+
         <Tabs
           defaultActiveKey="1"
-          type="card"
+
           size={size}
           items={items}
-          className="h-full small-tabs !bg-white md:!w-[100%]"
+          className="!w-full !bg-zinc-200"
+          tabBarGutter={0}
+        
+          tabBarStyle={{ height: 55, display: "flex", alignItems: "center" }}
         />
+
       </div>
 
     </UserLayout>

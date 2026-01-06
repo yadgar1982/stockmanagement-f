@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Button, Form, Select, DatePicker, Modal } from "antd";
+import { Button, Form, Select, DatePicker, Modal, notification, Tooltip } from "antd";
 import { useDispatch, useSelector } from 'react-redux';
 import dayjs from "dayjs";
 import { PrinterOutlined } from '@ant-design/icons';
@@ -9,37 +9,43 @@ import { fetchSales } from '../../../../redux/slices/salesSlice';
 import { fetchPayment } from '../../../../redux/slices/paymentSlice';
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
-import { toast } from 'react-toastify';
-
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
-const { RangePicker } = DatePicker;
+import { Table, Tag } from "antd";
+import 'antd/dist/reset.css';
 
-const branding = JSON.parse(localStorage.getItem("branding"));
+import { toast } from 'react-toastify';
+const logo = import.meta.env.VITE_LOGO_URL;
+
+//get branding info: 
+const branding = JSON.parse(localStorage.getItem("branding"))
+
+const { RangePicker } = DatePicker;
 
 const Statements = () => {
   const dispatch = useDispatch();
-  const logo = import.meta.env.VITE_LOGO_URL;
 
   const [dId, setDId] = useState(null);
   const [myDealersData, setMyDealersData] = useState(null);
-  const [myPurchaseData, setMyPurchaseData] = useState([]);
   const [mySaleData, setMySaleData] = useState([]);
+  const [myPurchaseData, setMyPurchaseData] = useState([]);
   const [myPaymentData, setMyPaymentData] = useState([]);
   const [dateRange, setDateRange] = useState([]);
   const [filteredStatement, setFilteredStatement] = useState([]);
   const [myCurrency, setMyCurrency] = useState([]);
-  const [selectedCurrency, setSelectedCurrency] = useState(null);
+  const [selectedCurrency, setSelectedCurrency] = useState([]);
+  const [tableData, setTableData] = useState([]);
+
+  const [closingBalance, setClosingBalance] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { dealers } = useSelector(state => state.dealers);
   const allDealers = dealers?.data || [];
+  const { sale: sales } = useSelector(state => state.sale);
+  const allSales = sales || [];
 
   const { purchase: purchases } = useSelector(state => state.purchase);
   const allPurchase = purchases || [];
-
-  const { sale: sales } = useSelector(state => state.sale);
-  const allSales = sales || [];
 
   const { payment: payments } = useSelector(state => state.payments);
   const allPayment = payments || [];
@@ -52,10 +58,30 @@ const Statements = () => {
     dispatch(fetchSales());
   }, [dispatch]);
 
+
   // dealer selection
-  const handleDealerStatement = (value) => {
+  const handleDealersStatement = (value) => {
     setDId(value);
   };
+
+  // Prepare dealer data
+  useEffect(() => {
+    if (!dId) return;
+    const dealerData = allDealers.find(s => s._id === dId);
+    setMyDealersData(dealerData);
+    setMySaleData(allSales.filter(p => p.dealerId === dId));
+    setMyPurchaseData(allPurchase.filter(p => p.dealerId === dId));
+    setMyPaymentData(allPayment.filter(p => p.dealerId === dId));
+
+    setFilteredStatement([]);
+    setDateRange([]);
+  }, [dId, allDealers, allPurchase, allPayment, allSales]);
+
+
+
+
+  // data to print
+
   const handleData = () => {
     if (!myDealersData) return toast.error("Select a dealer first to get statement!");
     if (!selectedCurrency) return toast.error("Select Currency");
@@ -81,6 +107,7 @@ const Statements = () => {
 
     handlePrintStatement(dataToPrint);
   };
+
 
   // Prepare dealer data
   useEffect(() => {
@@ -121,7 +148,7 @@ const Statements = () => {
       unit: p.unit
     }));
 
-     const paymentEntries = myPaymentData.map(p => ({
+    const paymentEntries = myPaymentData.map(p => ({
       date: new Date(p.paymentDate || p.createdAt),
       description: p?.description || "Payment",
       credit: p?.paymentType?.toLowerCase() === "cr" ? Number(p.amount) : 0,
@@ -133,41 +160,88 @@ const Statements = () => {
 
     const allEntries = [...purchaseEntries, ...salesEntries, ...paymentEntries].sort((a, b) => a.date - b.date);
 
-    // Extract currencies
-    const currencies = [...new Set(allEntries.map(item => item.currency))];
+    //sort currency
+    const currencies = [...new Set(allEntries.map((item) => item.currency))];
     setMyCurrency(currencies);
 
     let runningBalance = 0;
     return allEntries.map(entry => {
-      runningBalance += entry.credit - entry.debit;
-      return { ...entry, balance: runningBalance };
+      runningBalance += Number(entry.credit) - Number(entry.debit);
+      return { ...entry, balance: Number(runningBalance.toFixed(2)) };
     });
-  }, [myPurchaseData, myPaymentData, mySaleData]);
+
+  }, [mySaleData, myPaymentData]);
+
 
   // Date filter
   useEffect(() => {
+    // No date range → show all data
     if (!dateRange || dateRange.length !== 2 || !dateRange[0] || !dateRange[1]) {
       setFilteredStatement(statementWithBalance);
       return;
     }
+
     const [start, end] = dateRange;
 
     const filtered = statementWithBalance.filter(
       e =>
-        dayjs(e.date).isSameOrAfter(start, "day") &&
-        dayjs(e.date).isSameOrBefore(end, "day")
+        dayjs(e.date).startOf('day').isSameOrAfter(dayjs(start).startOf('day')) &&
+        dayjs(e.date).startOf('day').isSameOrBefore(dayjs(end).startOf('day'))
     );
+    setFilteredStatement(filtered.length ? filtered : []);
 
-    if (filtered.length === 0) {
-      setFilteredStatement(null);
-      return;
-    }
+    // Matches found
     setFilteredStatement(filtered);
   }, [dateRange, statementWithBalance]);
 
+
   const handleCurrencyStatement = (e) => {
-    setSelectedCurrency(e);
+
+    setSelectedCurrency(e)
   }
+
+
+
+
+
+
+
+  // update table data based on filters
+  useEffect(() => {
+    if (!dId) {
+      setTableData([]);
+      return;
+    }
+
+    // Start with full statement with balance
+    let data = statementWithBalance;
+
+    // Filter by selected currency if any
+    if (selectedCurrency) {
+      data = data.filter(
+        r => String(r.currency).toUpperCase() === String(selectedCurrency).toUpperCase()
+      );
+    }
+
+    // Filter by date range if provided
+    if (dateRange && dateRange.length === 2 && dateRange[0] && dateRange[1]) {
+      const [start, end] = dateRange;
+      data = data.filter(
+        e =>
+          dayjs(e.date).isSameOrAfter(start, "day") &&
+          dayjs(e.date).isSameOrBefore(end, "day")
+      );
+    }
+
+    // Recalculate running balance after filtering
+    let runningBalance = 0;
+    const finalData = data.map(item => {
+      runningBalance += (item.credit || 0) - (item.debit || 0);
+      return { ...item, balance: runningBalance };
+    });
+
+    setTableData(finalData);
+  }, [dId, selectedCurrency, dateRange, statementWithBalance]);
 
   const handlePrintStatement = (dataToPrint) => {
     if (!selectedCurrency) return;
@@ -182,110 +256,114 @@ const Statements = () => {
     let runningBalance = 0; // Initialize running balance
 
     newWindow.document.body.innerHTML = `
- <div style="font-family: Arial; padding: 10px; background: white; color: #212529;">
-   <div style="
-     display: flex; 
-     align-items: center; 
-     justify-content: center; 
-     flex-wrap: wrap;
-     gap: 10px;
-     margin-bottom: 10px;
-   ">
-     <header style="width: 100%; text-align: center; margin-bottom: 20px;">
-       <div style="
-         display: flex;
-         align-items: center;
-         justify-content: center;
-         flex-wrap: wrap;
-         position: relative;
-         margin-bottom: 10px;
-       ">
-         <div style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%);">
-           <img 
-             src="${logo}" 
-             alt="${branding[0].name} Logo" 
-             style="height: 65px; width: auto; object-fit: contain;"
-           />
-         </div>
-         <div style="text-align: center;">
-           <h2 style="margin: 0; font-size: 22px; color: #023e8a;">${branding[0].name}</h2>
-           <p style="margin: 3px 0; font-size: 13px; color: #555;">${branding[0].address}</p>
-           <p style="margin: 3px 0; font-size: 13px; color: #555;">${branding[0].mobile}</p>
-           <a href="mailto:${branding[0].email}" style="font-size: 13px; color: #0077b6; text-decoration: none;">
-             ${branding[0].email}
-           </a>
-         </div>
-       </div>
- 
-       <hr style="border: 1px solid #0077b6; margin: 15px auto 10px; width: 100%;" />
- 
-       <div style="margin-top: 5px; text-align: left;">
-         <h1 style="margin: 0; text-align: center; font-size: 24px; color: #5a5b5cff;">Financial Statement</h1>
-         <p><strong>Name:</strong> ${myDealersData.fullname}</p>
-         <p><strong>Account No:</strong> ${myDealersData.accountNo}</p>
-         <p><strong>Mobile:</strong> ${myDealersData.mobile}</p>
-         <p><strong>Currency: ${selectedCurrency}</strong></p>
-       </div>
-     </header>
- 
-     <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-       <thead>
-         <tr>
-           <th style="border:1px solid #dee2e6;padding:8px;">Date</th>
-           <th style="border:1px solid #dee2e6;padding:8px;">Description</th>
-           <th style="border:1px solid #dee2e6;padding:8px;">Credit</th>
-           <th style="border:1px solid #dee2e6;padding:8px;">Debit</th>
-           <th style="border:1px solid #dee2e6;padding:8px;">Balance</th>
-         </tr>
-       </thead>
-       <tbody>
-         ${dataToPrint.map((e) => {
+<div style="font-family: Arial; padding: 10px; background: white; color: #212529;">
+  <div style="
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+  ">
+    <header style="width: 100%; text-align: center; margin-bottom: 20px;">
+      <div style="
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        position: relative;
+        margin-bottom: 10px;
+      ">
+        <div style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%);">
+          <img 
+            src="${logo}" 
+            alt="${branding[0].name} Logo" 
+            style="height: 65px; width: auto; object-fit: contain;"
+          />
+        </div>
+        <div style="text-align: center;">
+          <h2 style="margin: 0; font-size: 14px; color: #023e8a;">${branding[0].name}</h2>
+          <p style="margin: 3px 0; font-size: 14px; color: #555;">${branding[0].address}</p>
+          <p style="margin: 3px 0; font-size: 14px; color: #555;">${branding[0].mobile}</p>
+          <a href="mailto:${branding[0].email}" style="font-size: 12px; color: #0077b6; text-decoration: none;">
+            ${branding[0].email}
+          </a>
+        </div>
+      </div>
+
+      <hr style="border: 1px solid #0077b6; margin: 15px auto 10px; width: 100%;" />
+
+      <div style="text-align:left; margin-top:5px;">
+        <div style="font-size:14px; font-weight:bold; color:#5a5b5cff;">Financial Statement</div>
+        <div style="font-size:12px; color:#5a5b5cff;"><strong>Name:</strong> ${myDealersData.fullname}</div>
+        <div style="font-size:12px; color:#5a5b5cff;"><strong>Account No:</strong> ${myDealersData.accountNo}</div>
+        <div style="font-size:12px; color:#5a5b5cff;"><strong>Mobile:</strong> ${myDealersData.mobile}</div>
+        <div style="font-size:12px; color:#5a5b5cff;"><strong>Currency: USD</strong></div>
+      </div>
+    </header>
+
+   <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; color: #212529;">
+  <thead>
+    <tr style="background-color: #f8f9fa; text-align: left;">
+      <th style="border-bottom: 1px solid #dee2e6; padding:4px 6px;">Date</th>
+      <th style="border-bottom: 1px solid #dee2e6; padding:4px 6px;">Description</th>
+      <th style="border-bottom: 1px solid #dee2e6; padding:4px 6px; text-align:right;">Credit</th>
+      <th style="border-bottom: 1px solid #dee2e6; padding:4px 6px; text-align:right;">Debit</th>
+      <th style="border-bottom: 1px solid #dee2e6; padding:4px 6px; text-align:right;">Balance</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${dataToPrint.map((e, index) => {
       const credit = e.localCredit || 0;
       const debit = e.localDebit || 0;
       runningBalance += credit - debit; // running balance
+      const rowColor = index % 2 === 0 ? '#ffffff' : '#f1f3f5'; // alternating row colors
       return `
-             <tr>
-               <td style="border:1px solid #dee2e6;padding:8px;">${dayjs(e.date).format("DD/MM/YYYY")}</td>
-               <td style="border:1px solid #dee2e6;padding:8px;">${e.description || ""}</td>
-               <td style="border:1px solid #dee2e6;padding:8px;text-align:right;">${credit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-               <td style="border:1px solid #dee2e6;padding:8px;text-align:right;">${debit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-               <td style="border:1px solid #dee2e6;padding:8px;text-align:right;color:${runningBalance < 0 ? "red" : "black"};">${runningBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-             </tr>
-           `;
-    }).join("")}
-       </tbody>
-       <tfoot>
-         <tr>
-           <td colspan="2" style="font-weight:bold;border:1px solid #dee2e6;padding:8px;">Totals</td>
-           <td style="font-weight:bold;border:1px solid #dee2e6;padding:8px;text-align:right;">${totalCredit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-           <td style="font-weight:bold;border:1px solid #dee2e6;padding:8px;text-align:right;">${totalDebit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-           <td style="font-weight:bold;border:1px solid #dee2e6;padding:8px;text-align:right;">${closingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-         </tr>
-       </tfoot>
-     </table>
- 
-     <p>Thank you for your business.</p>
-     <footer style="
-       position: fixed;
-       bottom: 0;
-       left: 0;
-       width: 100%;
-       text-align: center;
-       font-size: 12px;
-       color: #868e96;
-       background: white;
-       padding: 8px 0;
-       border-top: 1px solid #dee2e6;
-     ">
-       Generated on ${dayjs().format("DD/MM/YYYY HH:mm")}<br/>
-       Powered by ${branding[0].name}
-     </footer>
- </div>
-     `;
+        <tr style="background-color: ${rowColor};">
+          <td style="padding:3px 6px;">${dayjs(e.date).format("DD/MM/YYYY")}</td>
+          <td style="padding:3px 6px;">${e.description || ""}</td>
+          <td style="padding:3px 6px; text-align:right;">${credit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td style="padding:3px 6px; text-align:right;">${debit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td style="padding:3px 6px; text-align:right; color:${runningBalance < 0 ? "red" : "black"};">
+            ${runningBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </td>
+        </tr>
+      `;
+    }).join('')}
+  </tbody>
+  <tfoot>
+    <tr style="font-weight:bold; border-top: 1px solid #dee2e6; background-color: #f8f9fa;">
+      <td colspan="2" style="padding:4px 6px;">Totals</td>
+      <td style="padding:4px 6px; text-align:right;">${totalCredit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+      <td style="padding:4px 6px; text-align:right;">${totalDebit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+      <td style="padding:4px 6px; text-align:right;">${closingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+    </tr>
+  </tfoot>
+</table>
 
+
+    <p style="font-weight:bold;font-size:12px; border-top: 1px solid #dee2e6; background-color: #f8f9fa;">Thank you for your business.</p>
+    <footer style="
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      font-size: 12px;
+      color: #868e96;
+      background: white;
+      padding: 8px 0;
+      border-top: 1px solid #dee2e6;
+    ">
+      Generated on ${dayjs().format("DD/MM/YYYY HH:mm")}<br/>
+      Powered by ${branding[0].name}
+    </footer>
+</div>
+    `;
 
     newWindow.print();
   };
+
   //USD statement
   const handleUSDData = () => {
 
@@ -293,11 +371,14 @@ const Statements = () => {
     if (!selectedCurrency) return toast.error("Select Currency");
 
     // Use filtered statement if exists, otherwise full statement
-    if (filteredStatement === null) return toast.error("No data found for selected date range!");
+    if (filteredStatement === null) {
+      return toast.error("No data found for selected date range!");
+    }
 
-    let dataToPrint = filteredStatement.length
-      ? filteredStatement
-      : statementWithBalance;
+    let dataToPrint =
+      Array.isArray(filteredStatement) && filteredStatement.length > 0
+        ? filteredStatement
+        : statementWithBalance;
 
     handleUSDStatement(dataToPrint);
   };
@@ -311,175 +392,421 @@ const Statements = () => {
     const totalCredit = dataToPrint.reduce((sum, r) => sum + (r.credit || 0), 0);
     const totalDebit = dataToPrint.reduce((sum, r) => sum + (r.debit || 0), 0);
     const closingBalance = totalCredit - totalDebit;
-
     newWindow.document.title = `Statement - ${myDealersData.fullname}`;
 
     newWindow.document.body.innerHTML = `
-       <div style="font-family: Arial; padding: 10px; background: white; color: #212529;">
-          <div style="
-       display: flex; 
-       align-items: center; 
-       justify-content: center; 
-       flex-wrap: wrap;
-       gap: 10px;
-       margin-bottom: 10px;
-     ">
-        <header style="width: 100%; text-align: center; margin-bottom: 20px;">
-     <div style="
-       display: flex;
-       align-items: center;
-       justify-content: center;
-       flex-wrap: wrap;
-       position: relative;
-       margin-bottom: 10px;
-     ">
-       <!-- Left-aligned logo -->
-       <div style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%);">
-         <img 
-           src="${logo}" 
-           alt="${branding[0].name} Logo" 
-           style="height: 65px; width: auto; object-fit: contain;"
-         />
-       </div>
-   
-       <!-- Centered company info -->
-       <div style="text-align: center;">
-         <h2 style="margin: 0; font-size: 22px; color: #023e8a;">${branding[0].name}</h2>
-         <p style="margin: 3px 0; font-size: 13px; color: #555;">${branding[0].address}</p>
-         <p style="margin: 3px 0; font-size: 13px; color: #555;">${branding[0].mobile}</p>
-         <a href="mailto:${branding[0].email}" 
-            style="font-size: 13px; color: #0077b6; text-decoration: none;">
-           ${branding[0].email}
-         </a>
-       </div>
-     </div>
-   
-     <!-- Divider line -->
-     <hr style="border: 1px solid #0077b6; margin: 15px auto 10px; width: 100%;" />
-   
-     <!-- Statement Title -->
-     <div style="margin-top: 5px; text-align: left;">
-     <h1 style="margin: 0; text-align: center; font-size: 24px; color: #5a5b5cff;">Financial Statement</h1>
-     <p><strong>Name:</strong> ${myDealersData.fullname}
-     </p>
-     <p><strong>Account No:</strong> ${myDealersData.accountNo}
-     </p>
-     <p><strong>Mobile:</strong> ${myDealersData.mobile}
-     </p>
-     <p><strong>Currency: USD</strong></p>
-   </div>
-   </header>
-      
-   
-         
-         <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-           <thead>
-             <tr>
-               <th style="border:1px solid #dee2e6;padding:8px;">Date</th>
-               <th style="border:1px solid #dee2e6;padding:8px;">Description</th>
-               <th style="border:1px solid #dee2e6;padding:8px;">Credit</th>
-               <th style="border:1px solid #dee2e6;padding:8px;">Debit</th>
-               <th style="border:1px solid #dee2e6;padding:8px;">Balance</th>
-             </tr>
-           </thead>
-           <tbody>
-             ${dataToPrint
-        .map((e) => {
-          const credit = e.credit || 0;
-          const debit = e.debit || 0;
-          const balance = e.balance;
-          return `
-                 <tr>
-                   <td style="border:1px solid #dee2e6;padding:8px;">${dayjs(
-            e.date
-          ).format("DD/MM/YYYY")}</td>
-                   <td style="border:1px solid #dee2e6;padding:8px;">${e.description || ""}</td>
-                   <td style="border:1px solid #dee2e6;padding:8px;text-align:right;">${credit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                   <td style="border:1px solid #dee2e6;padding:8px;text-align:right;">${debit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                   <td style="border:1px solid #dee2e6;padding:8px;text-align:right;color:${balance <= 0 ? "red" : "black"
-            };">${balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                 </tr>
-               `;
-        })
-        .join("")}
-           </tbody>
-           <tfoot>
-             <tr>
-               <td colspan="2" style="font-weight:bold;border:1px solid #dee2e6;padding:8px;">Totals</td>
-               <td style="font-weight:bold;border:1px solid #dee2e6;padding:8px;text-align:right;">${totalCredit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-               <td style="font-weight:bold;border:1px solid #dee2e6;padding:8px;text-align:right;">${totalDebit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-               <td style="font-weight:bold;border:1px solid #dee2e6;padding:8px;text-align:right;">${closingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-             </tr>
-           </tfoot>
-         </table>
-   
-         <p>Thank you for your business.</p>
-         <footer style="
-     position: fixed;
-     bottom: 0;
-     left: 0;
-     width: 100%;
-     text-align: center;
-     font-size: 12px;
-     color: #868e96;
-     background: white;
-     padding: 8px 0;
-     border-top: 1px solid #dee2e6;
-   ">
-     Generated on ${dayjs().format("DD/MM/YYYY HH:mm")}<br/>
-     Powered by ${branding[0].name}
-   </footer>
-       </div>
-     `;
+    <div style="font-family: Arial; padding: 10px; background: white; color: #212529;">
+       <div style="
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+  ">
+     <header style="width: 100%; text-align: center; margin-bottom: 20px;">
+  <div style="
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    position: relative;
+    margin-bottom: 10px;
+  ">
+    <!-- Left-aligned logo -->
+    <div style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%);">
+      <img 
+        src="${logo}" 
+        alt="${branding[0].name} Logo" 
+        style="height: 65px; width: auto; object-fit: contain;"
+      />
+    </div>
 
+    <!-- Centered company info -->
+    <div style="text-align: center;">
+      <h2 style="margin: 0; font-size: 22px; color: #023e8a;">${branding[0].name}</h2>
+      <p style="margin: 3px 0; font-size: 13px; color: #555;">${branding[0].address}</p>
+      <p style="margin: 3px 0; font-size: 13px; color: #555;">${branding[0].mobile}</p>
+      <a href="mailto:${branding[0].email}" 
+         style="font-size: 13px; color: #0077b6; text-decoration: none;">
+        ${branding[0].email}
+      </a>
+    </div>
+  </div>
+
+  <!-- Divider line -->
+  <hr style="border: 1px solid #0077b6; margin: 15px auto 10px; width: 100%;" />
+
+  <!-- Statement Title -->
+  <div style="text-align:left; margin-top:5px;">
+  <div style="font-size:14px; font-weight:bold; color:#5a5b5cff;">Financial Statement</div>
+  <div style="font-size:12px; color:#5a5b5cff;"><strong>Name:</strong> ${myDealersData.fullname}</div>
+  <div style="font-size:12px; color:#5a5b5cff;"><strong>Account No:</strong> ${myDealersData.accountNo}</div>
+  <div style="font-size:12px; color:#5a5b5cff;"><strong>Mobile:</strong> ${myDealersData.mobile}</div>
+  <div style="font-size:12px; color:#5a5b5cff;"><strong>Currency: USD</strong></div>
+</div>
+</header>
+   
+
+      
+      <table style="
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-top: 15px;
+    color: #212529;
+">
+  <thead>
+    <tr style="background-color: #f1f3f5; text-align: left;">
+      <th style="border-bottom: 1px solid #dee2e6; padding:4px 6px;">Date</th>
+      <th style="border-bottom: 1px solid #dee2e6; padding:4px 6px;">Description</th>
+      <th style="border-bottom: 1px solid #dee2e6; padding:4px 6px; text-align:right;">Credit</th>
+      <th style="border-bottom: 1px solid #dee2e6; padding:4px 6px; text-align:right;">Debit</th>
+      <th style="border-bottom: 1px solid #dee2e6; padding:4px 6px; text-align:right;">Balance</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${dataToPrint.map(e => {
+      const credit = e.credit || 0;
+      const debit = e.debit || 0;
+      const balance = e.balance;
+      return `
+        <tr>
+          <td style="padding:3px 6px;">${dayjs(e.date).format("DD/MM/YYYY")}</td>
+          <td style="padding:3px 6px;">${e.description || ""}</td>
+          <td style="padding:3px 6px; text-align:right;">${credit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td style="padding:3px 6px; text-align:right;">${debit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td style="padding:3px 6px; text-align:right; color:${balance <= 0 ? "red" : "black"};">
+            ${balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </td>
+        </tr>
+      `;
+    }).join('')}
+  </tbody>
+  <tfoot>
+    <tr style="font-weight:bold; border-top: 1px solid #dee2e6;">
+      <td colspan="2" style="padding:4px 6px;">Totals</td>
+      <td style="padding:4px 6px; text-align:right;">${totalCredit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+      <td style="padding:4px 6px; text-align:right;">${totalDebit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+      <td style="padding:4px 6px; text-align:right;">${closingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+    </tr>
+  </tfoot>
+</table>
+
+      <p style="font-weight:bold; border-top: 1px solid #dee2e6;font-size:12px; background-color: #f8f9fa;">Thank you for your business.</p>
+      <footer style="
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  font-size: 12px;
+  color: #868e96;
+  background: white;
+  padding: 8px 0;
+  border-top: 1px solid #dee2e6;
+">
+  Generated on ${dayjs().format("DD/MM/YYYY HH:mm")}<br/>
+  Powered by ${branding[0].name}
+</footer>
+    </div>
+  `;
 
     newWindow.print();
   };
 
-  const showModal = () => setIsModalOpen(true);
+  //all dealers balance
+ const allDealersBalance = useMemo(() => {
+  if (!allDealers?.length) return [];
+
+  return allDealers.map(dealer => {
+    // Dealer sales commission
+    const salesCommission = allSales
+      .filter(s => s.dealerId === dealer._id)
+      .reduce((sum, s) => sum + Number(s.totalComission || 0), 0);
+
+    // Dealer purchase commission
+    const purchaseCommission = allPurchase
+      .filter(p => p.dealerId === dealer._id)
+      .reduce((sum, p) => sum + Number(p.totalComission || 0), 0);
+
+    // Payments already paid to dealer
+    const paidAmount = allPayment
+      .filter(p => p.dealerId === dealer._id)
+      .reduce((sum, p) => sum + Number(p.amount || 0), 0);
+
+    const balance = paidAmount-(salesCommission + purchaseCommission);
+
+    return {
+      key: dealer._id,
+      dealerName: dealer.fullname,
+      accountNo: dealer.accountNo,
+      mobile: dealer.mobile,
+      balance,
+    };
+  });
+}, [allDealers, allSales, allPurchase, allPayment]);
+
+
+  const handlePrintAllDealers = () => {
+    if (!allDealersBalance || allDealersBalance.length === 0) {
+      return toast.error("No dealer data available to print!");
+    }
+
+    const newWindow = window.open("", "_blank");
+    if (!newWindow) return;
+
+    const totalBalance = allDealersBalance.reduce((sum, s) => sum + s.balance, 0);
+
+    newWindow.document.title = "All dealers Balances";
+
+    newWindow.document.body.innerHTML = `
+    <div style="font-family: Arial; padding: 10px; background: white; color: #212529;">
+      <header style="width: 100%; text-align: center; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; justify-content: center; flex-wrap: wrap; position: relative; margin-bottom: 10px;">
+          <div style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%);">
+            <img 
+              src="${logo}" 
+              alt="${branding[0].name} Logo" 
+              style="height: 65px; width: auto; object-fit: contain;"
+            />
+          </div>
+          <div style="text-align: center;">
+            <h2 style="margin: 0; font-size: 16px; color: #023e8a;">${branding[0].name}</h2>
+            <p style="margin: 3px 0; font-size: 12px; color: #555;">${branding[0].address}</p>
+            <p style="margin: 3px 0; font-size: 12px; color: #555;">${branding[0].mobile}</p>
+            <a href="mailto:${branding[0].email}" style="font-size: 12px; color: #0077b6; text-decoration: none;">
+              ${branding[0].email}
+            </a>
+          </div>
+        </div>
+
+        <hr style="border: 1px solid #686a6cff; margin: 15px auto 10px; width: 100%;" />
+
+        <div style="text-align:left; margin-top:5px;">
+          <div style="font-size:14px; font-weight:bold; color:#5a5b5cff;">All dealers Balances</div>
+          <div style="font-size:12px; color:#5a5b5cff;">Generated on: ${dayjs().format("DD/MM/YYYY HH:mm")}</div>
+        </div>
+      </header>
+
+      <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; color: #212529;">
+        <thead>
+          <tr style="background-color: #f8f9fa; text-align: left;">
+            <th style="border-bottom: 1px solid #dee2e6; padding:4px 6px;">dealer</th>
+            <th style="border-bottom: 1px solid #dee2e6; padding:4px 6px;">Account No</th>
+            <th style="border-bottom: 1px solid #dee2e6; padding:4px 6px;">Mobile</th>
+            <th style="border-bottom: 1px solid #dee2e6; padding:4px 6px; text-align:right;">Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${allDealersBalance.map((s, index) => {
+      const rowColor = index % 2 === 0 ? "#ffffff" : "#f1f3f5";
+      return `
+              <tr style="background-color: ${rowColor};">
+                <td style="padding:3px 6px;">${s.dealerName}</td>
+                <td style="padding:3px 6px;">${s.accountNo || ""}</td>
+                <td style="padding:3px 6px;">${s.mobile || ""}</td>
+                <td style="padding:3px 6px; text-align:right; color:${s.balance < 0 ? "red" : "black"};">
+                  ${s.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                   USD
+                </td>
+              </tr>
+            `;
+    }).join('')}
+        </tbody>
+        <tfoot>
+          <tr style="font-weight:bold; border-top: 1px solid #dee2e6; background-color: #f8f9fa;">
+            <td colspan="3" style="padding:4px 6px;">Total dealer Balance</td>
+            <td style="padding:4px 6px; text-align:right; color: ${totalBalance < 0 ? "red" : "black"};">
+                  ${totalBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+
+     
+      <footer style="
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        text-align: center;
+        font-size: 12px;
+        color: #868e96;
+        background: white;
+        padding: 8px 0;
+        border-top: 1px solid #dee2e6;
+      ">
+        Powered by ${branding[0].name}
+      </footer>
+    </div>
+  `;
+
+    newWindow.print();
+  };
+
+  const columns = [
+    {
+      title: "Date",
+      dataIndex: "date",
+      key: "date",
+      render: (text) => new Date(text).toLocaleDateString(),
+      sorter: (a, b) => new Date(a.date) - new Date(b.date),
+    },
+    {
+      title: "Description",
+      dataIndex: "description",
+      key: "description",
+      render: (text) => <b>{text}</b>,
+    },
+    {
+      title: "Quantity",
+      dataIndex: "quantity",
+      key: "quantity",
+      render: (qty, record) => `${qty} ${record.unit}`,
+      sorter: (a, b) => a.quantity - b.quantity,
+    },
+    {
+      title: "Credit",
+      dataIndex: "credit",
+      key: "credit",
+      render: (amount, record) => `${amount} ${record.currency}`,
+      sorter: (a, b) => a.credit - b.credit,
+      align: "right",
+    },
+    {
+      title: "Debit",
+      dataIndex: "debit",
+      key: "debit",
+      render: (amount, record) => `${amount} ${record.currency}`,
+      sorter: (a, b) => a.debit - b.debit,
+      align: "right",
+    },
+    {
+      title: "Balance",
+      dataIndex: "balance",
+      key: "balance",
+      render: (balance, record) => `${balance} ${record.currency}`,
+
+      align: "right",
+    },
+
+  ];
 
   return (
-    <div className="relative w-84 md:w-screen bg-orange-50 h-[77vh] ">
-      <img src={logo} alt="Watermark" className="absolute inset-0 m-auto opacity-15 w-7/9 h-7/9 object-contain pointer-events-none" />
-      <div className='flex flex-col gap-4 p-2'>
-        <h1 className="md:text-3xl text-2xl text-orange-500 font-extrabold drop-shadow-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>
-          Dealer Financial Statements:
-        </h1>
-        <Button type="text" className='!bg-orange-400 !text-white md:!w-25 !w-25 md:!text-lg hover:!bg-green-500 !font-bold !shadow-lg !shadow-black' onClick={showModal}>
-          <PrinterOutlined className='!font-bold md:!text-2xl' />
-        </Button>
 
-        <Modal title="Print Dealer Statement" footer={null} open={isModalOpen} onCancel={() => setIsModalOpen(false)} className='md:!w-100 !w-80'>
-          <Form layout="vertical">
-            <Form.Item label="Dealer Name" name="dealerId" rules={[{ required: true, message: "Please select a dealer" }]}>
-              <Select onChange={handleDealerStatement} showSearch placeholder="Select a dealer" optionFilterProp="label" options={allDealers.map(s => ({ label: `${s.fullname}  ( Acc No: ${s.accountNo} )`, value: s._id }))} />
+    <div className="w-screen  flex flex-col gap-6 overflow-auto bg-white !justify-center ">
+      <h1 className="md:text-xl text-sm px-8  text-zinc-500 font-extrabold !mt-5" style={{ fontFamily: 'Poppins, sans-serif' }}>
+        Dealer Financial Statements:
+      </h1>
+      <Button
+        type="default"
+        onClick={handlePrintAllDealers} // your print function
+        className=" !mx-8 !text-white !font-bold !bg-green-600 hover:!bg-green-500 !w-[10rem] text-white"
+      >
+        Print All dealers
+      </Button>
+      {/* Form container - small width on large screens, full width on mobile */}
+      <div className=" md:w-[350px] bg-white flex pmb-9 p-4 mx-8 border border-zinc-200 items-center justify-center">
+        <Form layout="horizontal" className="flex flex-col gap-0">
+
+          <div className="flex gap-1 !justify-between">
+            <Form.Item
+              name="dealerId"
+              rules={[{ required: true, message: "Please select a dealer" }]}
+              className="m-0 "
+
+            >
+              <Select
+                onChange={handleDealersStatement}
+                showSearch
+                placeholder="dealer"
+                optionFilterProp="label"
+                className="!h-8 !w-[150px] !max-w-[150px] text-sm !overflow-hidden"
+
+                optionLabelProp="label"
+                options={allDealers.map((s) => ({
+                  label: (
+                    <span className="truncate block" title={`${s.fullname} (Acc No: ${s.accountNo})`}>
+                      {`${s.fullname} (Acc No: ${s.accountNo})`}
+                    </span>
+                  ),
+                  value: s._id,
+                }))}
+
+              />
             </Form.Item>
 
-            <Form.Item label="Currency" name="currencyId" rules={[{ required: true, message: "Please select a Currency" }]}>
-              <Select onChange={handleCurrencyStatement} showSearch placeholder="Select a Currency" optionFilterProp="label" options={myCurrency.map(s => ({ label: s, value: s }))} />
-            </Form.Item>
 
-            <Form.Item label="Select Date">
-              <RangePicker className="!w-[100%]" value={dateRange.length ? dateRange : undefined} onChange={(dates) => setDateRange(dates || [])} allowClear />
+            <Form.Item
+              name="currencyId"
+              rules={[{ required: true, message: "Please select a currency" }]}
+              className="!rounded-none m-0"
+            >
+              <Select
+                onChange={handleCurrencyStatement}
+                showSearch
+                placeholder="Currency"
+                optionFilterProp="label"
+                className="!h-8 text-sm !w-20 !overflow-hidden !rounded-none"
+                options={myCurrency.map(s => ({ label: s, value: s }))}
+              />
             </Form.Item>
+          </div>
 
-            <Form.Item>
-              <Button className='!bg-zinc-500' onClick={handleData}>
-                <PrinterOutlined className='md:!text-2xl !w-full !font-bold !text-white !p-4' />
-              </Button>
-            </Form.Item>
+          {/* Date range picker */}
+          <Form.Item name="dateRange" className="m-0">
+            <RangePicker className="!w-[100%]" value={dateRange.length ? dateRange : undefined} onChange={(dates) => setDateRange(dates || [])} allowClear />
+          </Form.Item>
 
-            <Form.Item>
-              <span className='p-2 items-center flex'>Click here to get all Statement in USD</span>
-              <hr className='!text-zinc-200 mb-3' />
-              <Button className='!bg-blue-500 !text-white' onClick={handleUSDData}>
-                <PrinterOutlined className='md:!text-2xl !w-full !font-bold !text-white !p-4' />
-              </Button>
-            </Form.Item>
-          </Form>
-        </Modal>
+          {/* Buttons row: two columns, no gap */}
+          <div className="flex gap-2">
+            <Button
+              className="!bg-zinc-400 !text-lg hover:!bg-zinc-300 !border-zinc-400 !text-white hover:!text-black flex-1 !h-8 !rounded-none"
+              onClick={handleData}
+            >
+              <PrinterOutlined />
+            </Button>
+            <Button
+              className="!bg-zinc-400 !text-lg hover:!bg-zinc-300 !border-zinc-400 !text-white hover:!text-black flex-1 !h-8 !rounded-none ml-0"
+              onClick={handleUSDData}
+            >
+              <PrinterOutlined />
+              <span className="hidden md:inline"> All Statement in $</span>
+            </Button>
+          </div>
+        </Form>
+
+      </div>
+
+      {/* Table Section - full width */}
+      <div className="w-full bg-zinc-50 px-4 h-auto py-4 ">
+        <h2 className="text-zinc-500 text-[10px] md:text-lg font-semibold mb-0">Statement</h2>
+
+        <div className="w-full overflow-x-auto ">
+          <Table
+            columns={columns}
+            dataSource={tableData.map((item, index) => ({ ...item, key: index }))}
+            bordered
+            pagination={{ pageSize: 5 }}
+            scroll={{ x: '100%' }}
+            className="w-full"
+            size="small"
+          />
+        </div>
+
+        {tableData.length > 0 && (
+          <div className="text-right font-bold h-10 !text-[14px] md:text-base">
+            Total Balance: $
+            {tableData
+              .reduce((sum, item) => sum + (item.credit || 0) - (item.debit || 0), 0)
+              .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </div>
+        )}
       </div>
     </div>
+
+
   );
 };
 

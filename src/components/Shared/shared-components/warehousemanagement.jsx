@@ -53,7 +53,7 @@ const Warehouse = () => {
   const [btnText, setBtnText] = useState(edit ? "Update Warehouse" : "Add Warehouse");
   const [sourceWarehouse, setSourceWarehouse] = useState("");
   const [targetWarehouse, setTargetWarehouse] = useState("");
-  const [editText, setEditText] = useState("")
+
   const [form] = Form.useForm();
 
   //get branding
@@ -155,9 +155,6 @@ const Warehouse = () => {
     }
   }, [WarehouseData])
 
-
-
-  //calculation of availiblestock
 
   //fetch sales all data
   const { data: sales, error: saError } = useSWR("/api/sale/get", fetcher);
@@ -369,8 +366,7 @@ const Warehouse = () => {
 
   const handleEdit = async (record) => {
     setEdit(true);
-
-    setEditText("Please make sure to reupdate both Warehouses before Updating any data")
+   toast.warning("Please refill the whole red color fields before updating! ")
     setSupplierEditData(record);
     const warehouseDate = record?.WarehouseDate
       ? dayjs(record.WarehouseDate)
@@ -456,7 +452,7 @@ const Warehouse = () => {
       ),
     },
     {
-      title: "Unit Cost",
+      title: "ExC-Unit Cost",
       dataIndex: "to",
       key: "exchangedAmt",
       render: (_, record) => (
@@ -465,7 +461,7 @@ const Warehouse = () => {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
           })}</span>
-          <span className='!text-blue-500'>{record.currency}</span>
+          <span className='!text-blue-500'>{record.exCurrency}</span>
         </span>
       ),
     },
@@ -479,7 +475,7 @@ const Warehouse = () => {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
           })}</span>
-          <span className='!text-blue-500'>{record.currency}</span>
+          <span className='!text-blue-500'>{record.exCurrency}</span>
         </span>
       ),
     },
@@ -657,6 +653,7 @@ const Warehouse = () => {
         totalLocalCost: finalQty * (Number(values?.exchangedAmt) || 0),
         isTransfer: false,
         currency: "USD",
+        exCurrency:values.currency,
         transactionType: "Out",
         transactionId: transactionId,
         userName: userName,
@@ -683,6 +680,7 @@ const Warehouse = () => {
         isTransfer: false,
         transactionType: "In",
         currency: "USD",
+        exCurrency:values.currency,
         transactionId: transactionId,
         userName: userName,
 
@@ -731,6 +729,8 @@ const Warehouse = () => {
         ...values,
         weight,
         transactionType: "Out",
+        currency:"USD",
+        exCurrency:values.currency,
         warehouseName: sourceWarehouse.sourceName || "",
         warehouseId: sourceWarehouse.sourceId || "",
         WarehouseDate: values.purchaeDate ? values.WarehouseDate.toDate() : supplierEditData.WarehouseDate,
@@ -763,6 +763,8 @@ const Warehouse = () => {
         warehouseId: targetWarehouse?.targetId,
         transactionId: values.transactionId,
         weight,
+        currency:"USD",
+        exCurrency:values.currency,
         WarehouseDate: values.purchaeDate ? values.WarehouseDate.toDate() : supplierEditData.WarehouseDate,
         salePrice: selectedProduct?._id || values.salePrice,
         party: selectedProduct?._id || values.party,
@@ -894,13 +896,17 @@ const Warehouse = () => {
   const initialWarehouseDate = supplierData?.WarehouseDate
     ? dayjs(supplierData.WarehouseDate, "DD-MM-YYYY")
     : null;
-  setTimeout(() => {
-    setEditText("")
-  }, 5000);
+
   return (
     <UserLayout>
       <div>
-        <ToastContainer position="top-right" autoClose={3000} />
+       <ToastContainer
+                 position="top-center"
+                 autoClose={3000}
+                 className="mt-4"
+                 toastClassName="bg-gray-500 !text-zinc-700 md:text-lg font-semibold rounded-md shadow-lg"
+       
+               />
         <div className="p-4 bg-zinc-100">
           {/* Warehouse Form */}
           <div className='flex w-full gap-4 items-center flex item-center justify-between bg-zinc-200  px-4'>
@@ -912,10 +918,7 @@ const Warehouse = () => {
               </div>
 
             )}</div>
-            {
-              editText &&
-              <p className=' text-red-500  text-[16px] font-bold p-1'>{editText}</p>
-            }
+          
             <div className='mb-4 w-[50%] flex justify-end p-2 '>
               <ExchangeCalculator />
             </div>
@@ -954,7 +957,7 @@ const Warehouse = () => {
                   />
                 </Form.Item>
                 <Form.Item
-                  label="Quantity"
+                  label={<span className='!text-red-500'>Quantity</span>}
                   name="quantity"
                   rules={[{ required: true, message: "Please enter item quantity" }]}
                 >
@@ -1012,7 +1015,7 @@ const Warehouse = () => {
                 </Form.Item>
 
                 <Form.Item
-                  label="Unit Cost"
+                  label={<span className='!text-red-500'>Unit Cost</span>}
                   name="unitCost"
                   rules={[{ required: true, message: "Please enter item Price" }]}
                 >
@@ -1020,7 +1023,7 @@ const Warehouse = () => {
                   />
                 </Form.Item>
                 <Form.Item
-                  label="Currnecy"
+                  label={<span className='!text-red-500'>Currency</span>}
                   name="currency"
                 >
                   <Select
@@ -1031,7 +1034,7 @@ const Warehouse = () => {
                     onChange={(value) => currencyChange(value)}
                   />
                 </Form.Item>
-                <Form.Item name="exchangedAmt" label={<span style={{ color: 'red' }}>Exch Amt</span>}>
+                <Form.Item name="exchangedAmt" label={<span style={{ color: 'blue' }}>Exch Amt</span>}>
                   <Input readOnly
                   />
                 </Form.Item>
@@ -1064,7 +1067,7 @@ const Warehouse = () => {
                 </Form.Item>
                 <Form.Item
                   name="fromWarehouse"
-                  label="From Warehouse"
+                  label={<span className='!text-red-500'>Trfd-From</span>}
                   rules={[{ required: true, message: "Please select a warehouse" }]}
                 >
                   <Select
@@ -1084,7 +1087,7 @@ const Warehouse = () => {
 
                 <Form.Item
                   name="toWarehouse"
-                  label="To Warehouse"
+                  label={<span className='!text-red-500'>Trfd-To</span>}
                   rules={[{ required: true, message: "Please select a warehouse" }]}
                 >
                  <Select

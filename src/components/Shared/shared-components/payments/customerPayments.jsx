@@ -114,19 +114,19 @@ const CustomerPayment = () => {
 
   }, [])
 
-  const transactionType=[
-  { value: 'cash', label: 'Cash' },
-  { value: 'bank_transfer', label: 'Bank Transfer' },
-  { value: 'credit_card', label: 'Credit Card' },
-  { value: 'cheque', label: 'Cheque' },
-  { value: 'mobile_payment', label: 'Mobile Payment' },
-  { value: 'other', label: 'Other' },
+  const transactionType = [
+    { value: 'cash', label: 'Cash' },
+    { value: 'bank_transfer', label: 'Bank Transfer' },
+    { value: 'credit_card', label: 'Credit Card' },
+    { value: 'cheque', label: 'Cheque' },
+    { value: 'mobile_payment', label: 'Mobile Payment' },
+    { value: 'other', label: 'Other' },
   ]
 
-   const paymentType = [
-  { value: 'cr', label: 'Credit' },
-  { value: 'dr', label: 'Debit' },
- ];
+  const paymentType = [
+    { value: 'cr', label: 'Credit' },
+    { value: 'dr', label: 'Debit' },
+  ];
   //fetch payment all data
   const { data: paymentData, error: pError } = useSWR("/api/payment/get", fetcher);
 
@@ -185,10 +185,10 @@ const CustomerPayment = () => {
   const userName = userInfo?.fullname || "";
 
   //print function
-    const handlePrint = async (record) => {
+  const handlePrint = async (record) => {
     try {
       const customer = await handleCus(record.customerId);
-    
+
 
       // Open a new blank window
       const printWindow = window.open('', '_blank', 'width=800,height=900');
@@ -272,10 +272,12 @@ const CustomerPayment = () => {
         <div class="customer">
           <strong>Paid by:</strong><br>
           Name: ${customer?.fullname || "-"}<br>
+          Acc No: ${customer?.accountNo || "-"}<br>
           Address: ${customer?.country || "-"}<br>
           Phone: ${customer?.mobile || "-"}<br>
           Email: ${customer?.email || "-"}<br>
           Doc_No:   ${record?.paymentNo || "-"}<br>
+          Party No:   ${record?.partyNo || "-"}<br>
         </div>
         <h1>customer Payment Receipt</h1>
         <table>
@@ -358,7 +360,7 @@ const CustomerPayment = () => {
       toast.error("Failed to delete payment record");
     }
   };
-  
+
   const handleEdit = async (record) => {
     setCustomerData(record);
     setAmount(Number(record.amount));
@@ -405,18 +407,20 @@ const CustomerPayment = () => {
     { title: <span className="text-sm md:!text-1xl font-semibold">Amount</span>, dataIndex: 'amount', key: 'amount', width: 80 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Currency</span>, dataIndex: 'currency', key: 'currency', width: 20 },
     { title: <span className="text-sm md:!text-1xl font-semibold">Exched Amt</span>, dataIndex: 'exchangedAmt', key: 'exchangedAmt', width: 60 },
-    { title: <span className="text-sm md:!text-1xl font-semibold">Trans-Type</span>, dataIndex: 'paymentType', key: 'p-type', width: 60 ,
-       render: (text) => (
-    <span
-      style={{
-        color: text.toLowerCase() === 'dr' ? 'red' : 'inherit', // red if 'dr', default otherwise
-        fontWeight: 'bold',
-      }}>
-      {text}
-    </span>
-    )},
+    {
+      title: <span className="text-sm md:!text-1xl font-semibold">Trans-Type</span>, dataIndex: 'paymentType', key: 'p-type', width: 60,
+      render: (text) => (
+        <span
+          style={{
+            color: text.toLowerCase() === 'dr' ? 'red' : 'inherit', // red if 'dr', default otherwise
+            fontWeight: 'bold',
+          }}>
+          {text}
+        </span>
+      )
+    },
     { title: <span className="text-sm md:!text-1xl font-semibold">Belong To</span>, dataIndex: 'companyName', key: 'company', width: 60 },
-    
+
     { title: <span className="text-sm md:!text-1xl font-semibold">Description</span>, dataIndex: 'description', key: 'description', width: 150 },
 
     // print
@@ -510,14 +514,13 @@ const CustomerPayment = () => {
   ];
 
   const dataSource = paymentData?.data
-  .filter(item => item.isPassed === false && item.entity === 'customer')
-  .map(item => ({
-    ...item,
-    key: item._id, 
-  }));
+    .filter(item => item.isPassed === false && item.entity === 'customer')
+    .map(item => ({
+      ...item,
+      key: item._id,
+    }));
   //currency change
   const currencyChange = (e) => {
-
     const selectedCurrency = currency.find((i) => i.currencyName === e);
     if (selectedCurrency) {
       setCrncy(Number(selectedCurrency.rate))
@@ -529,22 +532,19 @@ const CustomerPayment = () => {
 
 
   const onFinish = async (values) => {
-
     const httpReq = http(token);
-
     try {
       // Find selected objects from arrays
       const selectedcustomer = customer.find(s => s.customerId === values.customerId);
       const selectedCompany = company.find(c => c.companyId === values.companyId);
-     
 
-      // 2 Prepare formatted values for payment
+      // Prepare formatted values for payment
       const formattedValues = {
         ...values,
         soldate: values.soldate ? values.soldate.toDate() : null,
         customerName: selectedcustomer?.customerName,
         transBy: selectedcustomer?.customerName,
-         entity: "customer",
+        entity: "customer",
         companyName: selectedCompany?.companyName,
         isPassed: false,
       };
@@ -565,13 +565,8 @@ const CustomerPayment = () => {
 
   const onUpdate = async (values) => {
     try {
-
-      // 1️⃣ Find selected objects from arrays
       const selectedcustomer = customer.find(s => s.customerId === values.customerId);
-      // const selectedProduct = product.find(p => p.productId === values.productId);
       const selectedCompany = company.find(c => c.companyId === values.companyId);
-      // const selectedStock = stock.find(s => s.stockId === values.warehouseId);
-      // const selectedDealer = dealer.find(d => d.dealerId === values.dealerId);
       const httpReq = http(token);
 
       const formattedValues = {
@@ -580,17 +575,8 @@ const CustomerPayment = () => {
         customerName: selectedcustomer.customerName || values.customerName,
         transBy: selectedcustomer?.customerName,
         entity: "customer",
-        // productId: selectedProduct?._id || values.productId,
-        // productName: selectedProduct?.productName || values.productName,
-
         companyId: selectedCompany?._id || values.companyId,
         companyName: selectedCompany?.companyName || values.companyName,
-
-        // warehouseId: selectedStock?._id || values.warehouseId,
-        // warehouseName: selectedStock?.stockName || values.warehouseName,
-
-        // dealerId: selectedDealer?._id || values.dealerId,
-        // dealerName: selectedDealer?.dealerName || values.dealerName,
       };
 
       // Update payment
@@ -611,7 +597,6 @@ const CustomerPayment = () => {
 
   useEffect(() => {
 
-    // Use its rate, fallback to 1 if not found
     const rate = crncy || 1;
 
     setExchange(rate);
@@ -620,8 +605,7 @@ const CustomerPayment = () => {
 
   useEffect(() => {
     setExchangedAmt(Number(amount) * exchange);
-  }, [amount, exchange,crncy]); // only recalc when these change
-
+  }, [amount, exchange, crncy]);
   useEffect(() => {
     form.setFieldsValue({ exchangedAmt: exchangedAmt });
   }, [exchangedAmt, form]);
@@ -669,7 +653,7 @@ const CustomerPayment = () => {
               form={form}
               layout="vertical"
               onFinish={edit ? onUpdate : onFinish}
-              
+
               initialValues={{ userName: userName, paymentDate: initialpaymentDate }}
               size='small'
 
@@ -715,28 +699,36 @@ const CustomerPayment = () => {
                 </Form.Item>
 
                 <Form.Item
-                  label="Amount"
+                  label={<span className='text-red-500 font-bold'>Amount</span>}
                   name="amount"
                   rules={[{ required: true, message: "Please enter amount" }]}
                 >
                   <Input placeholder="Enter item amount"
                     onChange={(e) => setAmount(Number(e.target.value))} />
                 </Form.Item>
-                 <Form.Item
-                  label="Currnecy"
+                <Form.Item
+                label={<span className='text-red-500 font-bold'>Currency</span>}
                   name="currency"
                 >
                   <Select
                     showSearch
-                    placeholder="Enter Currency"
+                    placeholder="Select Currency"
                     optionFilterProp="label"
                     options={currencyOptions}
                     onChange={(value) => currencyChange(value)}
                   />
                 </Form.Item>
+               
                 <Form.Item label="Exch Amt" name="exchangedAmt">
                   <Input readOnly
                   />
+                </Form.Item>
+                 <Form.Item
+                  label="Party #"
+                  name="partyNo"
+
+                >
+                  <Input placeholder="Enter itempartyNo" />
                 </Form.Item>
                 <Form.Item
                   label="Country"
@@ -766,7 +758,7 @@ const CustomerPayment = () => {
                 >
                   <DatePicker className="w-full" format="MM/DD/YYYY" />
                 </Form.Item>
-                 <Form.Item
+                <Form.Item
                   label="Trns Type"
                   name="transactionType"
                   rules={[{ required: true, message: "Please Enter company name" }]}
@@ -801,7 +793,7 @@ const CustomerPayment = () => {
                     className='!text-red-600'
                   />
                 </Form.Item>
-                 <Form.Item className='!flex !justify-center  !w-full !items-center'>
+                <Form.Item className='!flex !justify-center  !w-full !items-center'>
 
                   <div>
                     <ExchangeCalculator />

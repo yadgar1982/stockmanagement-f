@@ -293,10 +293,12 @@ const DealerPayment = () => {
         <div class="dealer">
           <strong>Paid To:</strong><br>
           Name: ${dealer?.fullname || "-"}<br>
+          Acc No: ${dealer?.accountNo || "-"}<br>
           Address: ${dealer?.country || "-"}<br>
           Phone: ${dealer?.mobile || "-"}<br>
           Email: ${dealer?.email || "-"}<br>
           Doc_No:   ${record?.paymentNo || "-"}<br>
+          Party No:   ${record?.partyNo || "-"}<br>
         </div>
         <h1>dealer Payment Receipt</h1>
         <table>
@@ -742,7 +744,7 @@ const DealerPayment = () => {
 
 
                 <Form.Item
-                  label="Amount"
+                  label={<span className='text-red-500 font-bold'>Amount</span>}
                   name="amount"
                   rules={[{ required: true, message: "Please enter amount" }]}
                 >
@@ -750,12 +752,12 @@ const DealerPayment = () => {
                     onChange={(e) => setAmount(Number(e.target.value))} />
                 </Form.Item>
                 <Form.Item
-                  label="Currnecy"
+                  label={<span className='text-red-500 font-bold'>Currency</span>}
                   name="currency"
                 >
                   <Select
                     showSearch
-                    placeholder="Enter Currency"
+                    placeholder="Select Currency"
                     optionFilterProp="label"
                     options={currencyOptions}
                     onChange={(value) => currencyChange(value)}
@@ -764,6 +766,13 @@ const DealerPayment = () => {
                 <Form.Item label="Exch Amt" name="exchangedAmt">
                   <Input readOnly
                   />
+                </Form.Item>
+                 <Form.Item
+                  label="Party #"
+                  name="partyNo"
+              
+                >
+                  <Input placeholder="Enter itempartyNo"/>
                 </Form.Item>
                 <Form.Item
                   label="Country"

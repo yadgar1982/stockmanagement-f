@@ -102,3 +102,27 @@ body {
   align-items: center !important;            /* Optional: smaller text */
 }
 
+.custom-tabs .ant-tabs-tab {
+  border-radius: 0 !important;
+  padding: 0 16px !important;
+  height: 55px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Active tab */
+.custom-tabs .ant-tabs-tab-active {
+  background-color: #2563eb !important; /* blue */
+}
+
+/* Tab text */
+.custom-tabs .ant-tabs-tab-btn {
+  color: white !important;
+  line-height: 1 !important;
+}
+
+/* Inactive tabs */
+.custom-tabs .ant-tabs-tab:not(.ant-tabs-tab-active) {
+  background-color: #3b82f6 !important; /* lighter blue */
+}

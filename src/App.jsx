@@ -9,6 +9,7 @@ import { store } from "./redux/store";
 import ProtectedRoute from "./components/Modules/ProtectedRoutes";
 
 
+
 const originalWarn = console.warn;
 console.warn = (...args) => {
   if (typeof args[0] === "string" && args[0].includes("antd: compatible")) {
@@ -37,6 +38,7 @@ const SupPayments = lazy(() => import("./components/Shared/shared-components/pay
 const CusPayment = lazy(() => import("./components/Shared/shared-components/payments/customerPayments"));
 const DelPayment = lazy(() => import("./components/Shared/shared-components/payments/dealerPayment"));
 const OtherPayments = lazy(() => import("./components/Shared/shared-components/payments/otherPayments"));
+const CompanyPayments = lazy(() => import("./components/Shared/shared-components/payments/companyPayments"));
 
 
 const Admin = lazy(() => import("./components/Admin"));
@@ -80,6 +82,7 @@ function App() {
             <Route path="/supplierPayments" element={<ProtectedRoute role="user"><SupPayments /></ProtectedRoute>} />
             <Route path="/customerPayments" element={<ProtectedRoute role="user"><CusPayment /></ProtectedRoute>} />
             <Route path="/dealerPayments" element={<ProtectedRoute role="user"><DelPayment /></ProtectedRoute>} />
+            <Route path="/companyPayments" element={<ProtectedRoute role="user"><CompanyPayments /></ProtectedRoute>} />
             <Route path="/otherPayments" element={<ProtectedRoute role="user"><OtherPayments /></ProtectedRoute>} />
 
             

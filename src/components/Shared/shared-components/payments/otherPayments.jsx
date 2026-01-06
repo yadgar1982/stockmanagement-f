@@ -22,7 +22,7 @@ import { fetchCurrency } from '../../../../redux/slices/currencySlice';
 import ExchangeCalculator from '../exchangeCalc';
 
 
-const OtherPayments = () => {
+const CompanyPayments = () => {
   const dispatch = useDispatch();
 
   const token = cookies.get("authToken")
@@ -51,7 +51,8 @@ const OtherPayments = () => {
   const allCompanies = companys?.data || [];
   const company = allCompanies.map((item) => ({
     companyName: item.fullname,
-    companyId: item._id
+    companyId: item._id,
+    accountNo: item.accountNo
   }));
   const companyOptions = company.map((com) => ({
     label: com.companyName,
@@ -103,7 +104,6 @@ const OtherPayments = () => {
 
 
 
-
   // calculation of payments
   const amt = amount || 0;
 
@@ -134,6 +134,9 @@ const OtherPayments = () => {
       iframe.style.height = '100%';
       iframe.style.border = 'none';
       printWindow.document.body.appendChild(iframe);
+      const co = company.find(
+        (i) => i.companyName === record.companyName
+      );
 
       // HTML content
       const htmlContent = `
@@ -200,7 +203,9 @@ const OtherPayments = () => {
 </header>
    
         <div class="customer">
+          <strong>Acc No: ${co?.accountNo || "-"}</strong><br>
           <strong>Paid No: ${record?.paymentNo || "-"}</strong><br>
+          <strong>Party No: ${record?.partyNo || "-"}</strong><br>
            <br>
         </div>
         <h1> Payment Receipt</h1>
@@ -306,7 +311,7 @@ const OtherPayments = () => {
     try {
       const httpReq = http();
       await httpReq.put(`/api/payment/update/${id}`, { isPassed: true });
-      toast.success("OtherPayments marked as passed!");
+      toast.success("CompanyPayments marked as passed!");
       mutate("/api/payment/get");
     } catch (err) {
       toast.error("Failed to Pass!", err);
@@ -398,7 +403,7 @@ const OtherPayments = () => {
       render: (_, record) => (
 
         <Popconfirm
-          title="Are you sure to Pass this OtherPayments?"
+          title="Are you sure to Pass this CompanyPayments?"
           description="This action cannot be undone."
           okText="yes"
           cancelText="No"
@@ -457,7 +462,6 @@ const OtherPayments = () => {
 
   const onFinish = async (values) => {
     const httpReq = http(token);
-
     try {
 
       const selectedCompany = company.find(c => c.companyId === values.companyId);
@@ -474,7 +478,7 @@ const OtherPayments = () => {
       // Create payment
 
       await httpReq.post("/api/payment/create", formattedValues);
-      toast.success("OtherPayments record and transaction added successfully");
+      toast.success("CompanyPayments record and transaction added successfully");
       mutate("/api/payment/get");
       form.resetFields();
       setCustomerData("");
@@ -485,11 +489,8 @@ const OtherPayments = () => {
     }
   };
 
-
   const onUpdate = async (values) => {
     try {
-
-
       const selectedCompany = company.find(c => c.companyId === values.companyId);
       const httpReq = http(token);
 
@@ -515,10 +516,7 @@ const OtherPayments = () => {
   };
 
 
-
-
   useEffect(() => {
-
     // Use its rate, fallback to 1 if not found
     const rate = crncy || 1;
 
@@ -563,7 +561,7 @@ const OtherPayments = () => {
       <div>
         <ToastContainer position="top-right" autoClose={3000} />
         <div className="p-4 bg-zinc-100">
-          {/* OtherPayments Form */}
+          {/* Payments Form */}
           <div className='flex gap-4 items-center '>
             <h2 className='text-sm  md:text-2xl p-2 font-semibold text-zinc-600'>Make Payment to customer</h2>
 
@@ -573,10 +571,9 @@ const OtherPayments = () => {
               form={form}
               layout="vertical"
               onFinish={edit ? onUpdate : onFinish}
-              
+
               initialValues={{ userName: userName, paymentDate: initialpaymentDate }}
               size='small'
-
 
             >
               <div className='md:grid md:grid-cols-8  gap-2'>
@@ -606,17 +603,17 @@ const OtherPayments = () => {
                   />
                 </Form.Item>
 
-             
+
                 <Form.Item
-                  label="Amount"
+                  label={<span className='text-red-500 font-bold'>Amount</span>}
                   name="amount"
                   rules={[{ required: true, message: "Please enter amount" }]}
                 >
                   <Input placeholder="Enter item amount"
                     onChange={(e) => setAmount(Number(e.target.value))} />
                 </Form.Item>
-                   <Form.Item
-                  label="Currnecy"
+                <Form.Item
+                  label={<span className='text-red-500 font-bold'>Currnecy</span>}
                   name="currency"
                 >
                   <Select
@@ -630,6 +627,13 @@ const OtherPayments = () => {
                 <Form.Item label="Exch Amt" name="exchangedAmt">
                   <Input readOnly
                   />
+                </Form.Item>
+                <Form.Item
+                  label="Party #"
+                  name="partyNo"
+
+                >
+                  <Input placeholder="Enter itempartyNo" />
                 </Form.Item>
                 <Form.Item
                   label="Country"
@@ -697,7 +701,7 @@ const OtherPayments = () => {
                 <Form.Item className='!flex !justify-center  !w-full !items-center'>
 
                   <div>
-                    <ExchangeCalculator/>
+                    <ExchangeCalculator />
                   </div>
                 </Form.Item>
               </div>
@@ -714,7 +718,7 @@ const OtherPayments = () => {
                 <Button type="text" htmlType="submit" className={`md:!w-full md:!h-[30px] !text-white hover:!shadow-lg hover:!shadow-zinc-800 hover:!text-white !font-bold 
                   ${edit ? "!bg-orange-500 hover:!bg-orange-600" : "!bg-purple-900 hover:!bg-green-500"}
                 `} >
-                  {`${edit ? "Update OtherPayments" : "Add OtherPayments"}`}
+                  {`${edit ? "Update CompanyPayments" : "Add CompanyPayments"}`}
                 </Button>
               </Form.Item>
             </Form>
@@ -723,7 +727,7 @@ const OtherPayments = () => {
 
         </div>
         <div>
-          <div className='text-zinc-500 md:text-lg text-sm p-4 font-bold'>OtherPayments Records:</div>
+          <div className='text-zinc-500 md:text-lg text-sm p-4 font-bold'>CompanyPayments Records:</div>
         </div>
         <div className="w-full   overflow-x-auto">
 
@@ -760,4 +764,4 @@ const OtherPayments = () => {
   )
 }
 
-export default OtherPayments;
+export default CompanyPayments;

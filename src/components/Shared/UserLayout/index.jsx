@@ -24,8 +24,10 @@ const UserLayout = ({ children }) => {
 
   const logo = import.meta.env.VITE_LOGO_URL;
   const dispatch = useDispatch()
-  const [controlledCollapsed, setControlledCollapsed] = useState(false);
+
+  const [collapsed, setCollapsed] = useState(true);
   const [isBroken, setIsBroken] = useState(false);
+
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
@@ -36,7 +38,7 @@ const UserLayout = ({ children }) => {
   }, []);
 
   const navigate = useNavigate();
-  const [collapsed, setCollapsed] = useState(false);
+
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
@@ -125,6 +127,15 @@ const UserLayout = ({ children }) => {
           ),
         },
         {
+          key: 'companyPayments',
+          icon: <DollarOutlined className='!text-zinc-500 md:!text-xl' />,
+          label: (
+            <span className='text-zinc-500 font-semibold md:!text-lg'>
+              Company
+            </span>
+          ),
+        },
+        {
           key: 'otherPayments',
           icon: <DollarOutlined className='!text-zinc-500 md:!text-xl' />,
           label: (
@@ -135,7 +146,7 @@ const UserLayout = ({ children }) => {
         }
       ],
     },
-     {
+    {
       key: 'warehouse',
       icon: <HomeOutlined className='md:!text-xl !text-zinc-500 !font-semibold' />,
       label: <span className='md:!text-lg !text-zinc-500 font-semibold'>Ware House</span>,
@@ -150,29 +161,61 @@ const UserLayout = ({ children }) => {
   const avatar = userInfo.avatar;
   return (
     <Layout className='h-screen'>
-      <Sider breakpoint="md"
-        collapsedWidth={80}
-        collapsed={controlledCollapsed}
-        onBreakpoint={(broken) => {
-          setIsBroken(broken);
-          setControlledCollapsed(broken);
-        }} className='!bg-zinc-200 !border-r !border-zinc-200 !border-sm'>
 
-        <div className='w-full flex items-center !shadow-sm !shadow-black justify-center !z-10 p-0.5 bg-[#B8860B]'>
-          <Avatar className='!text-2xl !bg-white !text-zinc-500 !font-bold' size={60}
+      <Sider
+        breakpoint="md"
+        collapsedWidth={0}       // completely collapsed width
+        trigger={null}           // we’ll use our own button
+        collapsible
+        collapsed={collapsed}
+        // onBreakpoint={(broken) => {
+        //   setIsBroken(broken);
+        //   setCollapsed(broken);
+        // }}
+        className="!bg-zinc-200 "
+        style={{
+          position: 'fixed',      // overlay content
+          zIndex: 1000,           // above everything
+          height: '100vh',
+          top: 0,
+          left: 0,
+          transition: 'all 0.3s', // smooth animation
+        }}
+      >
+        {/* Logo + Always visible Collapse Button */}
+        <div className="w-full flex items-center !shadow-sm !shadow-black justify-between px-3 !z-10 p-0.5 bg-[#B8860B]">
+          <Avatar
+            className="!text-2xl !bg-white !text-zinc-500 !font-bold"
+            size={60}
             src={logo}
-          >
-
-          </Avatar>
+          />
+          <Button
+            type="text"
+            icon={collapsed ? <MenuUnfoldOutlined className="!text-blue-100 !text-2xl" /> : <MenuFoldOutlined className="!text-blue-100 !text-2xl" />}
+            onClick={() => setCollapsed(!collapsed)}
+            style={{
+              fontSize: '16px',
+              width: 20,
+              height: 20,
+            }}
+          />
         </div>
+
+        {/* Menu Items */}
         <Menu
-          className='!bg-zinc-200 '
+          className="!bg-zinc-200"
           mode="inline"
           defaultSelectedKeys={['1']}
           items={items}
-          onClick={(e) => navigate(`/${e.key}`)}
+          onClick={(e) => {
+            navigate(`/${e.key}`);
+            // Auto-close on mobile
+            if (isMobile) setCollapsed(true);
+          }}
         />
       </Sider>
+
+
       <Layout>
         <Header style={{
           padding: '0 16px',
@@ -180,21 +223,23 @@ const UserLayout = ({ children }) => {
           justifyContent: 'space-between',
           alignItems: 'center',
           boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
-          zIndex: 20,
+          zIndex: 100,
         }}
-          className='!bg-[#B8860B]'>
-          <Button
-            type="text"
-            icon={collapsed ? <MenuUnfoldOutlined className='!text-blue-100 !text-2xl' /> : <MenuFoldOutlined className='!text-blue-100 !text-2xl' />}
-            onClick={() => setCollapsed(!collapsed)}
-            style={{
-              fontSize: '16px',
-              width: 45,
-              height: 64,
-            }}
-          />
-          <div className='flex  gap-3 items-center '>
-            <p className='text-white font-bold md:text-xl'>{userInfo?.fullname}</p>
+          className='!bg-[#B8860B] '>
+          {collapsed && (
+            <Button
+              type="text"
+              icon={<MenuUnfoldOutlined className="!text-zinc-100 !text-2xl !ml-2" />}
+              onClick={() => setCollapsed(!collapsed)}
+              style={{
+                fontSize: '16px',
+                width: 20,
+                height: 20,
+              }}
+            />
+          )}
+          <div className='flex w-full gap-3 !items-center justify-end '>
+            <p className='text-white px-4 font-bold text-lg md:text-xl my-8'>{userInfo?.fullname}</p>
             <Button
               className="px-4 py-2 rounded-lg text-black font-bold 
                 bg-gradient-to-r from-[#D4AF37] to-[#F7E27A] 
@@ -213,8 +258,7 @@ const UserLayout = ({ children }) => {
           style={{
             margin: 0,
             padding: 0,
-            minHeight: '81vh',
-            backgroundImage: isMobile ? "url('/statement.jpg')" : 'none',
+            minHeight: '95vh',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',

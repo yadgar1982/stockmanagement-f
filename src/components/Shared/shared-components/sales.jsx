@@ -438,6 +438,7 @@ const Sales = () => {
 
   //handle Edit
   const handleEdit = async (record) => {
+    toast.warning("Please refill the whole red color fields before updating! ")
     setCustomerEditData(record);
     setEdit(true);
     setIsWeight(true)
@@ -855,7 +856,13 @@ const Sales = () => {
   return (
     <UserLayout>
       <div>
-        <ToastContainer position="top-right" autoClose={3000} />
+        <ToastContainer
+          position="top-center"
+          autoClose={3000}
+          className="mt-4"
+          toastClassName="bg-gray-500 !text-zinc-700 md:text-lg font-semibold rounded-md shadow-lg"
+
+        />
         <div className="p-4  bg-zinc-50">
           {/* Sales Form */}
           <div className='flex w-full gap-4 items-center flex item-center justify-between bg-gradient-to-r from-zinc-300 to-orange-100 p-2'>
@@ -885,13 +892,13 @@ const Sales = () => {
                 <Form.Item
                   label="Product Name"
                   name="productId"
-                  rules={[{ required: true, message: "Please enter unit name" }]}
+                  rules={[{ required: true, message: "Please enter product Name" }]}
                 >
                   <Select
                     value={selectedProduct}
                     onChange={handleProductChange}
                     showSearch
-                    placeholder="Select a Unit"
+                    placeholder="Select a product"
                     optionFilterProp="label"
                     options={productOptions}
                   />
@@ -900,20 +907,20 @@ const Sales = () => {
                 <Form.Item
                   label="Category"
                   name="categoryName"
-                  rules={[{ required: true, message: "Please enter unit name" }]}
+                  rules={[{ required: true, message: "Please enter category" }]}
                 >
                   <Select
                     value={myCategory}
                     onChange={handleCategoryChange}
                     showSearch
-                    placeholder="Select a Unit"
+                    placeholder="Select a category"
                     optionFilterProp="label"
                     options={categoryOptions}
                   />
                 </Form.Item>
 
                 <Form.Item
-                  label="Quantity"
+                  label={<span className='!text-red-500 !font-semibold'>Quantity</span>}
                   name="quantity"
                   rules={[{ required: true, message: "Please enter item quantity" }]}
                 >
@@ -921,6 +928,13 @@ const Sales = () => {
                     placeholder="Enter item quantity"
                     onChange={(e) => setQty(Number(e.target.value))}
                   />
+                </Form.Item>
+                <Form.Item
+                  label={<span className='!text-red-500 !font-semibold'>Unit Cost</span>}
+                  name="unitCost"
+                  rules={[{ required: true, message: "Please enter item Price" }]}
+                >
+                  <Input placeholder="Enter enter item Price" onChange={handleUnitCost} />
                 </Form.Item>
 
                 <Form.Item
@@ -938,13 +952,37 @@ const Sales = () => {
                 </Form.Item>
 
                 <Form.Item
-                  label="Weight"
+                  label={<span className='!text-red-500 !font-semibold'>Weight</span>}
                   name="weight"
                   hidden={!(unit === "box" || isWeight)}
                 >
                   <Input value={weight} onChange={handleWeightChange} />
                 </Form.Item>
 
+                <Form.Item 
+                label={<span className='!text-red-500 !font-semibold'>Currency</span>}
+                 name="currency">
+                  <Select
+                    showSearch
+                    placeholder="Enter Currency"
+                    optionFilterProp="label"
+                    options={currencyOptions}
+                    onChange={currencyChange}
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  label={<span className='!text-blue-500 !font-semibold'>Exch Amt</span>}
+                  name="exchangedAmt"
+                >
+                  <Input
+                    readOnly
+                    value={(form.getFieldValue("exchangedAmt") || 0).toLocaleString(
+                      undefined,
+                      { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+                    )}
+                  />
+                </Form.Item>
                 <Form.Item
                   label="Customer"
                   name="customerId"
@@ -985,45 +1023,8 @@ const Sales = () => {
                   />
                 </Form.Item>
 
-                <Form.Item
-                  label="Unit Cost"
-                  name="unitCost"
-                  rules={[{ required: true, message: "Please enter item Price" }]}
-                >
-                  <Input placeholder="Enter enter item Price" onChange={handleUnitCost} />
-                </Form.Item>
 
-                <Form.Item label="Currency" name="currency">
-                  <Tooltip
-                    color="purple"
-                    title={
-                      <span className="text-white font-semibold">
-                        Make sure to change unit-cost or Amount before changing currency!
-                      </span>
-                    }
-                  >
-                    <Select
-                      showSearch
-                      placeholder="Enter Currency"
-                      optionFilterProp="label"
-                      options={currencyOptions}
-                      onChange={currencyChange}
-                    />
-                  </Tooltip>
-                </Form.Item>
 
-                <Form.Item
-                  label={<span style={{ color: "red" }}>Exch Amt</span>}
-                  name="exchangedAmt"
-                >
-                  <Input
-                    readOnly
-                    value={(form.getFieldValue("exchangedAmt") || 0).toLocaleString(
-                      undefined,
-                      { minimumFractionDigits: 2, maximumFractionDigits: 2 }
-                    )}
-                  />
-                </Form.Item>
 
                 <Form.Item label="Country" name="countryName">
                   <Select
