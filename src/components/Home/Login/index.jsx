@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import { Button, Form, Input, Modal } from 'antd';
+import { Button, Form, Input, Modal, Image } from 'antd';
 import HomeLayout from "../../Shared/HomeLayout";
 import Cookies from "universal-cookie";
 import { http, trimData } from "../../Modules/http";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-
+const branding = JSON.parse(localStorage.getItem("branding") || "null");
 const cookies = new Cookies();
 
 const Login = () => {
@@ -14,11 +14,11 @@ const Login = () => {
   const [loader, setLoader] = useState(false);
   const [forgotModal, setForgotModal] = useState(false);
 
-//otp state
+  //otp state
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
- 
+
   const onFinish = async (values) => {
     setLoader(true);
     try {
@@ -57,7 +57,7 @@ const Login = () => {
     setLoader(false);
   };
 
-// verify Otp
+  // verify Otp
   const verifyOtp = async (values) => {
     setLoader(true);
     try {
@@ -76,7 +76,7 @@ const Login = () => {
   };
 
 
-//reset passwrod
+  //reset passwrod
   const resetPassword = async (values) => {
     if (values.passworda !== values.passwordb) {
       toast.error("Passwords do not match");
@@ -102,50 +102,59 @@ const Login = () => {
 
   return (
     <HomeLayout>
-      <div className="flex w-full items-center justify-center h-screen bg-gradient-to-br from-zinc-50 to-zinc-200  md:grid md:grid-cols-3 ">
+      <div className="flex w-full items-center justify-center h-screen bg-gradient-to-br from-zinc-100 to-zinc-200  md:grid md:grid-cols-3 ">
         <div ></div>
-       <div className="w-full px-4 md:w-[75%] h-screen  flex justify-center items-center"> 
-        <div className=" w-full max-w-md bg-zinc-100 rounded-2xl shadow-2xl p-8">
+
+        <div className="w-full px-4 md:w-[70%] h-screen  bg-zinc-500 flex flex-col  justify-center items-center">
+          <div className="flex items-center justify-center gap-1 w-[150px] !border-b !border-zinc-200  h-10 -mt-30 mb-10">
+            <Image src="./y-logo.png" width={65} height={25} alt="Logo" />
+            <span className="text-white text-xl mt-1 font-semibold">Tech</span>
+          </div>
+          <div className=" w-full max-w-md bg-zinc-100 rounded-2xl shadow-2xl p-8">
+            
+           <div className="flex items-center justify-center gap-1 w-full !border-b !border-zinc-200  h-10 mb-5">
+            
+            <span className="text-zinc-500 text-[12px]  font-bold">Welcome to <span className="text-cyan-600">{branding?.[0]?.name ?? "Your"}</span> Stock Management</span>
+          </div>
           <h2 className="text-center text-2xl font-extrabold text-blue-900 mb-6">
-            Login Here
-          </h2>
+              Login Here
+            </h2>
+            <Form onFinish={onFinish} layout="vertical" className="space-y-5 ">
+              <Form.Item name="email" rules={[{ required: true, message: 'Please enter your email!' }]}>
+                <Input
+                  placeholder="Email"
+                  className="rounded-sm border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-400"
+                />
+              </Form.Item>
 
-          <Form onFinish={onFinish} layout="vertical" className="space-y-5 ">
-            <Form.Item name="email" rules={[{ required: true, message: 'Please enter your email!' }]}>
-              <Input
-                placeholder="Email"
-                className="rounded-sm border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-400"
-              />
-            </Form.Item>
+              <Form.Item name="password" rules={[{ required: true, message: 'Please enter your password!' }]}>
+                <Input.Password
+                  placeholder="Password"
+                  className="rounded-lg border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-400"
+                />
+              </Form.Item>
 
-            <Form.Item name="password" rules={[{ required: true, message: 'Please enter your password!' }]}>
-              <Input.Password
-                placeholder="Password"
-                className="rounded-lg border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-400"
-              />
-            </Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                block
+                size="large"
+                className="rounded-lg font-semibold  hover:from-indigo-500 hover:to-blue-500"
+                loading={loader}
+              >
+                Login
+              </Button>
 
-            <Button
-              type="primary"
-              htmlType="submit"
-              block
-              size="large"
-              className="rounded-lg font-semibold  hover:from-indigo-500 hover:to-blue-500"
-              loading={loader}
-            >
-              Login
-            </Button>
-
-            <Button
-              type="link"
-              block
-              className="text-blue-500 hover:text-indigo-500 mt-2"
-              onClick={() => setForgotModal(true)}
-            >
-              Forgot Password?
-            </Button>
-          </Form>
-        </div></div>
+              <Button
+                type="link"
+                block
+                className="text-blue-500 hover:text-indigo-500 mt-2"
+                onClick={() => setForgotModal(true)}
+              >
+                Forgot Password?
+              </Button>
+            </Form>
+          </div></div>
       </div>
 
       {/* ================= FORGOT PASSWORD MODAL ================= */}
