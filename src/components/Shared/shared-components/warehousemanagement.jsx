@@ -910,7 +910,7 @@ const Warehouse = () => {
         <div className="p-4 bg-zinc-100">
           {/* Warehouse Form */}
           <div className='flex w-full gap-4 items-center flex item-center justify-between bg-zinc-200  px-4'>
-            <h2 className="text-sm md:text-4xl p-2 text-white font-bold [text-shadow:2px_2px_4px_rgba(0,0,0,0.5)]">Warehouse Transfer Page</h2>
+            <h2 className="text-sm text-2xl md:text-3xl p-2 text-white font-bold [text-shadow:2px_2px_4px_rgba(0,0,0,0.5)]">Warehouse Transfer Page</h2>
 
             <div> {productQty && (
               <div className='!text-yellow-200  bg-blue-900 mt-3 md:text-1xl text-sm mb-2 p-2'>
@@ -919,7 +919,7 @@ const Warehouse = () => {
 
             )}</div>
           
-            <div className='mb-4 w-[50%] flex justify-end p-2 '>
+            <div className='mb-4 w-[50%] flex justify-end p-2 mt-2  '>
               <ExchangeCalculator />
             </div>
 
@@ -934,7 +934,7 @@ const Warehouse = () => {
               size='small'
 
             >
-              <div className='md:grid md:grid-cols-8  gap-2'>
+              <div className="!w-full grid grid-cols-2 sm:!grid-cols-2 md:!grid-cols-4 lg:!grid-cols-8 xl:!grid-cols-9 gap-x-1 gap-y-2">
 
                 <Form.Item name="_id" hidden>
                   <Input />
@@ -943,21 +943,23 @@ const Warehouse = () => {
                   <Input />
                 </Form.Item>
                 <Form.Item
-                  label="Product Name"
+                className="!mb-1"
+                  label={<span className="text-[12px] text-gray-600">Product</span>}
                   name="productId"
-                  rules={[{ required: true, message: "Please enter unit name" }]}
+                  rules={[{ required: true, message: "Please enter product name" }]}
                 >
                   <Select
                     value={selectedProduct}
                     onChange={handleProductChange}
                     showSearch
-                    placeholder="Select a Unit"
+                    placeholder="Select a Product"
                     optionFilterProp="label"
                     options={productOptions}
                   />
                 </Form.Item>
                 <Form.Item
-                  label={<span className='!text-red-500'>Quantity</span>}
+                className="!mb-1"
+                  label={<span className="text-[12px] text-red-600 font-semibold">Qty</span>}
                   name="quantity"
                   rules={[{ required: true, message: "Please enter item quantity" }]}
                 >
@@ -965,7 +967,8 @@ const Warehouse = () => {
                     onChange={(e) => setQty(Number(e.target.value))} />
                 </Form.Item>
                 <Form.Item
-                  label="Unit"
+                className="!mb-1"
+                  label={<span className="!text-[12px] text-gray-600">Unit</span>}
                   name="unit"
                   rules={[{ required: true, message: "Please enter unit name" }]}
                 >
@@ -977,10 +980,19 @@ const Warehouse = () => {
                     options={units}
                   />
                 </Form.Item>
+                 <Form.Item
+                 className="!mb-1"
+                  label={<span className="text-[12px] text-red-600 font-semibold">Unit Cost</span>}
+                  name="unitCost"
+                  rules={[{ required: true, message: "Please enter item Price" }]}
+                >
+                  <Input placeholder="Enter enter item Price" onChange={(e) => setUnitCost(Number(e.target.value))}
+                  />
+                </Form.Item>
                 <Form.Item
-                  label="Weight"
+                className="!mb-1"
+                  label={<span className="text-[12px] text-red-600">Weight</span>}
                   name="weight"
-
                   hidden={unit !== "box"}
                 >
                   <Input
@@ -989,7 +1001,21 @@ const Warehouse = () => {
                   />
                 </Form.Item>
                 <Form.Item
-                  label="Supplier Name"
+                className="!mb-1"
+                  label={<span className="text-[12px] text-red-600">Currency</span>}
+                  name="currency"
+                >
+                  <Select
+                    showSearch
+                    placeholder="Enter Currency"
+                    optionFilterProp="label"
+                    options={currencyOptions}
+                    onChange={(value) => currencyChange(value)}
+                  />
+                </Form.Item>
+                <Form.Item
+                className="!mb-1"
+                  label={<span className="text-[12px] text-gray-600">Supplier</span>}
                   name="supplierId"
                   rules={[{ required: true, message: "Please enter supplier name" }]}
                 >
@@ -1002,7 +1028,8 @@ const Warehouse = () => {
                   />
                 </Form.Item>
                 <Form.Item
-                  label="company"
+                className="!mb-1"
+                  label={<span className="text-[12px] text-gray-600">Company</span>}
                   name="companyId"
                   rules={[{ required: true, message: "Please Enter company name" }]}
                 >
@@ -1014,31 +1041,16 @@ const Warehouse = () => {
                   />
                 </Form.Item>
 
-                <Form.Item
-                  label={<span className='!text-red-500'>Unit Cost</span>}
-                  name="unitCost"
-                  rules={[{ required: true, message: "Please enter item Price" }]}
-                >
-                  <Input placeholder="Enter enter item Price" onChange={(e) => setUnitCost(Number(e.target.value))}
-                  />
-                </Form.Item>
-                <Form.Item
-                  label={<span className='!text-red-500'>Currency</span>}
-                  name="currency"
-                >
-                  <Select
-                    showSearch
-                    placeholder="Enter Currency"
-                    optionFilterProp="label"
-                    options={currencyOptions}
-                    onChange={(value) => currencyChange(value)}
-                  />
-                </Form.Item>
-                <Form.Item name="exchangedAmt" label={<span style={{ color: 'blue' }}>Exch Amt</span>}>
+               
+                
+                <Form.Item className="!mb-1"
+                 name="exchangedAmt" 
+                 label={<span className="text-[12px] text-blue-600">Exch Amt</span>}>
                   <Input readOnly
                   />
                 </Form.Item>
                 <Form.Item
+                className="!mb-1"
                   disabled
                   label="Sale Price"
                   name="salePrice"
@@ -1046,7 +1058,8 @@ const Warehouse = () => {
                   <Input disabled value={salePrice} />
                 </Form.Item>
                 <Form.Item
-                  label="Country"
+                className="!mb-1"
+                  label={<span className="text-[12px] text-gray-600">Country</span>}
                   name="countryName"
                 >
                   <Select
@@ -1066,8 +1079,9 @@ const Warehouse = () => {
 
                 </Form.Item>
                 <Form.Item
+                className="!mb-1"
                   name="fromWarehouse"
-                  label={<span className='!text-red-500'>Trfd-From</span>}
+                  label={<span className="text-[12px] !font-bold text-red-600">Trfd-From</span>}
                   rules={[{ required: true, message: "Please select a warehouse" }]}
                 >
                   <Select
@@ -1086,8 +1100,9 @@ const Warehouse = () => {
                 </Form.Item>
 
                 <Form.Item
+                className="!mb-1"
                   name="toWarehouse"
-                  label={<span className='!text-red-500'>Trfd-To</span>}
+                  label={<span className="text-[12px] font-bold text-red-600">Trfd-To</span>}
                   rules={[{ required: true, message: "Please select a warehouse" }]}
                 >
                  <Select
@@ -1105,7 +1120,8 @@ const Warehouse = () => {
                   />
                 </Form.Item>
                 <Form.Item
-                  label="Party No"
+                className="!mb-1"
+                  label={<span className="text-[12px] text-gray-600">Party No</span>}
                   name="party"
                   rules={[{ required: true, message: "Please enter Party No" }]}
                 >
@@ -1115,12 +1131,14 @@ const Warehouse = () => {
 
 
                 <Form.Item
-                  label="Warehouse Date"
+                className="!mb-1"
+                  label={<span className="text-[12px] text-gray-600">Date</span>}
                   name="WarehouseDate"
                 >
                   <DatePicker className="w-full" format="MM/DD/YYYY" />
                 </Form.Item>
                 <Form.Item
+                className="!mb-1"
                   label="userName"
                   name="userName"
 
@@ -1133,14 +1151,17 @@ const Warehouse = () => {
               </div>
 
               <Form.Item
-                label="Description"
+              className="!mb-1"
+                label={<span className="text-[12px] text-gray-600">Description</span>}
                 name="description"
                 rules={[{ required: true, message: "Please enter Description" }]}
               >
                 <TextArea placeholder="Enter enter description"
                 />
               </Form.Item>
-              <Form.Item>
+              <Form.Item
+              className="!mb-1 !mt-4">
+                
                 <Button
                   type="text"
                   htmlType="submit"

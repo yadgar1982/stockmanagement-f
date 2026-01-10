@@ -105,32 +105,32 @@ const Login = () => {
       <div className="flex w-full items-center justify-center h-screen bg-gradient-to-br from-zinc-100 to-zinc-200  md:grid md:grid-cols-3 ">
         <div ></div>
 
-        <div className="w-full px-4 md:w-[70%] h-screen  bg-zinc-500 flex flex-col  justify-center items-center">
+        <div className="w-full px-6 md:w-[100%] lg:w-[70%] h-screen  bg-zinc-500 flex flex-col  justify-center items-center ">
           <div className="flex items-center justify-center gap-1 w-[150px] !border-b !border-zinc-200  h-10 -mt-30 mb-10">
             <Image src="./y-logo.png" width={65} height={25} alt="Logo" />
             <span className="text-white text-xl mt-1 font-semibold">Tech</span>
           </div>
-          <div className=" w-full max-w-md bg-zinc-100 rounded-2xl shadow-2xl p-8">
-            
-           <div className="flex items-center justify-center gap-1 w-full !border-b !border-zinc-200  h-10 mb-5">
-            
-            <span className="text-zinc-500 text-[12px]  font-bold">Welcome to <span className="text-cyan-600">{branding?.[0]?.name ?? "Your"}</span> Stock Management</span>
-          </div>
-          <h2 className="text-center text-2xl font-extrabold text-blue-900 mb-6">
+          <div className=" w-full max-w-md bg-zinc-100 rounded-sm shadow-2xl p-8">
+
+            <div className="flex items-center justify-center gap-1 w-full  !border-b !border-zinc-200  h-10 mb-5">
+
+              <span className="text-zinc-500 text-[12px]  font-bold">Welcome to <span className="text-cyan-600">{branding?.[0]?.name ?? "Your"}</span> Stock Management</span>
+            </div>
+            <h2 className="text-center text-2xl font-extrabold text-blue-900 mb-6">
               Login Here
             </h2>
-            <Form onFinish={onFinish} layout="vertical" className="space-y-5 ">
+            <Form onFinish={onFinish} layout="vertical" className="!space-y-5 ">
               <Form.Item name="email" rules={[{ required: true, message: 'Please enter your email!' }]}>
                 <Input
                   placeholder="Email"
-                  className="rounded-sm border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-400"
+                  className=" border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-400"
                 />
               </Form.Item>
 
               <Form.Item name="password" rules={[{ required: true, message: 'Please enter your password!' }]}>
                 <Input.Password
                   placeholder="Password"
-                  className="rounded-lg border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-400"
+                  className=" border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-400"
                 />
               </Form.Item>
 
@@ -139,7 +139,7 @@ const Login = () => {
                 htmlType="submit"
                 block
                 size="large"
-                className="rounded-lg font-semibold  hover:from-indigo-500 hover:to-blue-500"
+                className=" font-semibold  !bg-cyan-500 hover:!bg-blue-500"
                 loading={loader}
               >
                 Login
@@ -173,14 +173,14 @@ const Login = () => {
             <Form onFinish={sendOtp} layout="vertical" className="space-y-4">
               <h3 className="text-center text-blue-900 font-bold mb-4 text-2xl">Send OTP</h3>
               <Form.Item name="email" rules={[{ required: true, type: 'email', message: 'Enter a valid email' }]}>
-                <Input placeholder="Enter your email" className="rounded-lg" />
+                <Input placeholder="Enter your email" />
               </Form.Item>
               <Button
                 type="primary"
                 htmlType="submit"
                 block
                 size="large"
-                className="rounded-lg bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-indigo-500 hover:to-blue-500"
+                className=" bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-indigo-500 hover:to-blue-500"
                 loading={loader}
               >
                 Send OTP
@@ -192,14 +192,14 @@ const Login = () => {
             <Form onFinish={verifyOtp} layout="vertical" className="space-y-4">
               <h3 className="text-center text-blue-900 font-bold mb-4 text-2xl">Verify OTP</h3>
               <Form.Item name="otp" rules={[{ required: true, message: 'Enter the OTP sent to your email' }]}>
-                <Input placeholder="Enter OTP" className="rounded-lg" />
+                <Input placeholder="Enter OTP"  />
               </Form.Item>
               <Button
                 type="primary"
                 htmlType="submit"
                 block
                 size="large"
-                className="rounded-lg bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-indigo-500 hover:to-blue-500"
+                className="!rounded-sm !bg-gradient-to-r !from-blue-500 !to-indigo-500 hover:from-indigo-500 hover:to-blue-500"
                 loading={loader}
               >
                 Verify OTP

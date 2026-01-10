@@ -26,6 +26,7 @@ const logo = import.meta.env.VITE_LOGO_URL;
 
 
 const Purchase = () => {
+  const [form] = Form.useForm();
   const dispatch = useDispatch();
 
   const token = cookies.get("authToken")
@@ -53,7 +54,7 @@ const Purchase = () => {
   const [isWeight, setIsWeight] = useState(false)
   const [btnText, setBtnText] = useState(edit ? "Update Purchase" : "Add Purchase");
   const [currencyName, setCurrencyName] = useState("")
-  const [form] = Form.useForm();
+
   //get branding
   const branding = JSON.parse(localStorage.getItem("branding") || "null");
 
@@ -205,109 +206,109 @@ const Purchase = () => {
       printWindow.document.body.appendChild(iframe);
 
       const htmlContent = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Order - ${record.orderNo}</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 40px; box-sizing: border-box; }
-    header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; width: 100%; }
-    .company, .vendor { width: 48%; }
-    .company-logo { width: 70px; height: 70px; border-radius: 8px; background:white; border:1px solid #ddd; display:flex; align-items:center; justify-content:center; padding:5px; }
-    .company-info { font-size: 12px; line-height:1.4; color:#444; }
-    .company-info .name { font-weight:bold; font-size:14px; color:#111; }
-    h1 { text-align: center; margin-bottom: 20px; }
-    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-    th, td { border: 1px solid #000; padding: 8px; text-align: left; }
-    th { background: #f0f0f0; }
-    tfoot td { font-weight: bold; }
-    .footer { margin-top: 30px; font-size: 0.9em; }
-    .Order-info { display:flex; justify-content: space-between; width: 100%; margin-bottom: 20px; }
-  </style>
-</head>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <title>Order - ${record.orderNo}</title>
+      <style>
+        body { font-family: Arial, sans-serif; margin: 40px; box-sizing: border-box; }
+        header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; width: 100%; }
+        .company, .vendor { width: 48%; }
+        .company-logo { width: 70px; height: 70px; border-radius: 8px; background:white; border:1px solid #ddd; display:flex; align-items:center; justify-content:center; padding:5px; }
+        .company-info { font-size: 12px; line-height:1.4; color:#444; }
+        .company-info .name { font-weight:bold; font-size:14px; color:#111; }
+        h1 { text-align: center; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #000; padding: 8px; text-align: left; }
+        th { background: #f0f0f0; }
+        tfoot td { font-weight: bold; }
+        .footer { margin-top: 30px; font-size: 0.9em; }
+        .Order-info { display:flex; justify-content: space-between; width: 100%; margin-bottom: 20px; }
+      </style>
+    </head>
 
-<body>
+    <body>
 
-  <!-- Header: Company + supplier -->
-  <header>
-    <!-- Company Info -->
-    <div class="company" style="text-align: left; border: 1px solid #000; padding: 10px; border-radius: 5px;display:flex; gap:10px; align-items:center;">
-      <div class="company-logo" >
-        <img src="${logo}" width="60" style="object-fit:contain;" crossorigin="anonymous" />
-      </div>
-      <div class="company-info ">
-        <div class="name">${branding[0]?.name}</div>
-        <div>${branding[0]?.address || "-"}</div>
-        <div>${branding[0]?.mobile || "-"}</div>
-        <div>
-          <a href="mailto:${branding[0]?.email}" style="color:#0077b6; text-decoration:none;">
-            ${branding[0]?.email}
-          </a>
+      <!-- Header: Company + supplier -->
+      <header>
+        <!-- Company Info -->
+        <div class="company" style="text-align: left; border: 1px solid #000; padding: 10px; border-radius: 5px;display:flex; gap:10px; align-items:center;">
+          <div class="company-logo" >
+            <img src="${logo}" width="60" style="object-fit:contain;" crossorigin="anonymous" />
+          </div>
+          <div class="company-info ">
+            <div class="name">${branding[0]?.name}</div>
+            <div>${branding[0]?.address || "-"}</div>
+            <div>${branding[0]?.mobile || "-"}</div>
+            <div>
+              <a href="mailto:${branding[0]?.email}" style="color:#0077b6; text-decoration:none;">
+                ${branding[0]?.email}
+              </a>
+            </div>
+          </div>
         </div>
+
+        <!-- supplier Info -->
+        <div class="vendor" style="text-align: left; padding-left: 100px; border-radius: 5px;">
+          <strong>Supplier Details:</strong><br>
+          Buyer: ${supplier.fullname || "-"}<br>
+          Address: ${supplier.country || "-"}<br>
+          Phone: ${supplier.mobile || "-"}<br>
+          Email: ${supplier.email || "-"}<br>
+        </div>
+      </header>
+
+      <!-- Order Info (Full Width) -->
+      <div class="Order-info">
+        <div>
+          <div>Order Date: ${new Date(record.createdAt).toLocaleDateString()}</div>
+          <div>Last Due Date: ${formattedDate}</div>
+          <div>Party #: ${record.party}</div>
+        </div>
+      
       </div>
-    </div>
 
-    <!-- supplier Info -->
-    <div class="vendor" style="text-align: left; padding-left: 100px; border-radius: 5px;">
-      <strong>Supplier Details:</strong><br>
-      Buyer: ${supplier.fullname || "-"}<br>
-      Address: ${supplier.country || "-"}<br>
-      Phone: ${supplier.mobile || "-"}<br>
-      Email: ${supplier.email || "-"}<br>
-    </div>
-  </header>
+      <!-- Order Title -->
+      <h2 style="text-align: center; font-size: 24px; font-weight: bold; margin: 20px 0;">Order # ${record.orderNo}</h2>
 
-  <!-- Order Info (Full Width) -->
-  <div class="Order-info">
-    <div>
-      <div>Order Date: ${new Date(record.createdAt).toLocaleDateString()}</div>
-      <div>Last Due Date: ${formattedDate}</div>
-      <div>Party #: ${record.party}</div>
-    </div>
-   
-  </div>
-
-  <!-- Order Title -->
-  <h2 style="text-align: center; font-size: 24px; font-weight: bold; margin: 20px 0;">Order # ${record.orderNo}</h2>
-
-  <!-- Table -->
-  <table>
-    <thead>
-       <tr>
-        <th style="font-size:14px; white-space:nowrap">No</th>
-        <th style="max-width: 300px; white-space: normal; word-wrap: break-word;">Details</th>
-        <th style="font-size:14px; white-space:nowrap">Qty</th>
-        <th style="font-size:14px; white-space:nowrap">Weight</th>
-        <th style="font-size:14px; white-space:nowrap">Total_Qty</th>
-        <th style="font-size:14px; white-space:nowrap">Unit-Price USD</th>
-        <th style="font-size:14px; white-space:nowrap">Exch Price (${record.currency})</th>
-        <th style="font-size:14px; white-space:nowrap">Belongs To</th>
-        <th style="font-size:14px; white-space:nowrap">Total (${record.currency})</th>
-        <th style="font-size:14px; white-space:nowrap">Total USD</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>1</td>
-        <td style="max-width: 300px; white-space: normal; word-wrap: break-word;">${record.description}</td>
-        <td style=" white-space: nowrap;word-wrap: break-word">${record.weight && record.weight > 0
+      <!-- Table -->
+      <table>
+        <thead>
+          <tr>
+            <th style="font-size:14px; white-space:nowrap">No</th>
+            <th style="max-width: 300px; white-space: normal; word-wrap: break-word;">Details</th>
+            <th style="font-size:14px; white-space:nowrap">Qty</th>
+            <th style="font-size:14px; white-space:nowrap">Weight</th>
+            <th style="font-size:14px; white-space:nowrap">Total_Qty</th>
+            <th style="font-size:14px; white-space:nowrap">Unit-Price USD</th>
+            <th style="font-size:14px; white-space:nowrap">Exch Price (${record.currency})</th>
+            <th style="font-size:14px; white-space:nowrap">Belongs To</th>
+            <th style="font-size:14px; white-space:nowrap">Total (${record.currency})</th>
+            <th style="font-size:14px; white-space:nowrap">Total USD</th>
+          </tr>
+        </thead>
+        <tbody>
+        <tr>
+          <td>1</td>
+          <td style="max-width: 300px; white-space: normal; word-wrap: break-word;">${record.description}</td>
+          <td style=" white-space: nowrap;word-wrap: break-word">${record.weight && record.weight > 0
           ? Number(record.quantity) + " " + record.unit
           : Number(record.quantity) + " " + record.unit
         }</td>
-           <td style=" white-space: nowrap;word-wrap: break-word">${record.weight && record.weight > 0
+            <td style=" white-space: nowrap;word-wrap: break-word">${record.weight && record.weight > 0
           ? Number(record.weight).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + " kg"
           : record.quantity + " " + record.unit
         }</td>
-        <td style=" white-space: nowrap;word-wrap: break-word">${(record.quantity * record.weight).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kg</td>
-        <td style="word-wrap: break-word white-space:nowrap">${(record.unitCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-        <td style="word-wrap: break-word white-space:nowrap">${(record.exchangedAmt).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-        <td style="word-wrap: break-word white-space:nowrap">${record.companyName}</td>
-        <td style="word-wrap: break-word white-space:nowrap">${(record.totalLocalCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-        <td>${(record.totalCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-      </tr>
-    </tbody>
-    <tfoot>
+          <td style=" white-space: nowrap;word-wrap: break-word">${(record.quantity * record.weight).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kg</td>
+          <td style="word-wrap: break-word white-space:nowrap">${(record.unitCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td style="word-wrap: break-word white-space:nowrap">${(record.exchangedAmt).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td style="word-wrap: break-word white-space:nowrap">${record.companyName}</td>
+          <td style="word-wrap: break-word white-space:nowrap">${(record.totalLocalCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td>${(record.totalCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        </tr>
+      </tbody>
+      <tfoot>
       <tr>
         <td colspan="8">Subtotal</td>
         <td>${totalLocalCost}</td>
@@ -449,9 +450,6 @@ const Purchase = () => {
       supplierId: record.supplierId,
     });
 
-    setTimeout(() => {
-      setEditText(" ")
-    }, 3000);
 
     const httpReq = http();
     const { data: purchase } = await httpReq.get(`/api/purchase/get/${record._id}`);
@@ -471,177 +469,141 @@ const Purchase = () => {
   }
 
   //Table data
-  const columns = [
-    {
-      title: "S.No",
-      key: "Sno",
-      width: 60,
-      render: (text, record, index) => index + 1,
-    },
-    { title: <span className="text-sm md:!text-1xl font-semibold">Item</span>, dataIndex: 'productName', key: 'productName', width: 90 },
-    {
-      title: <span className="text-sm md:!text-1xl font-semibold">Qty</span>,
-      dataIndex: 'quantity',
-      key: 'quantity',
-      width: 90,
-      render: (_, record) => (
-        <span>{record.quantity} {record.unit}</span>
-      )
-    },
+ const columns = [
+  {
+    title: "S.No",
+    key: "Sno",
+    width: 60,
+    render: (text, record, index) => index + 1,
+    fixed: "left",
+  },
+  { 
+    title: "Item", 
+    dataIndex: 'productName', 
+    key: 'productName', 
+    ellipsis: true, 
+    minWidth: 120 
+  },
+  {
+    title: "Qty",
+    dataIndex: 'quantity',
+    key: 'quantity',
+    minWidth: 90,
+    render: (_, record) => `${record.quantity} ${record.unit}`,
+  },
+  { title: "Supplier", dataIndex: 'supplierName', key: 'supplierName', minWidth: 120, ellipsis: true },
+  { title: "Belong To", dataIndex: 'companyName', key: 'companyName', minWidth: 120, ellipsis: true },
+  { title: "Warehouse", dataIndex: 'warehouseName', key: 'warehouseName', minWidth: 120, ellipsis: true },
+  {
+    title: "Unit Cost $",
+    dataIndex: 'unitCost',
+    key: 'unitCost',
+    minWidth: 110,
+    render: (_, record) => (
+      <span className="flex justify-between">
+        <span>{Number(record.unitCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        <span className="text-blue-500">USD</span>
+      </span>
+    ),
+  },
+  {
+    title: "Total Amt $",
+    dataIndex: "totalCost",
+    key: "totalCost",
+    minWidth: 120,
+    render: (_, record) => (
+      <span className="flex justify-between">
+        <span>{Number(record.totalCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        <span className="text-blue-500">USD</span>
+      </span>
+    ),
+  },
+  {
+    title: "Unit Cost (Local)",
+    dataIndex: "exchangedAmt",
+    key: "exchangedAmt",
+    minWidth: 120,
+    render: (_, record) => (
+      <span className="flex justify-between">
+        <span>{Number(record.exchangedAmt).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        <span className="text-blue-500">{record.currency}</span>
+      </span>
+    ),
+  },
+  {
+    title: "Total Amt (Local)",
+    dataIndex: "totalLocalCost",
+    key: "totalLocalCost",
+    minWidth: 120,
+    render: (_, record) => (
+      <span className="flex justify-between">
+        <span>{Number(record.totalLocalCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        <span className="text-blue-500">{record.currency}</span>
+      </span>
+    ),
+  },
+  { title: "Country", dataIndex: 'countryName', key: 'countryName', minWidth: 100, ellipsis: true },
+  { title: "Batch No", dataIndex: 'batch', key: 'batch', minWidth: 100, ellipsis: true },
+  { title: "Dealer", dataIndex: 'dealerName', key: 'dealerName', minWidth: 100, ellipsis: true },
+  { title: "Fees", dataIndex: 'comission', key: 'comission', minWidth: 80, ellipsis: true },
+  {
+    title: "Pur-Date",
+    dataIndex: 'createdAt',
+    key: 'createdAt',
+    minWidth: 110,
+    render: (date) => date ? dayjs(date).format("DD/MM/YYYY") : "-",
+  },
+  { title: "Description", dataIndex: 'description', key: 'description', minWidth: 150, ellipsis: true },
 
-    { title: <span className="text-sm md:!text-1xl font-semibold">Supplier</span>, dataIndex: 'supplierName', key: 'supplier', width: 120 },
-    { title: <span className="text-sm md:!text-1xl font-semibold">Belong To</span>, dataIndex: 'companyName', key: 'company', width: 120 },
-    { title: <span className="text-sm md:!text-1xl font-semibold">Warehouse</span>, dataIndex: 'warehouseName', key: 'warehouse', width: 120 },
-    {
-      title: <span className="text-sm md:!text-1xl font-semibold">Unit Cost $</span>, dataIndex: 'unitCost', key: 'unitCost',
-      render: (_, record) => (
-        <span className='w-full flex justify-between px-1 gap-1'>
-          <span>{Number(record.unitCost).toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          })}
-          </span>
-          <span className='!text-blue-500'> USD</span>
-        </span>
-      ),
-    },
-    {
-      title: "Total Amt $",
-      dataIndex: "totalCost",
-      key: "totalCost",
-      render: (_, record) => (
-        <span className="w-full flex justify-between px-1 gap-1">
-          <span>{Number(record.totalCost).toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          })}</span>
-          <span className='!text-blue-500'> USD</span>
-        </span>
-      ),
-    },
-    {
-      title: "Unit Cost",
-      dataIndex: "to",
-      key: "exchangedAmt",
-      render: (_, record) => (
-        <span className="w-full flex justify-between px-1 gap-1">
-          <span>{Number(record.exchangedAmt).toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          })}</span>
-          <span className='!text-blue-500'>{record.currency}</span>
-        </span>
-      ),
-    },
-    {
-      title: "Total Amt",
-      dataIndex: "to",
-      key: "exchangedAmt",
-      render: (_, record) => (
-        <span className="w-full flex justify-between px-1 gap-1">
-          <span>{Number(record.totalLocalCost).toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          })}</span>
-          <span className='!text-blue-500'>{record.currency}</span>
-        </span>
-      ),
-    },
-    { title: <span className="text-sm md:!text-1xl font-semibold">Country</span>, dataIndex: 'countryName', key: 'country', width: 120 },
-    { title: <span className="text-sm md:!text-1xl font-semibold">Batch No</span>, dataIndex: 'batch', key: 'batch', width: 120 },
-    { title: <span className="text-sm md:!text-1xl font-semibold">Dealer</span>, dataIndex: 'dealerName', key: 'dealer', width: 120 },
-    { title: <span className="text-sm md:!text-1xl font-semibold">Fees</span>, dataIndex: 'comission', key: 'comission', width: 90 },
-    {
-      title: <span className="text-sm md:!text-1xl font-semibold">Pur-Date</span>, dataIndex: 'createdAt', key: 'createdAt', width: 110,
-      render: (date) => date ? dayjs(date).format("DD/MM/YYYY") : "-", // format date
-    },
-    { title: <span className="text-sm md:!text-1xl font-semibold">Description</span>, dataIndex: 'description', key: 'description', width: 150 },
+  // Actions (fixed right)
+  {
+    title: "Print",
+    key: "print",
+    fixed: "right",
+    width: 60,
+    render: (_, record) => (
+      <PrinterOutlined onClick={() => handlePrint(record)} className="!text-white !cursor-pointer !bg-zinc-500 !p-2 rounded" />
+    ),
+  },
+  {
+    title: "Edit",
+    key: "edit",
+    fixed: "right",
+    width: 60,
+    render: (_, record) => (
+      <EditOutlined onClick={() => handleEdit(record)} className="!text-white !cursor-pointer !bg-zinc-500 !p-2 rounded" />
+    ),
+  },
+  {
+    title: "Pass",
+    key: "isPassed",
+    fixed: "right",
+    width: 60,
+    render: (_, record) => (
+      <Popconfirm
+        title="Are you sure to Pass this Purchase?"
+        onConfirm={() => handleIspassed(record._id)}
+      >
+        <CheckOutlined className="!text-white !cursor-pointer !bg-zinc-500 !p-2 rounded" />
+      </Popconfirm>
+    ),
+  },
+  {
+    title: "Delete",
+    key: "delete",
+    fixed: "right",
+    width: 60,
+    render: (_, record) => (
+      <Popconfirm
+        title="Are you sure to delete this purchase record?"
+        onConfirm={() => handleDelete(record)}
+      >
+        <DeleteOutlined className="!text-white !cursor-pointer !bg-red-500 !p-2 rounded" />
+      </Popconfirm>
+    ),
+  },
+];
 
-    // print
-    {
-      title: (
-        <span className="text-sm md:!text-1xl font-semibold !text-white">
-          Print
-        </span>
-      ),
-      key: "print",
-      width: 40,
-      fixed: "right",
-      render: (_, record) => (
-        <span
-          className="!text-white !w-full !w-[20px] !justify-center !rounded-full cursor-pointer"
-          onClick={() => handlePrint(record)}
-        >
-          <PrinterOutlined className=" !p-2 bg-zinc-600 flex justify-center h-[20px] !w-[30]  md:!w-[100%]  md:text-[15px]" />
-        </span>
-      )
-    }
-    ,
-
-
-    {
-      title: (
-        <span className="text-sm md:!text-1xl font-semibold !text-white">
-          Edit
-        </span>
-      ),
-      key: "edit",
-      width: 20,
-      fixed: "right",
-      render: (_, record) => (
-        <a
-          onClick={() => handleEdit(record)}
-          className="!text-white  !w-[100px] "
-        >
-          <EditOutlined className=" !p-2 bg-blue-700 flex justify-center h-[20px] !w-[30]   md:!w-[100%]  md:text-[15px]" />
-        </a>
-      ),
-    },
-    {
-      title: (
-        <span className="text-sm md:!text-1xl font-semibold !text-white">
-          Pass
-        </span>
-      ),
-      key: "ispassed",
-      width: 20,
-      fixed: "right",
-      render: (_, record) => (
-
-        <Popconfirm
-          title="Are you sure to Pass this Purchase?"
-          description="This action cannot be undone."
-          okText="yes"
-          cancelText="No"
-          onConfirm={async () => handleIspassed(record._id)}
-          className="!text-white  !w-[40px] !rounded-9"
-        >
-
-          <CheckOutlined className=" !p-2 bg-green-700 flex justify-center h-[20px] !w-[30]   md:!w-[100%]  md:text-[15px]" />
-        </Popconfirm>
-      ),
-    },
-    {
-      title: <span className="text-sm md:!text-1xl font-semibold !text-white ">Delete</span>, key: 'delete',
-      width: 20,
-      fixed: "right",
-      render: (_, obj) => (
-        <Popconfirm
-          title="Are you sure to delete this purchase record?"
-          description="This action cannot be undone."
-          okText="yes"
-          cancelText="No"
-          onConfirm={async () => handleDelete(obj)}
-          className="!text-white w-full !w-[100px] !rounded-full"
-        >
-          <a className="!text-white w-full  !rounded-full"><DeleteOutlined className=" !p-2 bg-red-700 flex justify-center h-[20px] !w-[30]   md:!w-[100%]  md:text-[15px]" /></a>
-        </Popconfirm>
-      )
-
-
-    }
-
-  ];
 
   // data source
   const dataSource = purchaseData?.data.filter(item => item.isPassed === false).map((item) => ({
@@ -895,12 +857,12 @@ const Purchase = () => {
           autoClose={3000}
           className="mt-4"
           toastClassName="bg-gray-500 !text-zinc-700 md:text-lg font-semibold rounded-md shadow-lg"
-         
+
         />
         <div className="p-4 bg-zinc-100">
           {/* Purchase Form */}
           <div className='flex w-full gap-4 items-center flex item-center justify-between bg-gradient-to-r from-zinc-300 to-orange-100  px-4'>
-            <h2 className="text-sm md:text-4xl p-2 text-white font-bold [text-shadow:2px_2px_4px_rgba(1,2,2,0.5)]">Create Purchase Record</h2>
+            <h2 className="text-sm md:text-3xl p-2 text-white font-bold [text-shadow:2px_2px_4px_rgba(1,2,2,0.5)]">Create Purchase Record</h2>
             <div> {productQty && (
               <div className='!text-yellow-200  bg-blue-900 mt-3 md:text-1xl text-sm mb-2 p-2'>
                 <span className='text-white'>Availible Qty:</span> {Number(productQty) - Number(productPurchaseQty)},{productUnit || null}
@@ -908,275 +870,296 @@ const Purchase = () => {
 
             )}</div>
 
-            <div className='mb-4 w-[50%] flex justify-end p-2 '>
+            <div className='mb-4 w-[50%] flex justify-end !px-25 p-2 '>
               <ExchangeCalculator />
             </div>
 
 
           </div>
-          <Card className="mb-0 shadow-md !rounded-none !bg-zinc-50 ">
+
+
+          <Card className="mb-0 shadow-sm !rounded-none bg-zinc-50 flex flex-wrap ">
             <Form
               form={form}
               layout="vertical"
+
               onFinish={edit ? onUpdate : onFinish}
-              initialValues={{ userName: userName, purchaseDate: initialPurchaseDate }}
+              initialValues={{
+                userName: userName,
+                purchaseDate: initialPurchaseDate,
+              }}
             >
-              <div className='md:grid md:grid-cols-8 gap-1'>
+              {/* GRID */}
+              <div className="!w-full grid grid-cols-2 sm:!grid-cols-2 md:!grid-cols-4 lg:!grid-cols-8 xl:!grid-cols-9 gap-x-1 gap-y-2">
 
                 <Form.Item name="_id" hidden>
                   <Input />
                 </Form.Item>
 
+                {/* Product */}
                 <Form.Item
-                  label="Product Name"
+                  label={<span className="text-[12px] text-gray-600">Product</span>}
                   name="productId"
-                  rules={[{ required: true, message: "Please select a product" }]}
-                  className="!mb-0"
+                  rules={[{ required: true, message: "Required" }]}
+                  className="!mb-1"
                 >
                   <Select
                     showSearch
-                    placeholder="Select a Product"
+                    placeholder="Product"
                     optionFilterProp="label"
-                    onChange={handleProductChange}
                     options={productOptions}
+                    onChange={handleProductChange}
                   />
                 </Form.Item>
 
+                {/* Quantity */}
                 <Form.Item
-                  label={<span className='text-red-500  font-semibold'>Quantity</span>}
+                  label={<span className="text-[12px] text-red-600 font-semibold">Qty</span>}
                   name="quantity"
-                  rules={[{ required: true, message: "Please enter item quantity" }]}
+                  rules={[{ required: true, message: "Required" }]}
+                  className="!mb-1"
                 >
                   <Input
-                    placeholder="Enter item quantity"
+
                     value={qty}
                     onChange={(e) => setQty(Number(e.target.value))}
                   />
                 </Form.Item>
+
+                {/* Unit Cost */}
                 <Form.Item
-                  label={<span className='text-red-500  font-semibold'>Unit Cost</span>}
+                  label={<span className="text-[12px] text-red-600 font-semibold">Unit Cost</span>}
                   name="unitCost"
-                  rules={[{ required: true, message: "Please enter item Price" }]}
+                  rules={[{ required: true, message: "Required" }]}
+                  className="!mb-1"
                 >
                   <Input
-                    placeholder="Enter item Price"
+
                     value={unitCost}
                     onChange={handleUnitCost}
                   />
                 </Form.Item>
+
+                {/* Unit */}
                 <Form.Item
-                  label="Unit"
+                  label={<span className="!text-[12px] text-gray-600">Unit</span>}
                   name="unit"
-                  rules={[{ required: true, message: "Please enter unit name" }]}
+                  rules={[{ required: true, message: "Required" }]}
+                  className="!mb-1"
                 >
                   <Select
-                    value={unit}
-                    onChange={(e) => setUnit(e)}
+
                     showSearch
-                    placeholder="Select a Unit"
-                    optionFilterProp="label"
+                    value={unit}
                     options={units}
+                    onChange={setUnit}
                   />
                 </Form.Item>
 
+                {/* Weight */}
                 <Form.Item
-                  label={<span className='text-red-500  font-semibold'>Weight</span>}
+                  label={<span className="text-[12px] text-red-600">Weight</span>}
                   name="weight"
                   hidden={!(unit === "box" || isWeight)}
+                  className="!mb-1"
                 >
-                  <Input
-                    value={weight}
-                    onChange={handleWeightChange}
-                  />
+                  <Input value={weight} onChange={handleWeightChange} />
                 </Form.Item>
+
+                {/* Currency */}
                 <Form.Item
-                  label={<span className='text-red-500  font-semibold'>Currency</span>}
+                  label={<span className="text-[12px] text-red-600">Currency</span>}
                   name="currency"
+                  className="!mb-1"
                 >
                   <Select
-                    value={currencyName}
+
                     showSearch
-                    placeholder="Enter Currency"
-                    optionFilterProp="label"
+                    value={currencyName}
                     options={currencyOptions}
                     onChange={currencyChange}
                   />
-
                 </Form.Item>
 
+                {/* Exchange */}
                 <Form.Item
+                  label={<span className="text-[12px] text-blue-600">Exch Amt</span>}
                   name="exchangedAmt"
-                  label={<span className='text-blue-500  font-semibold'>Exch Amt</span>}
+                  className="!mb-1"
                 >
-                  <Input readOnly value={exchangedAmt} />
+                  <Input readOnly />
                 </Form.Item>
 
+                {/* Sale Price */}
                 <Form.Item
-                  label="Sale Price"
+                  label={<span className="text-[12px] text-gray-600">Sale Price</span>}
                   name="salePrice"
+                  className="!mb-1"
                 >
                   <Input disabled value={salePrice} />
                 </Form.Item>
 
+                {/* Supplier */}
                 <Form.Item
-                  label="Supplier Name"
+                  label={<span className="text-[12px] text-gray-600">Supplier</span>}
                   name="supplierId"
-                  rules={[{ required: true, message: "Please enter supplier name" }]}
+                  rules={[{ required: true, message: "Required" }]}
+                  className="!mb-1"
                 >
                   <Select
-                    value={supplierData?.supplierId || undefined}
-                    onChange={(e) => supplierChange(e)}
-                    showSearch
-                    placeholder="Select a Supplier"
-                    optionFilterProp="label"
+
                     options={supplierOptions}
+                    onChange={supplierChange}
+                    showSearch
                   />
                 </Form.Item>
 
+                {/* Company */}
                 <Form.Item
-                  label="Company"
+                  label={<span className="text-[12px] text-gray-600">Company</span>}
                   name="companyId"
-                  rules={[{ required: true, message: "Please Enter company name" }]}
+                  rules={[{ required: true, message: "Required" }]}
+                  className="!mb-1"
                 >
-                  <Select
-                    value={form.getFieldValue("companyId")}
-                    showSearch
-                    placeholder="Select a Company"
-                    optionFilterProp="label"
-                    options={companyOptions}
-                  />
+                  <Select showSearch options={companyOptions} />
                 </Form.Item>
 
+                {/* Warehouse */}
                 <Form.Item
-                  label="Warehouse"
+                  label={<span className="text-[12px] text-gray-600">Warehouse</span>}
                   name="warehouseId"
-                  rules={[{ required: true, message: "Please Enter warehouse name" }]}
+                  rules={[{ required: true, message: "Required" }]}
+                  className="!mb-1"
                 >
                   <Select
-                    value={form.getFieldValue("warehouseId")}
-                    showSearch
-                    placeholder="Select a Warehouse"
-                    optionFilterProp="label"
                     options={stockOptions}
-                  />
+                    showSearch
+                    optionFilterProp="label" />
                 </Form.Item>
 
-
-
-
+                {/* Country */}
                 <Form.Item
-                  label="Country"
+                  label={<span className="text-[12px] text-gray-600">Country</span>}
                   name="countryName"
+                  className="!mb-1"
                 >
-                  <Select
-                    placeholder="Select a country"
-                    showSearch
-                    optionFilterProp="children"
-                    filterOption={(input, option) =>
-                      option.children.toLowerCase().includes(input.toLowerCase())
-                    }
-                  >
-                    {countries.map((country) => (
-                      <Option key={country.value} value={country.value}>
-                        {country.label}
-                      </Option>
+                  <Select showSearch optionFilterProp="children">
+                    {countries.map(c => (
+                      <Select.Option key={c.value} value={c.value}>
+                        {c.label}
+                      </Select.Option>
                     ))}
                   </Select>
                 </Form.Item>
 
+                {/* Batch */}
                 <Form.Item
-                  label="Batch No"
+                  label={<span className="text-[12px] text-gray-600">Batch</span>}
                   name="batch"
-                  rules={[{ required: true, message: "Please enter batch No" }]}
+                  rules={[{ required: true, message: "Required" }]}
+                  className="!mb-1"
                 >
-                  <Input placeholder="Enter Batch No" />
+                  <Input placeholder="Enter enter Batch No" />
                 </Form.Item>
 
+                {/* Party */}
                 <Form.Item
-                  label="Party No"
+                  label={<span className="text-[12px] text-gray-600">Party</span>}
                   name="party"
-                  rules={[{ required: true, message: "Please enter Party No" }]}
+                  rules={[{ required: true, message: "Required" }]}
+                  className="!mb-1"
                 >
-                  <Input placeholder="Enter Party No" />
+                  <Input placeholder="Enter enter Party No" />
                 </Form.Item>
 
+                {/* Dealer */}
                 <Form.Item
-                  label="Dealer"
+                  label={<span className="text-[12px] text-gray-600">Dealer</span>}
                   name="dealerId"
+                  className="!mb-1"
                 >
-                  <Select
-                    value={form.getFieldValue("dealerId")}
-                    showSearch
-                    placeholder="Enter Dealer"
-                    optionFilterProp="label"
-                    options={dealerOptions}
-                  />
+                  <Select options={dealerOptions} placeholder="Enter Dealer"
+                    optionFilterProp="label" />
                 </Form.Item>
 
+                {/* Commission */}
                 <Form.Item
-                  label="Comission"
+                  label={<span className="text-[12px] text-gray-600">Commission</span>}
                   name="comission"
-                  rules={[{ required: true, message: "Please enter Comission" }]}
+                  rules={[{ required: true, message: "Required" }]}
+                  className="!mb-1"
                 >
-                  <Input placeholder="Enter comission" />
+                  <Input placeholder="Enter enter comission" />
                 </Form.Item>
 
+                {/* Date */}
                 <Form.Item
-                  label="Purchase Date"
+                  label={<span className="text-[12px] text-gray-600">Date</span>}
                   name="purchaseDate"
+                  className="!mb-1"
                 >
-                  <DatePicker className="w-full" format="MM/DD/YYYY" />
+                  <DatePicker className="w-full" format="DD/MM/YYYY" />
                 </Form.Item>
 
+                {/* User */}
                 <Form.Item
-                  label="userName"
+                  label={<span className="text-[12px] text-gray-600">User</span>}
                   name="userName"
+                  className="!mb-1"
                 >
-                  <Input disabled className='!text-red-600' />
+                  <Input disabled className="!text-red-600" />
                 </Form.Item>
-
               </div>
 
+              {/* Description */}
               <Form.Item
-                label="Description"
+                label={<span className="text-[12px] text-gray-600">Description</span>}
                 name="description"
-                rules={[{ required: true, message: "Please enter Description" }]}
+                rules={[{ required: true, message: "Required" }]}
+                className="!mt-1 !rounded-none"
               >
-                <TextArea placeholder="Enter description" />
+                <Input.TextArea
+                  rows={4}
+                  placeholder="Enter description"
+                  className="!rounded-none !resize-y !w-full"
+                />
               </Form.Item>
 
-              <Form.Item>
+              {/* Submit */}
+              <Form.Item className="!mt-2">
                 <Button
-                  type="text"
+                  type='text'
                   htmlType="submit"
+
                   disabled={btnDisabled}
-                  className={`w-[200px] md:!h-[30px] !shadow-zinc-500 !shadow-lg !text-white hover:!shadow-lg hover:!shadow-zinc-800 hover:!text-white !font-bold 
-        ${edit ? "!bg-orange-500 hover:!bg-orange-600" : "!bg-blue-500 hover:!bg-green-500 !rounded-none"}
-        ${btnDisabled ? "!bg-gray-400 hover:!bg-gray-400 cursor-not-allowed" : ""}`}
+                  className={`px-6 !text-xs !font-semibold !text-white
+          ${edit ? "!bg-orange-500" : "!bg-blue-500"}
+          ${btnDisabled ? "!bg-gray-400 !cursor-not-allowed" : ""}
+        `}
                 >
                   {btnText}
                 </Button>
               </Form.Item>
+
             </Form>
-
           </Card>
-
 
         </div>
         <div>
           <div className='text-zinc-600 md:text-lg text-sm p-4 font-bold'>Purchase Records:</div>
         </div>
-        <div className="w-full   overflow-x-auto">
+        <div className="w-full   overflow-x-content">
 
 
-          <div className="text-xs w-[100%] mx-auto px-4">
+          <div className="text-xs w-content  px-4">
             <Table
               rowKey="_id"
               columns={columns}
-              dataSource={dataSource}
+              dataSource={dataSource || []}
               bordered
               scroll={{ x: 'max-content' }}
               sticky
+              size='small'
               pagination={{
                 pageSize: 10,
                 showSizeChanger: true,
@@ -1184,8 +1167,10 @@ const Purchase = () => {
               }}
               className="compact-table"
               style={{
-                tableLayout: 'fixed',
+                width: '100%',
+                tableLayout: 'auto', 
                 borderRadius: 0,
+
               }}
             />
 

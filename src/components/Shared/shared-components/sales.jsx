@@ -466,178 +466,147 @@ const Sales = () => {
   }
 
   //Table data
-  const columns = [
-    {
-      title: "S.No",
-      key: "Sno",
-      width: 60,
-      render: (text, record, index) => index + 1,
-    },
-    { title: <span className="text-sm md:!text-1xl font-semibold">Item</span>, dataIndex: 'productName', key: 'productName', width: 90 },
-    {
-      title: <span className="text-sm md:!text-1xl font-semibold">Qty</span>,
-      dataIndex: 'quantity',
-      key: 'quantity',
-      width: 90,
-      render: (_, record) => (
-        <span>{record.quantity} {record.unit}</span>
-      )
-    },
+ const columns = [
+  {
+    title: "S.No",
+    key: "Sno",
+    width: 60,
+    render: (text, record, index) => index + 1,
+    fixed: "left",
+  },
+  { 
+    title: "Item", 
+    dataIndex: 'productName', 
+    key: 'productName', 
+    ellipsis: true, 
+    minWidth: 120 
+  },
+  {
+    title: "Qty",
+    dataIndex: 'quantity',
+    key: 'quantity',
+    minWidth: 80,
+    render: (_, record) => `${record.quantity} ${record.unit}`,
+  },
+  { title: "Customer", dataIndex: 'customerName', key: 'customerName', minWidth: 120, ellipsis: true },
+  { title: "Belong To", dataIndex: 'companyName', key: 'companyName', minWidth: 120, ellipsis: true },
+  { title: "Warehouse", dataIndex: 'warehouseName', key: 'warehouseName', minWidth: 120, ellipsis: true },
+  {
+    title: "Unit Cost $",
+    dataIndex: 'unitCost',
+    key: 'unitCost',
+    minWidth: 100,
+    render: (_, record) => (
+      <span className="flex justify-between">
+        <span>{Number(record.unitCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        <span className="text-blue-500">USD</span>
+      </span>
+    ),
+  },
+  {
+    title: "Total Amt $",
+    dataIndex: "totalCost",
+    key: "totalCost",
+    minWidth: 110,
+    render: (_, record) => (
+      <span className="flex justify-between">
+        <span>{Number(record.totalCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        <span className="text-blue-500">USD</span>
+      </span>
+    ),
+  },
+  {
+    title: "Unit Cost (Local)",
+    dataIndex: "exchangedAmt",
+    key: "exchangedAmt",
+    minWidth: 110,
+    render: (_, record) => (
+      <span className="flex justify-between">
+        <span>{Number(record.exchangedAmt).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        <span className="text-blue-500">{record.currency}</span>
+      </span>
+    ),
+  },
+  {
+    title: "Total Amt (Local)",
+    dataIndex: "totalLocalCost",
+    key: "totalLocalCost",
+    minWidth: 120,
+    render: (_, record) => (
+      <span className="flex justify-between">
+        <span>{Number(record.totalLocalCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        <span className="text-blue-500">{record.currency}</span>
+      </span>
+    ),
+  },
+  { title: "Country", dataIndex: 'countryName', key: 'countryName', minWidth: 100, ellipsis: true },
+  { title: "Batch No", dataIndex: 'batch', key: 'batch', minWidth: 100, ellipsis: true },
+  { title: "Dealer", dataIndex: 'dealerName', key: 'dealerName', minWidth: 100, ellipsis: true },
+  { title: "Fees", dataIndex: 'comission', key: 'comission', minWidth: 80, ellipsis: true },
+  {
+    title: "Pur-Date",
+    dataIndex: 'createdAt',
+    key: 'createdAt',
+    minWidth: 110,
+    render: (date) => date ? dayjs(date).format("DD/MM/YYYY") : "-",
+  },
+  { title: "Description", dataIndex: 'description', key: 'description', minWidth: 150, ellipsis: true },
 
-    { title: <span className="text-sm md:!text-1xl font-semibold">Customer</span>, dataIndex: 'customerName', key: 'customer', width: 120 },
-    { title: <span className="text-sm md:!text-1xl font-semibold">Belong To</span>, dataIndex: 'companyName', key: 'company', width: 120 },
-    { title: <span className="text-sm md:!text-1xl font-semibold">Warehouse</span>, dataIndex: 'warehouseName', key: 'warehouse', width: 120 },
-    {
-      title: <span className="text-sm md:!text-1xl font-semibold">Unit Cost $</span>, dataIndex: 'unitCost', key: 'unitCost',
-      render: (_, record) => (
-        <span className='w-full flex justify-between px-1 gap-1'>
-          <span>{Number(record.unitCost).toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          })}
-          </span>
-          <span className='!text-blue-500'> USD</span>
-        </span>
-      ),
-    },
-    {
-      title: "Total Amt $",
-      dataIndex: "totalCost",
-      key: "totalCost",
-      render: (_, record) => (
-        <span className="w-full flex justify-between px-1 gap-1">
-          <span>{Number(record.totalCost).toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          })}</span>
-          <span className='!text-blue-500'> USD</span>
-        </span>
-      ),
-    },
-    {
-      title: "Unit Cost",
-      dataIndex: "to",
-      key: "exchangedAmt",
-      render: (_, record) => (
-        <span className="w-full flex justify-between px-1 gap-1">
-          <span>{Number(record.exchangedAmt).toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          })}</span>
-          <span className='!text-blue-500'>{record.currency}</span>
-        </span>
-      ),
-    },
-    {
-      title: "Total Amt",
-      dataIndex: "to",
-      key: "exchangedAmt",
-      render: (_, record) => (
-        <span className="w-full flex justify-between px-1 gap-1">
-          <span>{Number(record.totalLocalCost).toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          })}</span>
-          <span className='!text-blue-500'>{record.currency}</span>
-        </span>
-      ),
-    },
+  // Actions (fixed right)
+  {
+    title: "Print",
+    key: "print",
+    fixed: "right",
+    width: 60,
+    render: (_, record) => (
+      <PrinterOutlined
+        onClick={() => handlePrint(record)}
+        className="!text-white !cursor-pointer !bg-zinc-500 !p-2 !rounded"
+      />
+    ),
+  },
+  {
+    title: "Edit",
+    key: "edit",
+    fixed: "right",
+    width: 60,
+    render: (_, record) => (
+      <EditOutlined
+        onClick={() => handleEdit(record)}
+        className="!text-white !cursor-pointer !bg-zinc-500 !p-2 !rounded"
+      />
+    ),
+  },
+  {
+    title: "Pass",
+    key: "isPassed",
+    fixed: "right",
+    width: 60,
+    render: (_, record) => (
+      <Popconfirm
+        title="Are you sure to Pass this Purchase?"
+        onConfirm={() => handleIspassed(record._id)}
+      >
+        <CheckOutlined className="!text-white !cursor-pointer !bg-zinc-500 !p-2 !rounded" />
+      </Popconfirm>
+    ),
+  },
+  {
+    title: "Delete",
+    key: "delete",
+    fixed: "right",
+    width: 60,
+    render: (_, record) => (
+      <Popconfirm
+        title="Are you sure to delete this purchase record?"
+        onConfirm={() => handleDelete(record)}
+      >
+        <DeleteOutlined className="!text-white !cursor-pointer !bg-red-500 !p-2 !rounded" />
+      </Popconfirm>
+    ),
+  },
+];
 
-    { title: <span className="text-sm md:!text-1xl font-semibold">Country</span>, dataIndex: 'countryName', key: 'country', width: 120 },
-    { title: <span className="text-sm md:!text-1xl font-semibold">Batch No</span>, dataIndex: 'batch', key: 'batch', width: 120 },
-    { title: <span className="text-sm md:!text-1xl font-semibold">Dealer</span>, dataIndex: 'dealerName', key: 'dealer', width: 120 },
-    { title: <span className="text-sm md:!text-1xl font-semibold">Fees</span>, dataIndex: 'comission', key: 'comission', width: 90 },
-    {
-      title: <span className="text-sm md:!text-1xl font-semibold">Pur-Date</span>, dataIndex: 'createdAt', key: 'createdAt', width: 110,
-      render: (date) => date ? dayjs(date).format("DD/MM/YYYY") : "-", // format date
-    },
-    { title: <span className="text-sm md:!text-1xl font-semibold">Description</span>, dataIndex: 'description', key: 'description', width: 150 },
-
-    // print
-    {
-      title: (
-        <span className="text-sm md:!text-1xl font-semibold !text-white">
-          Print
-        </span>
-      ),
-      key: "print",
-      width: 40,
-      fixed: "right",
-      render: (_, record) => (
-        <span
-          className="!text-white !w-full !w-[20px] !justify-center !rounded-full cursor-pointer"
-          onClick={() => handlePrint(record)}
-        >
-          <PrinterOutlined className=" !p-2 bg-zinc-600 flex justify-center h-[20px] !w-[30]  md:!w-[100%]  md:text-[15px]" />
-        </span>
-      )
-    }
-    ,
-
-
-    {
-      title: (
-        <span className="text-sm md:!text-1xl font-semibold !text-white">
-          Edit
-        </span>
-      ),
-      key: "edit",
-      width: 20,
-      fixed: "right",
-      render: (_, record) => (
-        <a
-          onClick={() => handleEdit(record)}
-          className="!text-white  !w-[100px] "
-        >
-          <EditOutlined className=" !p-2 bg-blue-700 flex justify-center h-[20px] !w-[30]   md:!w-[100%]  md:text-[15px]" />
-        </a>
-      ),
-    },
-    {
-      title: (
-        <span className="text-sm md:!text-1xl font-semibold !text-white">
-          Pass
-        </span>
-      ),
-      key: "ispassed",
-      width: 20,
-      fixed: "right",
-      render: (_, record) => (
-
-        <Popconfirm
-          title="Are you sure to Pass this Purchase?"
-          description="This action cannot be undone."
-          okText="yes"
-          cancelText="No"
-          onConfirm={async () => handleIspassed(record._id)}
-          className="!text-white  !w-[40px] !rounded-9"
-        >
-
-          <CheckOutlined className=" !p-2 bg-green-700 flex justify-center h-[20px] !w-[30]   md:!w-[100%]  md:text-[15px]" />
-        </Popconfirm>
-      ),
-    },
-    {
-      title: <span className="text-sm md:!text-1xl font-semibold !text-white ">Delete</span>, key: 'delete',
-      width: 20,
-      fixed: "right",
-      render: (_, obj) => (
-        <Popconfirm
-          title="Are you sure to delete this purchase record?"
-          description="This action cannot be undone."
-          okText="yes"
-          cancelText="No"
-          onConfirm={async () => handleDelete(obj)}
-          className="!text-white w-full !w-[100px] !rounded-full"
-        >
-          <a className="!text-white w-full  !rounded-full"><DeleteOutlined className=" !p-2 bg-red-700 flex justify-center h-[20px] !w-[30]   md:!w-[100%]  md:text-[15px]" /></a>
-        </Popconfirm>
-      )
-
-
-    }
-
-  ];
 
   // data source
   const dataSource = salesData
@@ -860,37 +829,38 @@ const Sales = () => {
           position="top-center"
           autoClose={3000}
           className="mt-4"
-          toastClassName="bg-gray-500 !text-zinc-700 md:text-lg font-semibold rounded-md shadow-lg"
+          toastClassName="bg-gray-500 !text-zinc-700 !text-sm font-semibold  shadow-lg"
 
         />
-        <div className="p-4  bg-zinc-50">
+        <div className="p-4  bg-zinc-100">
           {/* Sales Form */}
-          <div className='flex w-full gap-4 items-center flex item-center justify-between bg-gradient-to-r from-zinc-300 to-orange-100 p-2'>
+          <div className='flex w-[100%] gap-4 items-center flex item-center justify-between bg-gradient-to-r from-zinc-300 to-orange-100  px-4'>
             <h2 className='text-sm md:text-4xl p-2 text-white font-bold [text-shadow:2px_2px_4px_rgba(1,2,2,0.5)]'>Create Sale Record</h2>
             <div> {productQty && (
-              <div className='text-yellow-200 bg-blue-900 font-bold p-2 mt-3 md:text-1xl text-sm mb-2'>
+              <div className='!text-yellow-200  bg-blue-900 mt-3 md:text-1xl text-sm mb-2 p-2'>
                 <span className='text-white'>Availible Qty:</span> {productQty - productSaleQty},{productUnit || null}
               </div>
             )}</div>
-            <div className='mb-4 w-[50%] flex justify-end '>
+             <div className='mb-4 w-[50%] flex justify-end !px-25 p-2 '>
               <ExchangeCalculator />
             </div>
 
           </div>
-          <Card className="mb-0 shadow-md !rounded-none !bg-zinc-50 ">
+          <Card className="!mb-0  shadow-sm rounded-none bg-zinc-50 flex flex-wrap ">
             <Form
               form={form}
               layout="vertical"
               onFinish={edit ? onUpdate : onFinish}
               initialValues={{ userName: userName, salesDate: initialSalesDate }}
             >
-              <div className="md:grid md:grid-cols-8 gap-2">
+              <div className=" !w-full grid grid-cols-2 sm:!grid-cols-2 md:!grid-cols-4 lg:!grid-cols-8 xl:!grid-cols-9 gap-x-1 gap-y-2">
                 <Form.Item name="_id" hidden>
                   <Input />
                 </Form.Item>
 
                 <Form.Item
-                  label="Product Name"
+                  className="!mb-1"
+                  label={<span className="text-[12px] text-gray-600">Product</span>}
                   name="productId"
                   rules={[{ required: true, message: "Please enter product Name" }]}
                 >
@@ -901,15 +871,18 @@ const Sales = () => {
                     placeholder="Select a product"
                     optionFilterProp="label"
                     options={productOptions}
+
                   />
                 </Form.Item>
 
                 <Form.Item
-                  label="Category"
+                  label={<span className="text-[12px] text-gray-600 font-semibold">Category</span>}
                   name="categoryName"
                   rules={[{ required: true, message: "Please enter category" }]}
+                  className="!mb-1"
                 >
                   <Select
+
                     value={myCategory}
                     onChange={handleCategoryChange}
                     showSearch
@@ -920,30 +893,39 @@ const Sales = () => {
                 </Form.Item>
 
                 <Form.Item
-                  label={<span className='!text-red-500 !font-semibold'>Quantity</span>}
+                  label={<span className='text-[12px] text-red-600 font-semibold'>Qty</span>}
                   name="quantity"
                   rules={[{ required: true, message: "Please enter item quantity" }]}
+                  className="!mb-1"
                 >
                   <Input
+
                     placeholder="Enter item quantity"
                     onChange={(e) => setQty(Number(e.target.value))}
                   />
                 </Form.Item>
                 <Form.Item
-                  label={<span className='!text-red-500 !font-semibold'>Unit Cost</span>}
+                  label={<span className='text-[12px] text-red-600 font-semibold'>Unit Cost</span>}
                   name="unitCost"
+                  className="!mb-1"
                   rules={[{ required: true, message: "Please enter item Price" }]}
                 >
-                  <Input placeholder="Enter enter item Price" onChange={handleUnitCost} />
+                  <Input
+
+                    value={unitCost}
+                    onChange={handleUnitCost}
+                  />
                 </Form.Item>
 
                 <Form.Item
-                  label="Unit"
+                  label={<span className="!text-[12px] text-gray-600">Unit</span>}
                   name="unit"
                   rules={[{ required: true, message: "Please enter unit name" }]}
+                  className="!mb-1"
                 >
                   <Select
                     onChange={(e) => setUnit(e)}
+
                     showSearch
                     placeholder="Select a Unit"
                     optionFilterProp="label"
@@ -952,18 +934,22 @@ const Sales = () => {
                 </Form.Item>
 
                 <Form.Item
-                  label={<span className='!text-red-500 !font-semibold'>Weight</span>}
+                  label={<span className="text-[12px] text-red-600">Weight</span>}
                   name="weight"
                   hidden={!(unit === "box" || isWeight)}
+                  className="!mb-1"
                 >
                   <Input value={weight} onChange={handleWeightChange} />
                 </Form.Item>
 
-                <Form.Item 
-                label={<span className='!text-red-500 !font-semibold'>Currency</span>}
-                 name="currency">
+                <Form.Item
+                  label={<span className="text-[12px] text-red-600">Currency</span>}
+                  name="currency"
+                  className="!mb-1">
+
                   <Select
                     showSearch
+
                     placeholder="Enter Currency"
                     optionFilterProp="label"
                     options={currencyOptions}
@@ -972,63 +958,65 @@ const Sales = () => {
                 </Form.Item>
 
                 <Form.Item
-                  label={<span className='!text-blue-500 !font-semibold'>Exch Amt</span>}
+                  label={<span className="text-[12px] text-blue-600">Exch Amt</span>}
                   name="exchangedAmt"
+                  className="!mb-1"
                 >
-                  <Input
-                    readOnly
-                    value={(form.getFieldValue("exchangedAmt") || 0).toLocaleString(
-                      undefined,
-                      { minimumFractionDigits: 2, maximumFractionDigits: 2 }
-                    )}
-                  />
+                  
+                  <Input readOnly />
                 </Form.Item>
                 <Form.Item
-                  label="Customer"
+                  label={<span className="text-[12px] text-gray-600">Customer</span>}
                   name="customerId"
                   rules={[{ required: true, message: "Please enter customer name" }]}
+                  className="!mb-1"
                 >
                   <Select
                     onChange={(e) => customerChange(e)}
                     showSearch
-                    placeholder="Select a customer"
+
                     optionFilterProp="label"
                     options={customerOptions}
                   />
                 </Form.Item>
 
                 <Form.Item
-                  label="Company"
+                  label={<span className="text-[12px] text-gray-600">Company</span>}
                   name="companyId"
                   rules={[{ required: true, message: "Please Enter company name" }]}
+                  className="!mb-1"
                 >
                   <Select
                     showSearch
-                    placeholder="Select a customer"
+
                     optionFilterProp="label"
                     options={companyOptions}
                   />
                 </Form.Item>
 
                 <Form.Item
-                  label="Warehouse"
+                  label={<span className="text-[12px] text-gray-600">Warehouse</span>}
                   name="warehouseId"
                   rules={[{ required: true, message: "Please Enter warehouse name" }]}
+                  className="!mb-1"
                 >
                   <Select
                     showSearch
-                    placeholder="Select a customer"
                     optionFilterProp="label"
                     options={stockOptions}
+
                   />
                 </Form.Item>
 
 
 
 
-                <Form.Item label="Country" name="countryName">
+                <Form.Item label={<span className="text-[12px] text-gray-600">Country</span>}
+                  name="countryName"
+                  className="!mb-1">
+
                   <Select
-                    placeholder="Select a country"
+
                     showSearch
                     optionFilterProp="children"
                     filterOption={(input, option) =>
@@ -1044,63 +1032,79 @@ const Sales = () => {
                 </Form.Item>
 
                 <Form.Item
-                  label="Batch No"
+                  label={<span className="text-[12px] text-gray-600">Batch</span>}
                   name="batch"
                   rules={[{ required: true, message: "Please enter batch No" }]}
+                  className="!mb-1"
                 >
                   <Input placeholder="Enter enter Batch No" />
                 </Form.Item>
 
                 <Form.Item
-                  label="Party"
+                  label={<span className="text-[12px] text-gray-600">Party</span>}
                   name="party"
+                  className="!mb-1"
                   rules={[{ required: true, message: "Please enter Party No" }]}
                 >
                   <Input placeholder="Enter enter Party No" />
                 </Form.Item>
 
-                <Form.Item label="Dealer" name="dealerId">
+                <Form.Item label={<span className="text-[12px] text-gray-600">Dealer</span>}
+                  name="dealerId"
+                  className="!mb-1"
+                >
                   <Select
                     showSearch
                     placeholder="Enter Dealer"
                     optionFilterProp="label"
                     options={dealerOptions}
+
                   />
                 </Form.Item>
 
                 <Form.Item
-                  label="Comission"
+                  label={<span className="text-[12px] text-gray-600">Commission</span>}
                   name="comission"
                   rules={[{ required: true, message: "Please enter Comission" }]}
+                  className="!mb-1"
                 >
                   <Input placeholder="Enter enter comission" />
                 </Form.Item>
 
-                <Form.Item label="Sales Date" name="salesDate">
+                <Form.Item label={<span className="text-[12px] text-gray-600">Date</span>}
+                  name="salesDate"
+                  className="!mb-1">
                   <DatePicker className="w-full" format="DD/MM/YYYY" />
                 </Form.Item>
 
-                <Form.Item label="userName" name="userName">
-                  <Input value={userName} disabled className="!text-red-600" />
+                <Form.Item label={<span className="text-[12px] text-gray-600">User</span>}
+                  name="userName"
+                  className="!mb-1">
+                  <Input disabled className="!text-red-600" />
                 </Form.Item>
               </div>
 
               <Form.Item
-                label="Description"
+                label={<span className="text-[10px] text-gray-600">Description</span>}
                 name="description"
-                rules={[{ required: true, message: "Please enter Description" }]}
+                rules={[{ required: true, message: "Required" }]}
+                className="!mt-1 !rounded-none"
               >
-                <TextArea placeholder="Enter enter description" />
+                <Input.TextArea
+                  rows={4}
+                  placeholder="Enter description"
+                  className="!rounded-none !resize-y !w-full"
+                />
               </Form.Item>
-
-              <Form.Item>
+              <Form.Item className="!mt-2">
                 <Button
                   type="text"
                   htmlType="submit"
                   disabled={btnDisabled}
-                  className={`w-[200px] md:!h-[30px] !shadow-zinc-500 !shadow-lg !text-white hover:!shadow-lg hover:!shadow-zinc-800 hover:!text-white !font-bold 
-        ${edit ? "!bg-orange-500 hover:!bg-orange-600" : "!bg-blue-500 hover:!bg-green-500 !rounded-none"}
-        ${btnDisabled ? "!bg-gray-400 hover:!bg-gray-400 cursor-not-allowed" : ""}`}
+                  className={`px-6 !text-xs !font-semibold !text-white
+          ${edit ? "!bg-orange-500" : "!bg-blue-500"}
+          ${btnDisabled ? "!bg-gray-400 !cursor-not-allowed" : ""}
+        `}
                 >
                   {btnText}
                 </Button>
@@ -1117,13 +1121,15 @@ const Sales = () => {
         <div className="w-full   overflow-x-auto">
 
 
-          <div className="text-xs w-[100%] mx-auto px-4">
+          <div className="text-xs w-full  px-4">
             <Table
+              rowKey="_id"
               columns={columns}
-              dataSource={dataSource || ""}
+              dataSource={dataSource || []}
               bordered
               scroll={{ x: 'max-content' }}
               sticky
+              size='small'
               pagination={{
                 pageSize: 10,
                 showSizeChanger: true,
@@ -1131,7 +1137,8 @@ const Sales = () => {
               }}
               className="compact-table"
               style={{
-                tableLayout: 'fixed',
+                width: '100%',
+                tableLayout: 'auto', 
                 borderRadius: 0,
               }}
             />

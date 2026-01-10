@@ -121,7 +121,7 @@ const User = () => {
   return (
     <UserLayout>
 
-      <div className="w-full flex justify-center items-center py-6">
+      <div className="w-full !bg-zinc-50 flex justify-center items-center py-6">
         <h1
           className="
       text-orange-500
@@ -145,7 +145,7 @@ const User = () => {
 
           size={size}
           items={items}
-          className="!w-full !bg-zinc-200"
+          className="!w-full !bg-white"
           tabBarGutter={0}
         
           tabBarStyle={{ height: 55, display: "flex", alignItems: "center" }}

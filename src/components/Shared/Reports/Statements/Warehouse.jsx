@@ -10,10 +10,10 @@ import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import { toast } from 'react-toastify';
 import { all } from 'axios';
-
+import UserLayout from '../../UserLayout';
 import { Table, Tag } from "antd";
 import 'antd/dist/reset.css';
-
+import { CalendarOutlined } from "@ant-design/icons";
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
 const { RangePicker } = DatePicker;
@@ -195,8 +195,6 @@ const Statements = () => {
     setTableData(finalData);
 
   }, [stId, selectedCurrency, dateRange, mystocksData]);
-
-
 
 
   const handlePrintStatement = (dataToPrint) => {
@@ -487,11 +485,8 @@ const handlePrintAllwareHouse = () => {
 </body>
 </html>
 `;
-
-  // ✅ Correct usage
+ 
   newWindow.document.documentElement.innerHTML = html;
-
-  // ✅ Wait for images before printing
   const images = newWindow.document.images;
   let loaded = 0;
 
@@ -511,8 +506,6 @@ const handlePrintAllwareHouse = () => {
   }
 };
 
-
-
   const columns = [
     {
       title: "Date",
@@ -522,7 +515,7 @@ const handlePrintAllwareHouse = () => {
       sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
     },
     {
-      title: "W-House",
+      title: "WH",
       dataIndex: "warehouseName",
       key: "warehouseName",
     },
@@ -608,35 +601,46 @@ const handlePrintAllwareHouse = () => {
 
 
   return (
-    <div className="w-screen  flex flex-col gap-6 overflow-auto bg-white !justify-center ">
-      <h1 className="md:text-xl text-sm px-8  text-zinc-500 font-extrabold !mt-5" style={{ fontFamily: 'Poppins, sans-serif' }}>
-        Warehouse Financial Statements:
-      </h1>
-      <Button
-        type="default"
-        onClick={handlePrintAllwareHouse} // your print function
-        className=" !mx-8 !text-white !font-bold !bg-green-600 hover:!bg-green-500 !w-[10rem] text-white"
-      >
-        Print All warehouses
-      </Button>
-      {/* Form container - small width on large screens, full width on mobile */}
-      <div className=" md:w-[350px] bg-white flex pmb-9 p-4 mx-8 border border-zinc-200 items-center justify-center">
-        <Form layout="horizontal" className="flex flex-col gap-0">
+      <UserLayout>
 
-          <div className="flex gap-1 !justify-between">
+      <div className='px-2'>
+        <h1 className="md:text-xl text-sm px-2 !mb-3 text-yellow-700 font-extrabold " style={{ fontFamily: 'Poppins, sans-serif' }}>
+          Warehouse Financial Statements:
+        </h1>
+
+        {/* Form container - small width on large screens, full width on mobile */}
+        <div className=" !w-full bg-white flex  !p mb-9 p-4  border border-zinc-200 items-center justify-left !top-5">
+          <Form layout="horizontal" className="flex !px-2 flex-col md:flex-row-hidden lg:flex-row xl:flex-row sxl:flex-row  gap-2">
+
+
             <Form.Item
-              name="warehouseId"
-              rules={[{ required: true, message: "Please select a customer" }]}
-              className="m-0 "
-
+              name="WarehouseId"
+              rules={[{ required: true, message: "Please select a Warehouse" }]}
+              className="m-0"
             >
               <Select
-                onChange={handleStockStatement}
                 showSearch
-                placeholder="Select a warehouse"
-                optionFilterProp="label"
-                options={allStock.map(s => ({ label: `${s.stockName}`, value: s._id }))}
-
+                placeholder="Warehouse"
+                onChange={handleStockStatement}
+                style={{ width: "100%",minWidth:"200px" }}
+                optionLabelProp="label"
+                filterOption={(input, option) =>
+                  option?.searchText
+                    ?.toLowerCase()
+                    .includes(input.toLowerCase())
+                }
+                options={allStock.map((s) => ({
+                  value: s._id,
+                  searchText: ` ${s.stockName}`, // 👈 searchable text
+                  label: (
+                    <span
+                      className="truncate block text-[12px] font-semibold"
+                      title={`${s.stockName} `}
+                    >
+                      {`${s.stockName}`}
+                    </span>
+                  ),
+                }))}
               />
             </Form.Item>
 
@@ -644,63 +648,97 @@ const handlePrintAllwareHouse = () => {
             <Form.Item
               name="currencyId"
               rules={[{ required: true, message: "Please select a currency" }]}
-              className="!rounded-none m-0"
+              className=" m-0"
+
             >
               <Select
-                onChange={(e) => handleCurrencyStatement(e)}
+                style={{ width: "100%",minWidth:"120" }}
+                onChange={handleCurrencyStatement}
                 showSearch
-                placeholder="Select a Currency"
+                placeholder="Currency"
                 optionFilterProp="label"
+                
                 options={[...new Set(allWarehouse.map(s => s.currency))].map(c => ({ label: c, value: c }))}
               />
+
             </Form.Item>
-          </div>
 
-          {/* Date range picker */}
-          <Form.Item name="dateRange" className="m-0">
-            <RangePicker className="!w-[100%]" value={dateRange.length ? dateRange : undefined} onChange={(dates) => setDateRange(dates || [])} allowClear />
-          </Form.Item>
 
-          {/* Buttons row: two columns, no gap */}
-          <div className="flex gap-2">
+            {/* Date range picker */}
+            <Form.Item name="dateRange" className="m-0 !rounded-none">
+
+              <RangePicker
+                style={{ width: "100%",minWidth:"200px" }}
+                size="small"
+                value={dateRange.length ? dateRange : undefined}
+                onChange={(dates) => setDateRange(dates || [])}
+                allowClear
+                suffixIcon={<CalendarOutlined className='!text-[25px]  !px-4 !md:px-0 !text-zinc-500' />}
+              />
+            </Form.Item>
+
+            {/* Buttons row: two columns, no gap */}
+
             <Button
-              className="!bg-zinc-400 !text-lg hover:!bg-zinc-300 !border-zinc-400 !text-white hover:!text-black flex-1 !h-8 !rounded-none"
+              className="!bg-zinc-400  hover:!bg-zinc-300 !border-zinc-400 !text-white !font-bold hover:!text-black flex-1  !rounded-none"
               onClick={handleData}
             >
               <PrinterOutlined />
+              <span className="!text-transparent">s</span>
+            </Button>
+           
+            <Button
+              type="default"
+              onClick={handlePrintAllwareHouse} // your print function
+              className=" !bg-zinc-400  hover:!bg-zinc-300 !border-zinc-400 !text-white !font-semibold hover:!text-black flex-1  !rounded-none ml-0"
+            >
+              <PrinterOutlined />
+              <span className=" "> All-Warehouses</span>
             </Button>
 
-          </div>
-        </Form>
+          </Form>
 
-      </div>
-
-      {/* Table Section - full width */}
-      <div className="w-full bg-zinc-50 px-4 h-auto py-4 ">
-        <h2 className="text-zinc-500 text-[10px] md:text-lg font-semibold mb-0">Statement</h2>
-
-        <div className="w-full overflow-x-auto ">
-          <Table
-            columns={columns}
-            dataSource={tableData.map((item, index) => ({ ...item, key: index }))}
-            bordered
-            pagination={{ pageSize: 5 }}
-            scroll={{ x: '100%' }}
-            className="w-full"
-            size="small"
-          />
         </div>
 
-        {tableData.length > 0 && (
-          <div className="text-right font-bold h-10 !text-[14px] md:text-base">
-            Total Balance: $
-            {tableData
-              .reduce((sum, item) => sum + (item.credit || 0) - (item.debit || 0), 0)
-              .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </div>
-        )}
+        {/* Table Section - full width */}
+        <div className="!w-full bg-zinc-50 px-2 h-auto py-4 ">
+          <h2 className="text-zinc-500 !text-[10px] md:!text-lg font-semibold mb-0">Statement</h2>
+
+
+            <Table
+              columns={columns}
+              dataSource={tableData.map((item, index) => ({ ...item, key: index }))}
+              bordered
+              pagination={{ pageSize: 5 }}
+              scroll={{ x: 'max-content'}}
+              className="!w-full !h-[100%] !text-[10px] "
+              size="small"
+            />
+     
+
+          {/* bal table */}
+          {tableData.length > 0 && (() => {
+            const total = tableData.reduce(
+              (sum, item) => sum + (item.credit || 0) - (item.debit || 0),
+              0
+            );
+
+            return (
+              <div
+                className={`text-right font-bold h-10 !text-[14px] md:text-base ${total < 0 ? 'text-red-500' : ''
+                  }`}
+              >
+                Total Balance: $
+                {total.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </div>
+            );
+          })()}
+        </div>
       </div>
-    </div>
+    </UserLayout>
   );
 };
 

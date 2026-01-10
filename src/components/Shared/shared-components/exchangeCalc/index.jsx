@@ -1,173 +1,149 @@
+"use client";
 import React, { useEffect, useState } from "react";
-import { Input, Button, Card, Form, Select, Table, Popconfirm, Modal } from "antd"
-const { TextArea } = Input;
-import { fetchCurrency } from "../../../../redux/slices/currencySlice"
-import { useDispatch, useSelector } from "react-redux";
-import { toast } from "react-toastify";
+import { Input, Button, Form, Select, Modal,Avatar } from "antd";
 import { ArrowLeftOutlined, ArrowRightOutlined } from "@ant-design/icons";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchCurrency } from "../../../../redux/slices/currencySlice";
+import { toast } from "react-toastify";
 
 const ExchangeCalculator = () => {
   const [form] = Form.useForm();
   const dispatch = useDispatch();
 
+  const [openCalc, setOpenCalc] = useState(false);
+  const [handleX, setHandleX] = useState(false);
+  const [result, setResult] = useState(null);
 
-
-  //calculator modal
-  const [opencalc, setOpenCalc] = useState(false)
-  const [firstNumber, setFirstNumber] = useState(0)
-  const [secondNumber, setSecondNumber] = useState(0)
-  const [result, setResult] = useState(0)
-  const [handleX, setHandleX] = useState(false)
-  const [readResult, setReadResult] = useState(0)
-  const { currencies, crloading, crerror } = useSelector((state) => state.currencies);
+  const { currencies } = useSelector((state) => state.currencies);
   const allCurrencies = currencies?.data || [];
-  const currency = allCurrencies.map((item) => ({
-    currencyName: item.currency,
-    rate: item.rate,
-    dealerId: item._id,
+
+  const currencyOptions = allCurrencies.map((item) => ({
+    label: item.currency,
+    value: item.rate,
   }));
-  const currencyOptions = currency.map((cur) => ({
-    label: cur.currencyName,
-    value: cur.rate,
-  }))
+
+  // Fetch currencies
   useEffect(() => {
-    dispatch(fetchCurrency)
-  }, [])
+    dispatch(fetchCurrency());
+  }, [dispatch]);
 
-  //exchange calculator code
-  const onCalculate = (data) => {
-    if (!firstNumber) {
-      return toast.error("Please Enter amont to exchange!")
-    }
-    if (handleX !== true) {
-      const calculate1 = Number(firstNumber) * Number(secondNumber);
-      setResult(calculate1);
-    } else {
-      const calculate2 = Number(firstNumber) / Number(secondNumber);
-      setResult(calculate2);
+  // Calculation
+  const onCalculate = (values) => {
+    const { firstNumber, secondNumber } = values;
+
+    if (!firstNumber || !secondNumber) {
+      return toast.error("Please enter amount and select a currency!");
     }
 
+    const num1 = Number(firstNumber);
+    const num2 = Number(secondNumber);
+
+    const calc = handleX ? num1 / num2 : num1 * num2;
+    setResult(calc.toFixed(2));
   };
-
-  useEffect(() => {
-    setReadResult(result)
-    form.setFieldsValue({ result: result.toFixed(2) });
-  }, [result]);
-
-  const firstChange = (value) => {
-    setFirstNumber(value)
-  }
-  const secondChange = (value) => {
-    setSecondNumber(value)
-  }
-
-
 
   return (
     <>
-      <Button type="text" className="!flex !mt-5 !items-center !justify-center !px-4 !py-2 !rounded-lg !text-black !font-bold 
-         !bg-gradient-to-r from-[#FFD700] to-[#FFE680]
-         hover:from-[#FFE680] hover:to-[#FFD700]
-         !transition-all !duration-300" onClick={() => setOpenCalc(true)}>
-        Exchange
+      <Button
+        type="text"
+        size="small"
+        className="!bg-cyan-600 !text-white !font-semibold !h-6 !mt-2 !px-2 !p-4 !hidden lg:!flex md:!flex "
+        onClick={() => setOpenCalc(true)}
+      >
+      $ Exch
       </Button>
 
       <Modal
+        open={openCalc}
+        onCancel={() => setOpenCalc(false)}
         footer={null}
         title={
-          <div className="w-full flex ">
-            <span className="text-1xl font-bold text-purple-600  w-[95%] ">
-              EXCHANGE RATE
-            </span>
-          </div>
+          <span className="text-lg font-bold text-zinc-600">
+            EXCHANGE CALCULATOR
+          </span>
         }
-        closable={{ 'aria-label': 'Custom Close Button' }}
-        open={opencalc}
-        onCancel={() => setOpenCalc(false)}
-
+        centered
       >
         <Form
-          form={form}                
-          className="!bg-white !p-6 !rounded-xl shadow-lg"
+          form={form}
           layout="vertical"
-          onFinish={onCalculate}      
-          size="small"
+          onFinish={onCalculate}
+          className="!bg-white !p-6 !rounded-sm shadow-lg"
         >
-          {/* Toggle Button */}
-          <div className="mb-4">
+          {/* Toggle USD / LOCAL */}
+          <Form.Item>
             <Button
               type="text"
-              className="!h-8 !text-white w-full py-3 !shadow-md rounded-lg text-xl font-bold text-white !bg-purple-500 hover:!bg-blue-500 transition-all duration-300"
-              onClick={() => setHandleX(prev => !prev)}
+              onClick={() => setHandleX((prev) => !prev)}
+              className="!w-full !py-3 !bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-gray-50 hover:!to-zinc-100 !text-white hover:!text-blue-700 hover:!border-sm hover:!border-blue-500 !rounded-none font-bold text-lg transition-all duration-300"
             >
-              {handleX
-                ? <span className="md:text-xl font-bold">USD <ArrowLeftOutlined/>  LOCAL</span>
-                : <span className="md:text-xl font-bold">USD <ArrowRightOutlined/>  LOCAL</span>
-              }
+              {handleX ? (
+                <>
+                  USD <ArrowLeftOutlined className="!text-lg !px-4" /> LOCAL
+                </>
+              ) : (
+                <>
+                  USD <ArrowRightOutlined className="!text-lg !px-4" /> LOCAL
+                </>
+              )}
             </Button>
-          </div>
+          </Form.Item>
 
           {/* Amount Input */}
           <Form.Item
-            label={<span className="text-lg font-semibold text-gray-700">Enter Amount Here</span>}
+            label="Enter Amount"
             name="firstNumber"
+            rules={[{ required: true, message: "Please enter amount!" }]}
           >
             <Input
               type="number"
-              onChange={(e) => firstChange(e.target.value)}
-              className="!text-2xl font-bold text-purple-700 !rounded-lg md:!h-12 border-2 border-purple-400 p-3 focus:!ring-2 focus:!ring-purple-300 focus:!border-purple-500 transition-all duration-200"
               placeholder="0.00"
+              className="!text-2xl !font-bold !text-zinc-700 !rounded-none  p-3 focus:!ring-2 focus:!ring-zinc-300 focus:!border-zinc-500 transition-all duration-200"
             />
           </Form.Item>
 
           {/* Currency Select */}
           <Form.Item
-            label={<span className="text-lg font-semibold text-gray-700">Select Currency</span>}
+            label="Select Currency"
             name="secondNumber"
+            rules={[{ required: true, message: "Please select currency!" }]}
           >
             <Select
-              showSearch
-              placeholder="Enter Currency"
-              optionFilterProp="label"
+              placeholder="Select Currency"
               options={currencyOptions}
-              onChange={(value) => secondChange(value)}
-              className="!text-2xl font-bold text-purple-700 !rounded-lg md:!h-12 border-2 border-purple-400 p-3 focus:!ring-2 focus:!ring-purple-300 focus:!border-purple-500 transition-all duration-200"
+              showSearch
+              optionFilterProp="label"
+              className="!text-xl !font-bold !text-zinc-700 !rounded-none  p-3 focus:!ring-2 focus:!ring-zinc-300 focus:!border-zinc-500 transition-all duration-200"
             />
           </Form.Item>
 
           {/* Submit Button */}
-          <Form.Item className="mt-4">
+          <Form.Item>
             <Button
-              type="text"
               htmlType="submit"
-              className="!h-8 !text-white w-full py-3 !shadow-md rounded-lg text-xl font-bold text-white !bg-purple-500 hover:!bg-blue-500 transition-all duration-300"
+              className="!w-full !py-3 !bg-gradient-to-r from-blue-500 to-cyan-300 hover:from-blue-500 hover:to-blue-300 !text-white !rounded-none !font-bold !text-lg !transition-all !duration-300"
             >
-              <span className="md:text-xl font-bold p-4">Get Your Exchanged Rate</span>
+              Get Exchanged Rate
             </Button>
           </Form.Item>
 
-          {/* Result TextArea */}
-          <Form.Item label={<span className="text-lg font-semibold text-gray-700">Result</span>}>
-          
-            <Input.TextArea
-              className=" !bg-zinc-50 !text-2xl font-bold text-purple-700 !rounded-lg md:!h-12 border-2 border-purple-400 p-3 focus:!ring-2 focus:!ring-purple-300 focus:!border-purple-500 transition-all duration-200"
-              value={
-                readResult
-                  ? `${Number(readResult).toLocaleString("en-US", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}`
-                  : ""
-              }
-              readOnly
-            />
-          </Form.Item>
+          {/* Result */}
+          {result && (
+            <Form.Item label="Result">
+              <Input.TextArea
+                value={Number(result).toLocaleString("en-US", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+                readOnly
+                className="!text-2xl !font-bold !text-zinc-700 !rounded-sm !border-2 !border-blue-400 p-3 !bg-white transition-all duration-200"
+              />
+            </Form.Item>
+          )}
         </Form>
-
-
       </Modal>
     </>
-  )
-}
+  );
+};
 
 export default ExchangeCalculator;

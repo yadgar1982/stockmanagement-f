@@ -39,6 +39,13 @@ const CusPayment = lazy(() => import("./components/Shared/shared-components/paym
 const DelPayment = lazy(() => import("./components/Shared/shared-components/payments/dealerPayment"));
 const OtherPayments = lazy(() => import("./components/Shared/shared-components/payments/otherPayments"));
 const CompanyPayments = lazy(() => import("./components/Shared/shared-components/payments/companyPayments"));
+const SupplierReport = lazy(() => import("./components/Shared/Reports/Statements/supplier"));
+const CustomerReport = lazy(() => import("./components/Shared/Reports/Statements/customer"));
+const DealerReport = lazy(() => import("./components/Shared/Reports/Statements/dealer"));
+const WareHouseReport = lazy(() => import("./components/Shared/Reports/Statements/Warehouse"));
+const CashBook = lazy(() => import("./components/Shared/Reports/Statements/cashbook"));
+const CompanyReport = lazy(() => import("./components/Shared/Reports/Statements/company"));
+const PartyReport = lazy(() => import("./components/Shared/Reports/Statements/party"));
 
 
 const Admin = lazy(() => import("./components/Admin"));
@@ -84,6 +91,15 @@ function App() {
             <Route path="/dealerPayments" element={<ProtectedRoute role="user"><DelPayment /></ProtectedRoute>} />
             <Route path="/companyPayments" element={<ProtectedRoute role="user"><CompanyPayments /></ProtectedRoute>} />
             <Route path="/otherPayments" element={<ProtectedRoute role="user"><OtherPayments /></ProtectedRoute>} />
+            {/* reports */}
+            <Route path="/supplierStatement" element={<ProtectedRoute role="user"><SupplierReport /></ProtectedRoute>} />
+            <Route path="/customerStatement" element={<ProtectedRoute role="user"><CustomerReport /></ProtectedRoute>} />
+            <Route path="/dealerStatement" element={<ProtectedRoute role="user"><DealerReport /></ProtectedRoute>} />
+            <Route path="/companyStatement" element={<ProtectedRoute role="user"><CompanyReport /></ProtectedRoute>} />
+            <Route path="/cashbook" element={<ProtectedRoute role="user"><CashBook /></ProtectedRoute>} />
+            <Route path="/warehouseStatement" element={<ProtectedRoute role="user"><WareHouseReport /></ProtectedRoute>} />
+            <Route path="/party" element={<ProtectedRoute role="user"><PartyReport /></ProtectedRoute>} />
+            
 
             
 

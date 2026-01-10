@@ -46,6 +46,10 @@ const Admin = () => {
   const [myPayable, setMyPayable] = useState([])
   const [myReceivable, setMyReceivable] = useState([])
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 5;
+
+
   const { dealers } = useSelector(state => state.dealers)
   const allDealers = dealers?.data || [];
 
@@ -618,7 +622,7 @@ ${allSupplierBalances.length ? `
     },
   ];
 
-  
+
   return (
     <AdminLayOut>
 
@@ -628,20 +632,20 @@ ${allSupplierBalances.length ? `
 
         <div className="min-h-screen bg-gradient-to-b from-gray-100 via-gray-50 to-gray-100 font-sans">
           {/* Header */}
-          <header className="bg-white shadow-md py-6 px-8 mb-8 rounded-b-xl">
-            <h1 className="md:text-4xl font-extrabold text-orange-600 tracking-tight">Company Analytics Dashboard</h1>
+          <header className="bg-white shadow-sm py-6 px-8 mb-8 ">
+            <h1 className="md:text-4xl font-extrabold text-zinc-600 tracking-tight">Company Analytics Dashboard</h1>
 
           </header>
 
-         
+
           {/* Cards Grid */}
-          <div className="px-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="px-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Dealer Card */}
             <Card
-              className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 p-6"
+              className="relative overflow-hidden !rounded-none  hover:shadow-xl transition-shadow duration-300 p-6"
             >
 
-              <div className="absolute top-0 left-0 h-2 w-full bg-gradient-to-r from-orange-400 via-red-400 to-orange-400"></div>
+              <div className="absolute top-0 left-0 h-2 w-full bg-zinc-400"></div>
 
               <div className="mb-4">
                 <h2 className="text-xl font-bold text-gray-800">Dealers:</h2>
@@ -649,41 +653,41 @@ ${allSupplierBalances.length ? `
 
 
               <div className="space-y-2">
-                <p className="text-gray-600 text-[12px] md:text-xl text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
+                <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
                   Total Dealers:{" "}
-                  <span className="text-blue-500 font-bold text-[12px] md:text-xl">{dealerNo}</span>
+                  <span className="text-blue-500 font-bold text-[12px] md:text-sm">{dealerNo}</span>
                 </p>
-                <p className="text-gray-600 text-[12px] md:text-xl text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
+                <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
                   Total Comission + Adv:{" "}
                   <span
                     className={
                       dealerComission <= 0
-                        ? "text-red-500 font-bold text-[12px] md:text-xl"
-                        : "text-orange-500 font-bold text-[12px] md:text-xl"
+                        ? "text-red-500 font-bold text-[12px] md:text-sm"
+                        : "text-orange-500 font-bold text-[12px] md:text-sm"
                     }
                   >
                     $ {dealerComission.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </p>
-                <p className="text-gray-600 text-[12px] md:text-xl text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
+                <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
                   Total Paid to Dealers:{" "}
                   <span
                     className={
                       dealerPayment <= 0
-                        ? "text-red-500 font-bold text-[12px] md:text-xl"
-                        : "text-green-500 font-bold text-[12px] md:text-xl"
+                        ? "text-red-500 font-bold text-[12px] md:text-sm"
+                        : "text-green-500 font-bold text-[12px] md:text-sm"
                     }
                   >
                     $ {dealerPayment.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </p>
-                <p className="text-gray-600 text-[12px] md:text-xl text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
+                <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
                   Total Dealers Balance:{" "}
                   <span
                     className={
                       dealerBalance <= 0
-                        ? "text-red-500 font-bold text-[12px] md:text-xl"
-                        : "text-green-500 font-bold text-[12px] md:text-xl"
+                        ? "text-red-500 font-bold text-[12px] md:text-sm"
+                        : "text-green-500 font-bold text-[12px] md:text-sm"
                     }
                   >
                     $ {dealerBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -697,63 +701,63 @@ ${allSupplierBalances.length ? `
 
             {/* Supplier Card */}
             <Card
-              className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 p-6"
+              className="relative overflow-hidden !rounded-none  hover:shadow-xl transition-shadow duration-300 p-6"
             >
-              <div className="absolute top-0 left-0 h-2 w-full bg-gradient-to-r from-orange-400 via-red-400 to-orange-400"></div>
+              <div className="absolute top-0 left-0 h-2 w-full bg-zinc-400"></div>
 
               <div className="mb-4">
                 <h2 className="text-xl font-bold text-gray-800">Suppliers:</h2>
               </div>
               <div className="space-y-2">
-                <p className="text-gray-600 text-[12px] md:text-xl text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
+                <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
                   Total Suppliers:{" "}
-                  <span className="text-blue-500 font-bold text-[12px] md:text-xl">{supplierNo}</span>
+                  <span className="text-blue-500 font-bold text-[12px] md:text-sm">{supplierNo}</span>
                 </p>
 
-                <p className="text-gray-600 text-[12px] md:text-xl text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
+                <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
                   Total Purchase Qty:{" "}
                   <span
                     className={
                       myPurchaseQty <= 0
-                        ? "text-red-500 font-bold text-[12px] md:text-xl"
-                        : "text-blue-500 font-bold text-[12px] md:text-xl"
+                        ? "text-red-500 font-bold text-[12px] md:text-sm"
+                        : "text-blue-500 font-bold text-[12px] md:text-sm"
                     }
                   >
                     {(myPurchaseQty / 1000).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })} tons
 
                   </span>
                 </p>
-                <p className="text-gray-600 text-[12px] md:text-xl text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
+                <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
                   Total Purchase + Adv:{" "}
                   <span
                     className={
                       myPurchase <= 0
-                        ? "text-red-500 font-bold text-[12px] md:text-xl"
-                        : "text-orange-500 font-bold text-[12px] md:text-xl"
+                        ? "text-red-500 font-bold text-[12px] md:text-sm"
+                        : "text-orange-500 font-bold text-[12px] md:text-sm"
                     }
                   >
                     $ {myPurchase.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </p>
-                <p className="text-gray-600 text-[12px] md:text-xl text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
+                <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
                   Total Payment Amt:{" "}
                   <span
                     className={
                       sPayment <= 0
-                        ? "text-red-500 font-bold text-[12px] md:text-xl"
-                        : "text-blue-500 font-bold text-[12px] md:text-xl"
+                        ? "text-red-500 font-bold text-[12px] md:text-sm"
+                        : "text-blue-500 font-bold text-[12px] md:text-sm"
                     }
                   >
                     $ {sPayment.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </p>
-                <p className="text-gray-600 text-[12px] md:text-xl text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
+                <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
                   Total Supplier Balance:{" "}
                   <span
                     className={
                       supplierBalance <= 0
-                        ? "text-red-500 font-bold text-[12px] md:text-xl"
-                        : "text-green-500 font-bold text-[12px] md:text-xl"
+                        ? "text-red-500 font-bold text-[12px] md:text-sm"
+                        : "text-green-500 font-bold text-[12px] md:text-sm"
                     }
                   >
                     $ {supplierBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -766,10 +770,10 @@ ${allSupplierBalances.length ? `
             </Card>
             {/* Customer Card */}
             <Card
-              className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 p-6"
+              className="relative overflow-hidden !rounded-none  hover:shadow-xl transition-shadow duration-300 p-6"
             >
 
-              <div className="absolute top-0 left-0 h-2 w-full bg-gradient-to-r from-orange-400 via-red-400 to-orange-400"></div>
+              <div className="absolute top-0 left-0 h-2 w-full bg-zinc-400"></div>
 
               <div className="mb-4">
                 <h2 className="text-xl font-bold text-gray-800">Customers:</h2>
@@ -777,54 +781,54 @@ ${allSupplierBalances.length ? `
 
 
               <div className="space-y-2">
-                <p className="text-gray-600 text-[12px] md:text-xl text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
+                <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
                   Total Customers:{" "}
-                  <span className="text-blue-500 font-bold text-[12px] md:text-xl">{customerNo}</span>
+                  <span className="text-blue-500 font-bold text-[12px] md:text-sm">{customerNo}</span>
                 </p>
-                <p className="text-gray-600 text-[12px] md:text-xl text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
+                <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
                   Total Sales Qty:{" "}
                   <span
                     className={
                       mySalesQty <= 0
-                        ? "text-red-500 font-bold text-[12px] md:text-xl"
-                        : "text-blue-500 font-bold text-[12px] md:text-xl"
+                        ? "text-red-500 font-bold text-[12px] md:text-sm"
+                        : "text-blue-500 font-bold text-[12px] md:text-sm"
                     }
                   >
                     {(mySalesQty / 1000).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })} Tons
 
                   </span>
                 </p>
-                <p className="text-gray-600 text-[12px] md:text-xl text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
+                <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
                   Total Sales + Adv:{" "}
                   <span
                     className={
                       mySales <= 0
-                        ? "text-red-500 font-bold text-[12px] md:text-xl"
-                        : "text-orange-500 font-bold text-[12px] md:text-xl"
+                        ? "text-red-500 font-bold text-[12px] md:text-sm"
+                        : "text-orange-500 font-bold text-[12px] md:text-sm"
                     }
                   >
                     $ {mySales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </p>
-                <p className="text-gray-600 text-[12px] md:text-xl text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
+                <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
                   Total Received Amt:{" "}
                   <span
                     className={
                       cPayment <= 0
-                        ? "text-red-500 font-bold text-[12px] md:text-xl"
-                        : "text-blue-500 font-bold text-[12px] md:text-xl"
+                        ? "text-red-500 font-bold text-[12px] md:text-sm"
+                        : "text-blue-500 font-bold text-[12px] md:text-sm"
                     }
                   >
                     $ {cPayment.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </p>
-                <p className="text-gray-600 text-[12px] md:text-xl text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
+                <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
                   Customers Bal:{" "}
                   <span
                     className={
                       customerBalance <= 0
-                        ? "text-red-500 font-bold text-[12px] md:text-xl"
-                        : "text-green-500 font-bold text-[12px] md:text-xl"
+                        ? "text-red-500 font-bold text-[12px] md:text-sm"
+                        : "text-green-500 font-bold text-[12px] md:text-sm"
                     }
                   >
                     $ {customerBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -837,23 +841,23 @@ ${allSupplierBalances.length ? `
             </Card>
             {/* Company Balance Card */}
             <Card
-              className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 p-6"
+              className="relative overflow-hidden !rounded-none  hover:shadow-xl transition-shadow duration-300 p-6"
             >
-              <div className="absolute top-0 left-0 h-2 w-full bg-gradient-to-r from-orange-400 via-red-400 to-orange-400"></div>
+              <div className="absolute top-0 left-0 h-2 w-full bg-zinc-400"></div>
               <div className="relative z-10">
                 <div className="mb-4">
                   <h2 className="text-xl font-bold text-gray-800">Company Balance:</h2>
                 </div>
-                <p className="text-gray-600 text-[12px] md:text-xl text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
-                  Total Company: <span className="text-blue-500 font-bold text-[12px] md:text-xl">{companyNo}</span>
+                <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
+                  Total Company: <span className="text-blue-500 font-bold text-[12px] md:text-sm">{companyNo}</span>
                 </p>
 
 
-                <p className="text-gray-600 text-[12px] md:text-xl text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
-                  Total Payable: <span className="text-red-500 font-bold text-[12px] md:text-xl"> $ {myPayable.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
+                  Total Payable: <span className="text-red-500 font-bold text-[12px] md:text-sm"> $ {myPayable.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </p>
-                <p className="text-gray-600 text-[12px] md:text-xl text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
-                  Total Receivable: <span className="text-green-500 font-bold text-[12px] md:text-xl"> $ {myReceivable.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
+                  Total Receivable: <span className="text-green-500 font-bold text-[12px] md:text-sm"> $ {myReceivable.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </p>
               </div>
 
@@ -862,10 +866,10 @@ ${allSupplierBalances.length ? `
 
             {/* Payment Card */}
             <Card
-              className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 p-6"
+              className="relative overflow-hidden !rounded-none  hover:shadow-xl transition-shadow duration-300 p-6"
             >
 
-              <div className="absolute top-0 left-0 h-2 w-full bg-gradient-to-r from-orange-400 via-red-400 to-orange-400"></div>
+              <div className="absolute top-0 left-0 h-2 w-full bg-zinc-400"></div>
 
               <div className="mb-4">
                 <h2 className="text-xl font-bold text-gray-800">Payments:</h2>
@@ -874,37 +878,37 @@ ${allSupplierBalances.length ? `
 
               <div className="space-y-2">
 
-                <p className="text-gray-600 text-[12px] md:text-xl text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
+                <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
                   Total Other Payments:{" "}
                   <span
                     className={
                       totalOtherPayments <= 0
-                        ? "text-red-500 font-bold text-[12px] md:text-xl"
-                        : "text-blue-500 font-bold text-[12px] md:text-xl"
+                        ? "text-red-500 font-bold text-[12px] md:text-sm"
+                        : "text-blue-500 font-bold text-[12px] md:text-sm"
                     }
                   >
                     $ {totalOtherPayments.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </p>
-                <p className="text-gray-600 text-[12px] md:text-xl text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
+                <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
                   Total Co Payments:{" "}
                   <span
                     className={
                       totalCompanyPayments <= 0
-                        ? "text-red-500 font-bold text-[12px] md:text-xl"
-                        : "text-blue-500 font-bold text-[12px] md:text-xl"
+                        ? "text-red-500 font-bold text-[12px] md:text-sm"
+                        : "text-blue-500 font-bold text-[12px] md:text-sm"
                     }
                   >
                     $ {totalCompanyPayments.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </p>
-                <p className="text-gray-600 text-[12px] md:text-xl text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
+                <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
                   Total Rcvd:{" "}
                   <span
                     className={
                       totalCompanyPayments <= 0
-                        ? "text-red-500 font-bold text-[12px] md:text-xl"
-                        : "text-green-500 font-bold text-[12px] md:text-xl"
+                        ? "text-red-500 font-bold text-[12px] md:text-sm"
+                        : "text-green-500 font-bold text-[12px] md:text-sm"
                     }
                   >
                     $ {totalReceived.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -918,10 +922,10 @@ ${allSupplierBalances.length ? `
 
             {/* Gross Margin Card */}
             <Card
-              className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 p-6"
+              className="relative overflow-hidden !rounded-none  hover:shadow-xl transition-shadow duration-300 p-6"
             >
 
-              <div className="absolute top-0 left-0 h-2 w-full bg-gradient-to-r from-orange-400 via-red-400 to-orange-400"></div>
+              <div className="absolute top-0 left-0 h-2 w-full bg-zinc-400"></div>
 
               <div className="mb-4">
                 <h2 className="text-xl font-bold text-gray-800">Summary:</h2>
@@ -930,49 +934,49 @@ ${allSupplierBalances.length ? `
 
               <div className="space-y-2">
 
-                <p className="text-gray-600 text-[12px] md:text-xl text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
+                <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
                   Total Purchase + Adv:{" "}
                   <span
                     className={
                       myPurchase <= 0
-                        ? "text-red-500 font-bold text-[12px] md:text-xl"
-                        : "text-orange-500 font-bold text-[12px] md:text-xl"
+                        ? "text-red-500 font-bold text-[12px] md:text-sm"
+                        : "text-orange-500 font-bold text-[12px] md:text-sm"
                     }
                   >
                     $ {myPurchase.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </p>
-                <p className="text-gray-600 text-[12px] md:text-xl text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
+                <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
                   Total Sales Amt + Adv:{" "}
                   <span
                     className={
                       customerBalance <= 0
-                        ? "text-red-500 font-bold text-[12px] md:text-xl"
-                        : "text-green-500 font-bold text-[12px] md:text-xl"
+                        ? "text-red-500 font-bold text-[12px] md:text-sm"
+                        : "text-green-500 font-bold text-[12px] md:text-sm"
                     }
                   >
                     $ {customerBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </p>
-                <p className="text-gray-600 text-[12px] md:text-xl text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
+                <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
                   Total Comission + Adv:{" "}
                   <span
                     className={
                       dealerComission <= 0
-                        ? "text-red-500 font-bold text-[12px] md:text-xl"
-                        : "text-orange-500 font-bold text-[12px] md:text-xl"
+                        ? "text-red-500 font-bold text-[12px] md:text-sm"
+                        : "text-orange-500 font-bold text-[12px] md:text-sm"
                     }
                   >
                     $ {dealerComission.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </p>
-                <p className="text-gray-600 text-[12px] md:text-xl text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
+                <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
                   Current availible Stock:{" "}
                   <span
                     className={
                       totalStock <= 0
-                        ? "text-red-500 font-bold text-[12px] md:text-xl"
-                        : "text-orange-500 font-bold text-[12px] md:text-xl"
+                        ? "text-red-500 font-bold text-[12px] md:text-sm"
+                        : "text-orange-500 font-bold text-[12px] md:text-sm"
                     }
                   >
                     {(totalStock / 1000).toLocaleString(undefined, {
@@ -989,29 +993,31 @@ ${allSupplierBalances.length ? `
             </Card>
 
           </div>
-          <div className='px-8 mt-4'>
+
+          <div className="w-full overflow-x-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 mt-4">
             <Table
+              className="compact-table !px-1"
               columns={columns}
               dataSource={allAccountsBalance}
               bordered
-              size="large"
-             pagination={{
-              pageSize: 8,
-              align:"center"
-             }}
+              size="small"
+              scroll={{ x: "max-content" }}   
+              pagination={{
+                pageSize: 8,
+                align: "center",
+              }}
               title={() => (
-                <div className='text-xl font-bold text-red-700 p-4 bg-orange-200 flex justify-between '>
-                  All Accounts Balance
-                   
-            <Button
-              type="text"
-              icon={<PrinterOutlined />}
-              onClick={handlePrintBalances}
-              className='!bg-zinc-700 hover:!bg-green-500 !text-white !shadow-lg !font-semibold '
-            >
-              Print All Accouns Balances
-            </Button>
-         
+                <div className="text-sm md:text-lg font-bold text-red-700 p-2 bg-zinc-200 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+               
+
+                  <Button
+                    type="text"
+                    icon={<PrinterOutlined className="!text-sm" />}
+                    onClick={handlePrintBalances}
+                    className="!bg-zinc-700 hover:!bg-green-500 !text-white !text-sm md:!text-lg !font-semibold"
+                  >
+                    Print All Accounts Balances
+                  </Button>
                 </div>
               )}
             />

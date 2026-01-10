@@ -13,10 +13,10 @@ dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
 import { Table, Tag } from "antd";
 import 'antd/dist/reset.css';
-
+import { CalendarOutlined } from "@ant-design/icons";
 import { toast } from 'react-toastify';
 const logo = import.meta.env.VITE_LOGO_URL;
-
+import UserLayout from '../../UserLayout';
 //get branding info: 
 const branding = JSON.parse(localStorage.getItem("branding"))
 
@@ -329,7 +329,6 @@ const Statements = () => {
 </table>
 
 
-    <p style="font-weight:bold;font-size:12px; border-top: 1px solid #dee2e6; background-color: #f8f9fa;">Thank you for your business.</p>
     <footer style="
       position: fixed;
       bottom: 0;
@@ -472,13 +471,13 @@ const Statements = () => {
       <td colspan="2" style="padding:4px 6px;">Totals</td>
       <td style="padding:4px 6px; text-align:right;">${totalCredit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
       <td style="padding:4px 6px; text-align:right;">${totalDebit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-      <td style="padding:4px 6px; text-align:right;">${closingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-    </tr>
+    <td 
+      style="padding:4px 6px; text-align:end; color:${closingBalance < 0 ? 'red' : 'black'};">
+      ${closingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+    </td>
   </tfoot>
 </table>
-
-      <p style="font-weight:bold; border-top: 1px solid #dee2e6;font-size:12px; background-color: #f8f9fa;">Thank you for your business.</p>
-      <footer style="
+<footer style="
   position: fixed;
   bottom: 0;
   left: 0;
@@ -501,65 +500,65 @@ const Statements = () => {
 
   //all companyss balance
 
-const allCompanysBalance = useMemo(() => {
-  if (!allCompanys?.length) return [];
+  const allCompanysBalance = useMemo(() => {
+    if (!allCompanys?.length) return [];
 
-  return allCompanys.map(company => {
-    // Total sales amount (company should receive)
-    const totalSales = allSales
-      .filter(s => s.companyId === company._id)
-      .reduce((sum, s) => sum + Number(s.totalCost || 0), 0);
+    return allCompanys.map(company => {
+      // Total sales amount (company should receive)
+      const totalSales = allSales
+        .filter(s => s.companyId === company._id)
+        .reduce((sum, s) => sum + Number(s.totalCost || 0), 0);
 
-    // Total purchase amount (company paid)
-    const totalPurchases = allPurchase
-      .filter(p => p.companyId === company._id)
-      .reduce((sum, p) => sum + Number(p.totalCost || 0), 0);
+      // Total purchase amount (company paid)
+      const totalPurchases = allPurchase
+        .filter(p => p.companyId === company._id)
+        .reduce((sum, p) => sum + Number(p.totalCost || 0), 0);
 
-    // Payments (CR & DR)
-    const { totalCr, totalDr } = allPayment
-      .filter(p => p.companyId === company._id)
-      .reduce(
-        (acc, p) => {
-          const amount = Number(p.amount || 0);
-          if (p.paymentType?.toLowerCase() === "cr") acc.totalCr += amount;
-          if (p.paymentType?.toLowerCase() === "dr") acc.totalDr += amount;
-          return acc;
-        },
-        { totalCr: 0, totalDr: 0 }
-      );
+      // Payments (CR & DR)
+      const { totalCr, totalDr } = allPayment
+        .filter(p => p.companyId === company._id)
+        .reduce(
+          (acc, p) => {
+            const amount = Number(p.amount || 0);
+            if (p.paymentType?.toLowerCase() === "cr") acc.totalCr += amount;
+            if (p.paymentType?.toLowerCase() === "dr") acc.totalDr += amount;
+            return acc;
+          },
+          { totalCr: 0, totalDr: 0 }
+        );
 
-    const netPayments = totalCr - totalDr;
+      const netPayments = totalCr - totalDr;
 
-    // Final balance
-    const balance = netPayments - (totalSales - totalPurchases);
+      // Final balance
+      const balance = netPayments - (totalSales - totalPurchases);
 
-    return {
-      key: company._id,
-      companysName: company.fullname,
-      accountNo: company.accountNo,
-      mobile: company.mobile,
-      balance,
-    };
-  });
-}, [allCompanys, allSales, allPurchase, allPayment]);
+      return {
+        key: company._id,
+        companysName: company.fullname,
+        accountNo: company.accountNo,
+        mobile: company.mobile,
+        balance,
+      };
+    });
+  }, [allCompanys, allSales, allPurchase, allPayment]);
 
- const handlePrintAllCompanies = () => {
-  if (!allCompanysBalance?.length) {
-    return toast.error("No companies data available to print!");
-  }
+  const handlePrintAllCompanies = () => {
+    if (!allCompanysBalance?.length) {
+      return toast.error("No companies data available to print!");
+    }
 
-  const newWindow = window.open("", "_blank");
-  if (!newWindow) return;
+    const newWindow = window.open("", "_blank");
+    if (!newWindow) return;
 
-  const brand = branding?.[0] || {};
-  const totalBalance = allCompanysBalance.reduce(
-    (sum, s) => sum + Number(s.balance || 0),
-    0
-  );
+    const brand = branding?.[0] || {};
+    const totalBalance = allCompanysBalance.reduce(
+      (sum, s) => sum + Number(s.balance || 0),
+      0
+    );
 
-  newWindow.document.title = "All dealers Balances";
- 
-     newWindow.document.body.innerHTML = `
+    newWindow.document.title = "All dealers Balances";
+
+    newWindow.document.body.innerHTML = `
      <div style="font-family: Arial; padding: 10px; background: white; color: #212529;">
        <header style="width: 100%; text-align: center; margin-bottom: 20px;">
          <div style="display: flex; align-items: center; justify-content: center; flex-wrap: wrap; position: relative; margin-bottom: 10px;">
@@ -599,8 +598,8 @@ const allCompanysBalance = useMemo(() => {
          </thead>
          <tbody>
            ${allCompanysBalance.map((s, index) => {
-       const rowColor = index % 2 === 0 ? "#ffffff" : "#f1f3f5";
-       return `
+      const rowColor = index % 2 === 0 ? "#ffffff" : "#f1f3f5";
+      return `
                <tr style="background-color: ${rowColor};">
                  <td style="padding:3px 6px;">${s.companysName}</td>
                  <td style="padding:3px 6px;">${s.accountNo || ""}</td>
@@ -611,7 +610,7 @@ const allCompanysBalance = useMemo(() => {
                  </td>
                </tr>
              `;
-     }).join('')}
+    }).join('')}
          </tbody>
          <tfoot>
            <tr style="font-weight:bold; border-top: 1px solid #dee2e6; background-color: #f8f9fa;">
@@ -640,9 +639,9 @@ const allCompanysBalance = useMemo(() => {
        </footer>
      </div>
    `;
- 
-     newWindow.print();
-};
+
+    newWindow.print();
+  };
 
 
   const columns = [
@@ -680,54 +679,58 @@ const allCompanysBalance = useMemo(() => {
       title: "Balance",
       dataIndex: "balance",
       key: "balance",
-      render: (balance, record) => `${balance} ${record.currency}`,
-
+      render: (balance, record) => (
+        <span style={{ color: balance < 0 ? "red" : "black" }}>
+          {Number(balance).toFixed(2)} {record.currency}
+        </span>
+      ),
       align: "right",
-    },
+    }
 
   ];
 
   return (
 
-    <div className="w-screen  flex flex-col gap-6 overflow-auto bg-white !justify-center ">
-      <h1 className="md:text-xl text-sm px-8  text-zinc-500 font-extrabold !mt-5" style={{ fontFamily: 'Poppins, sans-serif' }}>
-        Company Financial Statements:
-      </h1>
-      <Button
-        type="default"
-        onClick={handlePrintAllCompanies} // your print function
-        className=" !mx-8 !text-white !font-bold !bg-green-600 hover:!bg-green-500 !w-[10rem] text-white"
-      >
-        Print All Companies
-      </Button>
-      {/* Form container - small width on large screens, full width on mobile */}
-      <div className=" md:w-[350px] bg-white flex pmb-9 p-4 mx-8 border border-zinc-200 items-center justify-center">
-        <Form layout="horizontal" className="flex flex-col gap-0">
+    <UserLayout>
 
-          <div className="flex gap-1 !justify-between">
+      <div className='px-2'>
+        <h1 className="md:text-xl text-sm px-2 !mb-3 text-yellow-700 font-extrabold " style={{ fontFamily: 'Poppins, sans-serif' }}>
+          Company  Statements:
+        </h1>
+
+       
+        <div className=" !w-full bg-white flex  !p mb-9 p-4  border border-zinc-200 items-center justify-left !top-5">
+          <Form layout="horizontal" className="flex flex-col !px-2 md:flex-row-hidden lg:flex-row xl:flex-row sxl:flex-row  gap-2">
+
+
             <Form.Item
               name="companyId"
-              rules={[{ required: true, message: "Please select a company" }]}
-              className="m-0 "
-
+              rules={[{ required: true, message: "Please select a supplier" }]}
+              className="m-0"
             >
               <Select
-                onChange={handleCompanyStatement}
                 showSearch
-                placeholder="company"
-                optionFilterProp="label"
-                className="!h-8 !w-[150px] !max-w-[150px] text-sm !overflow-hidden"
-
+                placeholder="Company"
+                onChange={handleCompanyStatement}
+                style={{ width: "100%",minWidth:"200px" }}
                 optionLabelProp="label"
+                filterOption={(input, option) =>
+                  option?.searchText
+                    ?.toLowerCase()
+                    .includes(input.toLowerCase())
+                }
                 options={allCompanys.map((s) => ({
+                  value: s._id,
+                  searchText: `${s.fullname} ${s.accountNo}`, // 👈 searchable text
                   label: (
-                    <span className="truncate block" title={`${s.fullname} (Acc No: ${s.accountNo})`}>
+                    <span
+                      className="truncate block text-[12px] font-semibold"
+                      title={`${s.fullname} (Acc No: ${s.accountNo})`}
+                    >
                       {`${s.fullname} (Acc No: ${s.accountNo})`}
                     </span>
                   ),
-                  value: s._id,
                 }))}
-
               />
             </Form.Item>
 
@@ -735,70 +738,108 @@ const allCompanysBalance = useMemo(() => {
             <Form.Item
               name="currencyId"
               rules={[{ required: true, message: "Please select a currency" }]}
-              className="!rounded-none m-0"
+              className=" m-0"
+
             >
               <Select
+                style={{ width: "100%",minWidth:"120" }}
                 onChange={handleCurrencyStatement}
                 showSearch
                 placeholder="Currency"
                 optionFilterProp="label"
-                className="!h-8 text-sm !w-20 !overflow-hidden !rounded-none"
                 options={myCurrency.map(s => ({ label: s, value: s }))}
               />
+
             </Form.Item>
-          </div>
 
-          {/* Date range picker */}
-          <Form.Item name="dateRange" className="m-0">
-            <RangePicker className="!w-[100%]" value={dateRange.length ? dateRange : undefined} onChange={(dates) => setDateRange(dates || [])} allowClear />
-          </Form.Item>
 
-          {/* Buttons row: two columns, no gap */}
-          <div className="flex gap-2">
+            {/* Date range picker */}
+            <Form.Item name="dateRange" className="m-0 !rounded-none">
+
+              <RangePicker
+                style={{ width: "100%",minWidth:"120" }}
+                size="small"
+                value={dateRange.length ? dateRange : undefined}
+                onChange={(dates) => setDateRange(dates || [])}
+                allowClear
+                suffixIcon={<CalendarOutlined className='!text-[25px]  !px-4 !md:px-0 !text-zinc-500' />}
+              />
+            </Form.Item>
+
+            {/* Buttons row: two columns, no gap */}
+
             <Button
-              className="!bg-zinc-400 !text-lg hover:!bg-zinc-300 !border-zinc-400 !text-white hover:!text-black flex-1 !h-8 !rounded-none"
+              className="!bg-zinc-400  hover:!bg-zinc-300 !border-zinc-400 !text-white !font-bold hover:!text-black flex-1  !rounded-none"
               onClick={handleData}
             >
               <PrinterOutlined />
+              <span className="!text-transparent">s</span>
             </Button>
             <Button
-              className="!bg-zinc-400 !text-lg hover:!bg-zinc-300 !border-zinc-400 !text-white hover:!text-black flex-1 !h-8 !rounded-none ml-0"
+              className="!bg-zinc-400  hover:!bg-zinc-300 !border-zinc-400 !text-white !font-semibold hover:!text-black flex-1  !rounded-none ml-0"
               onClick={handleUSDData}
             >
               <PrinterOutlined />
-              <span className="hidden md:inline"> All Statement in $</span>
+              <span className=" "> All $</span>
             </Button>
-          </div>
-        </Form>
+            <Button
+              type="default"
+              onClick={handlePrintAllCompanies} // your print function
+              className=" !bg-zinc-400  hover:!bg-zinc-300 !border-zinc-400 !text-white !font-semibold hover:!text-black flex-1  !rounded-none ml-0"
+            >
+              <PrinterOutlined />
+              <span className=" "> All-Suppliers</span>
+            </Button>
 
-      </div>
+          </Form>
 
-      {/* Table Section - full width */}
-      <div className="w-full bg-zinc-50 px-4 h-auto py-4 ">
-        <h2 className="text-zinc-500 text-[10px] md:text-lg font-semibold mb-0">Statement</h2>
-
-        <div className="w-full overflow-x-auto ">
-          <Table
-            columns={columns}
-            dataSource={tableData.map((item, index) => ({ ...item, key: index }))}
-            bordered
-            pagination={{ pageSize: 5 }}
-            scroll={{ x: '100%' }}
-            className="w-full"
-            size="small"
-          />
         </div>
 
-        {tableData.length > 0 && (
-          <div className="text-right font-bold h-10 !text-[14px] md:text-base">
-            Total Balance: $
-            {tableData
-              .reduce((sum, item) => sum + (item.credit || 0) - (item.debit || 0), 0)
-              .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </div>
-        )}
+        {/* Table Section - full width */}
+         <div className="w-full  bg-zinc-50 px-2 h-auto py-4">
+          <h2 className="text-zinc-500 text-[10px] md:text-lg font-semibold mb-0">Statement</h2>
+
+
+            <Table
+              columns={columns}
+              dataSource={tableData.map((item, index) => ({ ...item, key: index }))}
+              bordered
+              pagination={{ pageSize: 5 }}
+              scroll={{ x: 'max-content'}}
+              className="!w-full !h-[100%] !text-[10px] "
+              size="small"
+            />
+     
+
+          {/* bal table */}
+          {tableData.length > 0 && (
+            <div className="text-right font-bold h-10 !text-[14px] md:text-base">
+              Total Balance: $
+              {tableData.length > 0 && (() => {
+                const total = tableData.reduce(
+                  (sum, item) => sum + (item.credit || 0) - (item.debit || 0),
+                  0
+                );
+
+                return (
+                  <div
+                    className={`text-right font-bold h-10 !text-[14px] md:text-base ${total < 0 ? 'text-red-500' : ''
+                      }`}
+                  >
+                    Total Balance: $
+                    {total.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </UserLayout>
+
 
 
   );
