@@ -1,4 +1,7 @@
 import React from "react";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import Slider from "react-slick";
 import { Row, Col, Typography, Card, Button } from "antd";
 import { GlobalOutlined, TeamOutlined, StockOutlined } from "@ant-design/icons";
 import "./AboutUs.css"; // We'll add CSS for animations and gradients
@@ -7,7 +10,15 @@ import Contact from '../contact/index'
 const { Title, Paragraph } = Typography;
 import { useTranslation } from 'react-i18next';
 const AboutUs = () => {
-   const { t } = useTranslation('about');
+
+const statsImages = [
+    "/a.jpeg",
+    "/b.jpeg",
+    "/c.jpeg",
+    "/d.jpeg",
+  ];
+
+  const { t } = useTranslation('about');
   return (
 
     <HomeLayout>
@@ -47,30 +58,50 @@ const AboutUs = () => {
 
         {/* Core Values */}
         <div className="section-padding core-values !w-full  !bg-[#e0ddcb] md:!px-60 ">
-          <Title level={2}  className="!text-zinc-900 !font-bold !text-4xl md:ml-5">{(t("About Us"))}</Title>
-          <Paragraph style={{ textAlign: "justify", margin: "0 auto", width: "100%",padding:20 }} className="!text-zinc-900!w-full !text-sm md:!text-xl ">
+          <Title level={2} className="!text-zinc-900 !font-bold !text-4xl md:ml-5">{(t("About Us"))}</Title>
+          <Paragraph style={{ textAlign: "justify", margin: "0 auto", width: "100%", padding: 20 }} className="!text-zinc-900!w-full !text-sm md:!text-xl ">
             {(t("Hadia Gold is a pioneering company in the supply of a wide variety of high-quality dried fruits, fully compliant with international standards. The company delivers its products to customers while strictly adhering to quality and freshness standards, ensuring that every product retains its superior taste, nutritional value, and freshness.Established in 2023 in Almaty, Kazakhstan, Hadia Gold operates with the goal of providing the highest quality products and services to its customers and citizens. The company is managed by an experienced team and effective leadership with decades of expertise in international trade.The CEO, Mr. Mohammad Dad, assures customers that using high-quality products at fair prices will establish a trustworthy, strong, and long-lasting relationship with Hadia Gold.The Hadia Gold team carefully selects and packages the finest dried fruits, ensuring that the highest standards are maintained from supplier to customer. Every nut, fruit, and seed is meticulously packaged to preserve its flavor, nutrition, and quality, providing a safe, healthy, and enjoyable experience.Hadia Gold is committed to bringing the best of nature to your table, delivering a reliable, high-quality, and delightful experience to every customer."))}
           </Paragraph>
         </div>
 
         {/* Stats Section */}
-        <div className="section-padding stats-section !bg-blue-100">
-          <Row gutter={[25, 32]} justify="center">
-            <Col xs={24} sm={12} md={12} lg={6}>
-              <Card className="stats-card !w-full !h-72 !bg-cover !bg-center cursor-pointer !bg-no-repeat !bg-[url('/a.jpeg')] "></Card>
-            </Col>
-            <Col xs={24} sm={12} md={12} lg={6}>
-              <Card className="stats-card !w-full !h-72 !bg-cover !bg-center cursor-pointer !bg-no-repeat !bg-[url('/b.jpeg')] "></Card>
-            </Col>
-            <Col xs={24} sm={12} md={12} lg={6}>
-              <Card className="stats-card !w-full !h-72 !bg-cover !bg-center cursor-pointer !bg-no-repeat !bg-[url('/c.jpeg')] "></Card>
-            </Col>
-            <Col xs={24} sm={12} md={12} lg={6}>
-              <Card className="stats-card !w-full !h-72 !bg-cover !bg-center cursor-pointer !bg-no-repeat !bg-[url('/d.jpeg')] "></Card>
-            </Col>
-          </Row>
+        <div className="!section-padding !stats-section !bg-black !py-5 !px-9">
+          <Slider
+            dots={true}
+            infinite={true}
+            speed={500}
+            slidesToShow={3}
+            slidesToScroll={1}
+            autoplay={true}
+            autoplaySpeed={3000}
+            responsive={[
+              {
+                breakpoint: 1024,
+                settings: { slidesToShow: 3 },
+              },
+              {
+                breakpoint: 768,
+                settings: { slidesToShow: 2 },
+              },
+              {
+                breakpoint: 480,
+                settings: { slidesToShow: 1 },
+              },
+            ]}
+          >
+            {statsImages.map((img, idx) => (
+              <div key={idx} className="!px-2">
+                <Card
+                  className="stats-card !w-full !h-72 !bg-cover !bg-center cursor-pointer !bg-no-repeat hover:!shadow-2xl transition-all duration-500"
+                  style={{ backgroundImage: `url(${img})` }}
+                />
+              </div>
+            ))}
+          </Slider>
         </div>
-        <Contact />
+       <div className="!h-auto">
+         <Contact />
+       </div>
       </div>
     </HomeLayout>
   );

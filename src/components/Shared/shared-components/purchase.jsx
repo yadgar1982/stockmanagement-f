@@ -1,6 +1,9 @@
 import React from 'react'
 import dayjs from "dayjs"
 
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+
 import { useState, useEffect } from 'react';
 import { Form, Input, Button, Card, Select, Table, Popconfirm, Tooltip, } from "antd"
 import UserLayout from '../UserLayout';
@@ -10,7 +13,7 @@ import { ToastContainer, toast } from "react-toastify";
 import { http, fetcher } from "../../Modules/http";
 import Cookies from "universal-cookie";
 import useSWR, { mutate } from "swr";
-import { CheckOutlined, DeleteOutlined, EditOutlined, PrinterOutlined } from '@ant-design/icons';
+import { CheckOutlined, DeleteOutlined, EditOutlined, PrinterOutlined,FileExcelOutlined } from '@ant-design/icons';
 import { countries } from "../countries/countries";
 const cookies = new Cookies();
 const { Option } = Select;
@@ -21,6 +24,7 @@ import { fetchStock } from '../../../redux/slices/stockSlice';
 import { fetchCompany } from '../../../redux/slices/companySlice';
 import { fetchDealer } from '../../../redux/slices/dealerSlice';
 import { fetchCurrency } from '../../../redux/slices/currencySlice';
+import { fetchPurchase } from '../../../redux/slices/purchaseSlice';
 import ExchangeCalculator from './exchangeCalc';
 const logo = import.meta.env.VITE_LOGO_URL;
 
@@ -41,7 +45,7 @@ const Purchase = () => {
   const [exComission, setExComission] = useState(1)
   const [productQty, setProductQty] = useState(null);
   const [productPurchaseQty, setProductPurchaseQty] = useState(null);
-  const [purchasesData, setPurchasesData] = useState(null);
+  const [salesData, setSalesData] = useState(null);
   const [productUnit, setProductUnit] = useState(null);
   const [totalPurchase, setTotalPurchase] = useState([])
   const [edit, setEdit] = useState(false)
@@ -74,6 +78,14 @@ const Purchase = () => {
     value: s.supplierId
   }))
 
+ const { purchase: purchaseList, loading: saloading, error: saerror } = useSelector(
+  (state) => state.purchase
+);
+
+const allPurchase = purchaseList || [];
+
+
+  
   const { products, prloading, prerror } = useSelector((state) => state.products);
   const allProducts = products?.data || [];
   const product = allProducts.map((item) => ({
@@ -142,6 +154,7 @@ const Purchase = () => {
     dispatch(fetchCompany())
     dispatch(fetchCurrency())
     dispatch(fetchDealer())
+    dispatch(fetchPurchase())
 
   }, [])
 
@@ -159,7 +172,7 @@ const Purchase = () => {
 
   useEffect(() => {
     if (sales && sales?.data) {
-      setPurchasesData(sales?.data || null);
+      setSalesData(sales?.data || null);
     }
   }, [sales])
 
@@ -392,8 +405,8 @@ const Purchase = () => {
       setProductUnit(unit);
       setProductQty(calculatedQty);
     }
-    if (Array.isArray(purchasesData)) {
-      const filteredSales = purchasesData.filter((p) => p.productId === value);
+    if (Array.isArray(salesData)) {
+      const filteredSales = salesData.filter((p) => p.productId === value);
       const calculatedSaleQty = filteredSales.reduce((total, item) => total + (item.weight) * (item.quantity), 0);
       const unit = filteredSales.length > 0 ? filteredSales[0].unit : null;
 
@@ -407,8 +420,8 @@ const Purchase = () => {
 
 
     // Handle sales quantities
-    if (Array.isArray(purchasesData)) {
-      const filteredSales = purchasesData.filter((p) => p.productId === value);
+    if (Array.isArray(salesData)) {
+      const filteredSales = salesData.filter((p) => p.productId === value);
       const calculatedSaleQty = filteredSales.reduce((sum, item) => sum + item.quantity, 0);
       const unit = filteredSales.length > 0 ? filteredSales[0].unit : null;
 
@@ -849,6 +862,108 @@ const Purchase = () => {
     ? dayjs(supplierData.purchaseDate, "DD-MM-YYYY")
     : null;
 
+
+
+ const exportPurchase = (allPurchases) => {
+  if (!allPurchases || allPurchases.length === 0) return;
+
+  // Map Redux data to Excel rows
+  const data = allPurchases.map((p) => ({
+    "Order No": p.orderNo || "",
+    "Product": p.productName || "",
+    "Category": p.categoryName || "",
+    "Description": p.description || "",
+    "Quantity": p.quantity || 0,
+    "Unit": p.unit || "",
+    "Weight": p.weight || 0,
+    "Supplier": p.supplierName || "",
+    "Party": p.party || "",
+    "Company": p.companyName || "",
+    "Warehouse": p.warehouseName || "",
+    "Unit Cost": p.unitCost || 0,
+    "Exchanged Amt": p.exchangedAmt || 0,
+    "Total Cost": p.totalCost || 0,
+    "Local Total": p.totalLocalCost || 0,
+    "Currency": p.currency || "USD",
+    "Commission": p.totalComission || 0,
+    "Dealer": p.dealerName || "",
+    "Country": p.countryName || "",
+    "Batch": p.batch || "",
+    "Purchase Date": p.purchaseDate
+      ? new Date(p.purchaseDate).toLocaleDateString()
+      : "",
+    "Created At": p.createdAt
+      ? new Date(p.createdAt).toLocaleDateString()
+      : "",
+    "User Name": p.userName || "",
+    
+  }));
+
+  // Create worksheet
+
+ const worksheet = XLSX.utils.json_to_sheet(data, { origin: 3 }); // start table at row 4
+
+  const colCount = Object.keys(data[0] || {}).length;
+
+  // Add heading manually
+  XLSX.utils.sheet_add_aoa(
+    worksheet,
+    [
+      [`Purchase Report`],
+      [`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`],
+      [] // empty row before table
+    ],
+    { origin: "A1" }
+  );
+
+  // Merge first row across all columns for the title
+  worksheet["!merges"] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: colCount - 1 } }
+  ];
+  // Optional: Set column widths for better formatting
+  const colWidths = [
+    { wch: 15 }, // Invoice No
+    { wch: 15 }, // Order No
+    { wch: 20 }, // Product
+    { wch: 20 }, // Category
+    { wch: 10 }, // Quantity
+    { wch: 10 }, // Unit
+    { wch: 10 }, // Weight
+    { wch: 20 }, // Supplier
+    { wch: 15 }, // Party
+    { wch: 20 }, // Customer
+    { wch: 20 }, // Company
+    { wch: 20 }, // Warehouse
+    { wch: 12 }, // Unit Cost
+    { wch: 12 }, // Exchanged Amt
+    { wch: 15 }, // Total Cost
+    { wch: 15 }, // Local Total
+    { wch: 10 }, // Currency
+    { wch: 15 }, // Commission
+    { wch: 18 }, // Dealer
+    { wch: 15 }, // Country
+    { wch: 15 }, // Batch
+    { wch: 18 }, // Purchase Date
+    { wch: 18 }, // Created At
+    { wch: 15 }, // User Name
+    { wch: 30 }, // Description
+  ];
+  worksheet["!cols"] = colWidths;
+
+  // Create workbook and append worksheet
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Purchase Report");
+
+  // Generate Excel file
+  const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+  const file = new Blob([excelBuffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+
+  // Save
+  saveAs(file, "PurchaseReport.xlsx");
+};
+
   return (
     <UserLayout>
       <div>
@@ -870,8 +985,15 @@ const Purchase = () => {
 
             )}</div>
 
-            <div className='mb-4 w-[50%] flex justify-end !px-25 p-2 '>
+            <div className='mb-4 w-[100%] flex justify-end !px-25 p-2 gap-1'>
               <ExchangeCalculator />
+               <Button
+              type='text'
+              onClick={() => exportPurchase(allPurchase)}
+              className="!border !border-zinc-500 !rounded-sm hover:!bg-white hover:!text-zinc-600 !font-semibold !h-6 !mt-2 !px-2 !p-4 !hidden lg:!flex md:!flex "
+            >
+              <FileExcelOutlined className='w-full !text-lg !text-zinc-500' />
+            </Button>
             </div>
 
 

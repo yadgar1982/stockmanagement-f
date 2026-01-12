@@ -1,6 +1,6 @@
 /* ===== Global Page ===== */
 .about-page {
-  background: linear-gradient(180deg, #dabc16, #0e0d0d);
+  background: linear-gradient(180deg, #191918, #7d7a7a);
   color: #ffffff;
   overflow-x: hidden;
 }
@@ -124,4 +124,24 @@
   .section-padding {
     padding: 50px 15px;
   }
+}
+.stats-card {
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.stats-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.25);
+}
+
+/* Customize slick dots */
+.slick-dots li button:before {
+  font-size: 12px;
+  color: #000;
+}
+
+.slick-dots li.slick-active button:before {
+  color: #1890ff; /* Ant Design primary color */
 }

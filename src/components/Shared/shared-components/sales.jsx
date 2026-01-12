@@ -1,17 +1,19 @@
 import React from 'react'
 import dayjs from "dayjs"
 
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+ 
 import { useState, useEffect } from 'react';
 import { Form, Input, Button, Card, Select, Table, Popconfirm, Tooltip, } from "antd"
 const { Option } = Select;
 import UserLayout from '../../Shared/UserLayout';
-import TextArea from 'antd/es/input/TextArea';
 import { DatePicker } from 'antd';
 import { ToastContainer, toast } from "react-toastify";
 import { http, fetcher } from "../../Modules/http";
 import Cookies from "universal-cookie";
 import useSWR, { mutate } from "swr";
-import { CheckOutlined, DeleteOutlined, EditOutlined, PrinterOutlined } from '@ant-design/icons';
+import { CheckOutlined, DeleteOutlined, EditOutlined, FileExcelOutlined, PrinterOutlined } from '@ant-design/icons';
 import { countries } from '../../Shared/countries/countries.js'
 const cookies = new Cookies();
 
@@ -23,6 +25,7 @@ import { fetchCompany } from '../../../redux/slices/companySlice';
 import { fetchDealer } from '../../../redux/slices/dealerSlice';
 import { fetchCurrency } from '../../../redux/slices/currencySlice';
 import { fetchCategory } from '../../../redux/slices/categorySlice.js';
+import { fetchSales } from '../../../redux/slices/salesSlice.js';
 import ExchangeCalculator from './exchangeCalc/index.jsx';
 const logo = import.meta.env.VITE_LOGO_URL;
 
@@ -140,6 +143,10 @@ const Sales = () => {
     value: cat.categoryName,
   }))
 
+  const { sale, loading: saloading, error: saerror } = useSelector((state) => state.sale);
+  const allSales = sale || [];
+
+
   // get userName
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
   const userName = userInfo?.fullname || "";
@@ -153,6 +160,7 @@ const Sales = () => {
     dispatch(fetchCurrency())
     dispatch(fetchDealer())
     dispatch(fetchCategory())
+    dispatch(fetchSales())
 
   }, [])
 
@@ -466,146 +474,146 @@ const Sales = () => {
   }
 
   //Table data
- const columns = [
-  {
-    title: "S.No",
-    key: "Sno",
-    width: 60,
-    render: (text, record, index) => index + 1,
-    fixed: "left",
-  },
-  { 
-    title: "Item", 
-    dataIndex: 'productName', 
-    key: 'productName', 
-    ellipsis: true, 
-    minWidth: 120 
-  },
-  {
-    title: "Qty",
-    dataIndex: 'quantity',
-    key: 'quantity',
-    minWidth: 80,
-    render: (_, record) => `${record.quantity} ${record.unit}`,
-  },
-  { title: "Customer", dataIndex: 'customerName', key: 'customerName', minWidth: 120, ellipsis: true },
-  { title: "Belong To", dataIndex: 'companyName', key: 'companyName', minWidth: 120, ellipsis: true },
-  { title: "Warehouse", dataIndex: 'warehouseName', key: 'warehouseName', minWidth: 120, ellipsis: true },
-  {
-    title: "Unit Cost $",
-    dataIndex: 'unitCost',
-    key: 'unitCost',
-    minWidth: 100,
-    render: (_, record) => (
-      <span className="flex justify-between">
-        <span>{Number(record.unitCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-        <span className="text-blue-500">USD</span>
-      </span>
-    ),
-  },
-  {
-    title: "Total Amt $",
-    dataIndex: "totalCost",
-    key: "totalCost",
-    minWidth: 110,
-    render: (_, record) => (
-      <span className="flex justify-between">
-        <span>{Number(record.totalCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-        <span className="text-blue-500">USD</span>
-      </span>
-    ),
-  },
-  {
-    title: "Unit Cost (Local)",
-    dataIndex: "exchangedAmt",
-    key: "exchangedAmt",
-    minWidth: 110,
-    render: (_, record) => (
-      <span className="flex justify-between">
-        <span>{Number(record.exchangedAmt).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-        <span className="text-blue-500">{record.currency}</span>
-      </span>
-    ),
-  },
-  {
-    title: "Total Amt (Local)",
-    dataIndex: "totalLocalCost",
-    key: "totalLocalCost",
-    minWidth: 120,
-    render: (_, record) => (
-      <span className="flex justify-between">
-        <span>{Number(record.totalLocalCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-        <span className="text-blue-500">{record.currency}</span>
-      </span>
-    ),
-  },
-  { title: "Country", dataIndex: 'countryName', key: 'countryName', minWidth: 100, ellipsis: true },
-  { title: "Batch No", dataIndex: 'batch', key: 'batch', minWidth: 100, ellipsis: true },
-  { title: "Dealer", dataIndex: 'dealerName', key: 'dealerName', minWidth: 100, ellipsis: true },
-  { title: "Fees", dataIndex: 'comission', key: 'comission', minWidth: 80, ellipsis: true },
-  {
-    title: "Pur-Date",
-    dataIndex: 'createdAt',
-    key: 'createdAt',
-    minWidth: 110,
-    render: (date) => date ? dayjs(date).format("DD/MM/YYYY") : "-",
-  },
-  { title: "Description", dataIndex: 'description', key: 'description', minWidth: 150, ellipsis: true },
+  const columns = [
+    {
+      title: "S.No",
+      key: "Sno",
+      width: 60,
+      render: (text, record, index) => index + 1,
+      fixed: "left",
+    },
+    {
+      title: "Item",
+      dataIndex: 'productName',
+      key: 'productName',
+      ellipsis: true,
+      minWidth: 120
+    },
+    {
+      title: "Qty",
+      dataIndex: 'quantity',
+      key: 'quantity',
+      minWidth: 80,
+      render: (_, record) => `${record.quantity} ${record.unit}`,
+    },
+    { title: "Customer", dataIndex: 'customerName', key: 'customerName', minWidth: 120, ellipsis: true },
+    { title: "Belong To", dataIndex: 'companyName', key: 'companyName', minWidth: 120, ellipsis: true },
+    { title: "Warehouse", dataIndex: 'warehouseName', key: 'warehouseName', minWidth: 120, ellipsis: true },
+    {
+      title: "Unit Cost $",
+      dataIndex: 'unitCost',
+      key: 'unitCost',
+      minWidth: 100,
+      render: (_, record) => (
+        <span className="flex justify-between">
+          <span>{Number(record.unitCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+          <span className="text-blue-500">USD</span>
+        </span>
+      ),
+    },
+    {
+      title: "Total Amt $",
+      dataIndex: "totalCost",
+      key: "totalCost",
+      minWidth: 110,
+      render: (_, record) => (
+        <span className="flex justify-between">
+          <span>{Number(record.totalCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+          <span className="text-blue-500">USD</span>
+        </span>
+      ),
+    },
+    {
+      title: "Unit Cost (Local)",
+      dataIndex: "exchangedAmt",
+      key: "exchangedAmt",
+      minWidth: 110,
+      render: (_, record) => (
+        <span className="flex justify-between">
+          <span>{Number(record.exchangedAmt).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+          <span className="text-blue-500">{record.currency}</span>
+        </span>
+      ),
+    },
+    {
+      title: "Total Amt (Local)",
+      dataIndex: "totalLocalCost",
+      key: "totalLocalCost",
+      minWidth: 120,
+      render: (_, record) => (
+        <span className="flex justify-between">
+          <span>{Number(record.totalLocalCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+          <span className="text-blue-500">{record.currency}</span>
+        </span>
+      ),
+    },
+    { title: "Country", dataIndex: 'countryName', key: 'countryName', minWidth: 100, ellipsis: true },
+    { title: "Batch No", dataIndex: 'batch', key: 'batch', minWidth: 100, ellipsis: true },
+    { title: "Dealer", dataIndex: 'dealerName', key: 'dealerName', minWidth: 100, ellipsis: true },
+    { title: "Fees", dataIndex: 'comission', key: 'comission', minWidth: 80, ellipsis: true },
+    {
+      title: "Pur-Date",
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      minWidth: 110,
+      render: (date) => date ? dayjs(date).format("DD/MM/YYYY") : "-",
+    },
+    { title: "Description", dataIndex: 'description', key: 'description', minWidth: 150, ellipsis: true },
 
-  // Actions (fixed right)
-  {
-    title: "Print",
-    key: "print",
-    fixed: "right",
-    width: 60,
-    render: (_, record) => (
-      <PrinterOutlined
-        onClick={() => handlePrint(record)}
-        className="!text-white !cursor-pointer !bg-zinc-500 !p-2 !rounded"
-      />
-    ),
-  },
-  {
-    title: "Edit",
-    key: "edit",
-    fixed: "right",
-    width: 60,
-    render: (_, record) => (
-      <EditOutlined
-        onClick={() => handleEdit(record)}
-        className="!text-white !cursor-pointer !bg-zinc-500 !p-2 !rounded"
-      />
-    ),
-  },
-  {
-    title: "Pass",
-    key: "isPassed",
-    fixed: "right",
-    width: 60,
-    render: (_, record) => (
-      <Popconfirm
-        title="Are you sure to Pass this Purchase?"
-        onConfirm={() => handleIspassed(record._id)}
-      >
-        <CheckOutlined className="!text-white !cursor-pointer !bg-zinc-500 !p-2 !rounded" />
-      </Popconfirm>
-    ),
-  },
-  {
-    title: "Delete",
-    key: "delete",
-    fixed: "right",
-    width: 60,
-    render: (_, record) => (
-      <Popconfirm
-        title="Are you sure to delete this purchase record?"
-        onConfirm={() => handleDelete(record)}
-      >
-        <DeleteOutlined className="!text-white !cursor-pointer !bg-red-500 !p-2 !rounded" />
-      </Popconfirm>
-    ),
-  },
-];
+    // Actions (fixed right)
+    {
+      title: "Print",
+      key: "print",
+      fixed: "right",
+      width: 60,
+      render: (_, record) => (
+        <PrinterOutlined
+          onClick={() => handlePrint(record)}
+          className="!text-white !cursor-pointer !bg-zinc-500 !p-2 !rounded"
+        />
+      ),
+    },
+    {
+      title: "Edit",
+      key: "edit",
+      fixed: "right",
+      width: 60,
+      render: (_, record) => (
+        <EditOutlined
+          onClick={() => handleEdit(record)}
+          className="!text-white !cursor-pointer !bg-zinc-500 !p-2 !rounded"
+        />
+      ),
+    },
+    {
+      title: "Pass",
+      key: "isPassed",
+      fixed: "right",
+      width: 60,
+      render: (_, record) => (
+        <Popconfirm
+          title="Are you sure to Pass this Purchase?"
+          onConfirm={() => handleIspassed(record._id)}
+        >
+          <CheckOutlined className="!text-white !cursor-pointer !bg-zinc-500 !p-2 !rounded" />
+        </Popconfirm>
+      ),
+    },
+    {
+      title: "Delete",
+      key: "delete",
+      fixed: "right",
+      width: 60,
+      render: (_, record) => (
+        <Popconfirm
+          title="Are you sure to delete this purchase record?"
+          onConfirm={() => handleDelete(record)}
+        >
+          <DeleteOutlined className="!text-white !cursor-pointer !bg-red-500 !p-2 !rounded" />
+        </Popconfirm>
+      ),
+    },
+  ];
 
 
   // data source
@@ -822,6 +830,83 @@ const Sales = () => {
     ? dayjs(customerData?.salesDate, "DD-MM-YYYY")
     : null;
 
+
+  //export to excel
+const exportSales = (allSales) => {
+  if (!allSales || allSales.length === 0) return;
+
+  // Map Redux data to Excel rows
+  const data = allSales.map((sale) => ({
+    "Invoice No": sale.invoiceNo || "",
+    "Product": sale.productName || "",
+    "Category": sale.categoryName || "",
+    "Quantity": sale.quantity || 0,
+    "Unit": sale.unit || "",
+    "Weight": sale.weight || 0,
+    "Customer": sale.customerName || "",
+    "Company": sale.companyName || "",
+    "Warehouse": sale.warehouseName || "",
+    "Unit Cost": sale.unitCost || 0,
+    "Exchanged Amt": sale.exchangedAmt || 0,
+    "Total Cost": sale.totalCost || 0,
+    "Local Total": sale.totalLocalCost || 0,
+    "Currency": sale.currency || "USD",
+    "Commission": sale.totalComission || 0,
+    "Dealer": sale.dealerName || "",
+    "Country": sale.countryName || "",
+    "Batch": sale.batch || "",
+    "Sales Date": sale.salesDate
+      ? new Date(sale.salesDate).toLocaleDateString()
+      : "",
+    "Created At": sale.createdAt
+      ? new Date(sale.createdAt).toLocaleDateString()
+      : "",
+    "User Name": sale.userName || "",
+    "Description": sale.description || "",
+  }));
+
+  // Create worksheet
+  const worksheet = XLSX.utils.json_to_sheet(data, { origin: 3 }); 
+  const colCount = Object.keys(data[0] || {}).length;
+
+  // Add heading manually
+  XLSX.utils.sheet_add_aoa(
+    worksheet,
+    [
+      [`Sales Report`],
+      [`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`],
+      [] // empty row before table
+    ],
+    { origin: "A1" }
+  );
+
+  // Merge first row across all columns for the title
+  worksheet["!merges"] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: colCount - 1 } }
+  ];
+
+  // Set column widths for readability
+  worksheet["!cols"] = [
+    { wch: 15 }, { wch: 20 }, { wch: 20 }, { wch: 10 }, { wch: 10 },
+    { wch: 10 }, { wch: 20 }, { wch: 20 }, { wch: 20 }, { wch: 12 },
+    { wch: 12 }, { wch: 15 }, { wch: 15 }, { wch: 10 }, { wch: 15 },
+    { wch: 18 }, { wch: 15 }, { wch: 15 }, { wch: 18 }, { wch: 18 },
+    { wch: 15 }, { wch: 30 }
+  ];
+
+  // Create workbook and append worksheet
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Sales Report");
+
+  // Generate Excel file
+  const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+  const file = new Blob([excelBuffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+
+  // Save
+  saveAs(file, "SalesReport.xlsx");
+};
   return (
     <UserLayout>
       <div>
@@ -841,9 +926,17 @@ const Sales = () => {
                 <span className='text-white'>Availible Qty:</span> {productQty - productSaleQty},{productUnit || null}
               </div>
             )}</div>
-             <div className='mb-4 w-[50%] flex justify-end !px-25 p-2 '>
+            <div className='mb-4 w-[100%] flex justify-end !px-25 p-2 gap-1'>
               <ExchangeCalculator />
+               <Button
+              type='text'
+              onClick={() => exportSales(allSales)}
+              className="!border !border-zinc-500 !rounded-sm hover:!bg-white hover:!text-zinc-600 !font-semibold !h-6 !mt-2 !px-2 !p-4 !hidden lg:!flex md:!flex "
+            >
+              <FileExcelOutlined className='w-full !text-lg !text-zinc-500' />
+            </Button>
             </div>
+           
 
           </div>
           <Card className="!mb-0  shadow-sm rounded-none bg-zinc-50 flex flex-wrap ">
@@ -962,7 +1055,7 @@ const Sales = () => {
                   name="exchangedAmt"
                   className="!mb-1"
                 >
-                  
+
                   <Input readOnly />
                 </Form.Item>
                 <Form.Item
@@ -1138,7 +1231,7 @@ const Sales = () => {
               className="compact-table"
               style={{
                 width: '100%',
-                tableLayout: 'auto', 
+                tableLayout: 'auto',
                 borderRadius: 0,
               }}
             />

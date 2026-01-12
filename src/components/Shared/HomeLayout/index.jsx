@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const logo = import.meta.env.VITE_LOGO_URL;
@@ -8,17 +8,14 @@ const { Header, Sider, Content } = Layout;
 import LanguageSwitcher from "../../Shared/LanguageSwitcher";
 import i18n from 'i18next';
 import { useTranslation } from 'react-i18next';
-const UserLayout = ({ children }) => {
+const HomeLayout = ({ children }) => {
   const { t } = useTranslation('about');
   const location = useLocation(); // Get current URL path
   const currentPath = location.pathname;
 
 
 
-   useEffect(() => {
-    document.documentElement.dir = ['fa'].includes(i18n.language) ? 'rtl' : 'ltr';
-}, [i18n.language]);
-
+ 
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const {
@@ -28,14 +25,14 @@ const UserLayout = ({ children }) => {
 
 
   return (
-    <Layout className='h-screen'>
+    <Layout className='h-screen'  dir={i18n.language === 'fa' ? 'rtl' : 'ltr'}>
 
       <Layout>
-        <Header style={{ padding: 0, background: colorBgContainer }} className='!bg-cyan-500 !text-blue-500   flex justify-between items-center !px-5'>
-          
+        <Header style={{ padding: 0, background: colorBgContainer }} className='!fixed !z-100 !w-full top-0 left-0 !bg-cyan-500 !text-blue-500   flex justify-between items-center !px-5'>
+
           <LanguageSwitcher className="!border-none !text-[#3d3100]" />
           <div className="!w-full !flex !flex-col !justify-start !items-end !items-center ">
-             
+
             {currentPath == "/" && (
               <Button
                 type="text"
@@ -76,12 +73,11 @@ const UserLayout = ({ children }) => {
 
         </Header>
         <Content
+          dir={i18n.language === 'fa' ? 'rtl' : 'ltr'}
           style={{
             margin: '0px 0px',
             padding: 1,
             minHeight: 280,
-            // background: colorBgContainer,
-
           }}
         >
           {children}
@@ -90,4 +86,4 @@ const UserLayout = ({ children }) => {
     </Layout>
   );
 };
-export default UserLayout;
+export default HomeLayout;

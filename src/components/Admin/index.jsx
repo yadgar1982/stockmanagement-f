@@ -1,8 +1,8 @@
 import React, { useEffect, useState,useMemo} from 'react';
-import { Card, Button,Table,Tag  } from "antd";
-import AdminLayOut from '../Shared/AdminLayout/index'
+import { Card, Button,Table,Tag, Tooltip  } from "antd";
+import AdminLayOut from '../Shared/AdminLayOut/index'
 const logo = import.meta.env.VITE_LOGO_URL;
-import { PrinterOutlined } from '@ant-design/icons';
+import { FileExcelOutlined, PrinterOutlined } from '@ant-design/icons';
 import { fetchPurchase } from '../../redux/slices/purchaseSlice'
 import { fetchPayment } from '../../redux/slices/paymentSlice';
 import { fetchSales } from '../../redux/slices/salesSlice';
@@ -13,7 +13,9 @@ import { fetchCustomers } from '../../redux/slices/customerSlice'
 import { fetchDealer } from '../../redux/slices/dealerSlice'
 import { useSelector, useDispatch } from 'react-redux';
 const branding = JSON.parse(localStorage.getItem("branding"))
-
+import ExchangeCalculator from '../Shared/shared-components/exchangeCalc';
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 const Admin = () => {
   const dispatch = useDispatch()
   const [dealer, setDealer] = useState([]);
@@ -622,6 +624,276 @@ ${allSupplierBalances.length ? `
     },
   ];
 
+  //export to excel
+  const exportSales = (allSales) => {
+    if (!allSales || allSales.length === 0) return;
+
+    // Map Redux data to Excel rows
+    const data = allSales.map((sale) => ({
+      "Sales Date": sale.salesDate
+        ? new Date(sale.salesDate).toLocaleDateString()
+        : "",
+      "Invoice No": sale.invoiceNo || "",
+      "Product": sale.productName || "",
+      "Category": sale.categoryName || "",
+      "Quantity": sale.quantity || 0,
+      "Unit": sale.unit || "",
+      "Weight": sale.weight || 0,
+      "Customer": sale.customerName || "",
+      "Company": sale.companyName || "",
+      "Warehouse": sale.warehouseName || "",
+      "Unit Cost": sale.unitCost || 0,
+      "Exchanged Amt": sale.exchangedAmt || 0,
+      "Total Cost": sale.totalCost || 0,
+      "Local Total": sale.totalLocalCost || 0,
+      "Currency": sale.currency || "USD",
+      "Commission": sale.totalComission || 0,
+      "Dealer": sale.dealerName || "",
+      "Country": sale.countryName || "",
+      "Batch": sale.batch || "",
+      "Created At": sale.createdAt
+        ? new Date(sale.createdAt).toLocaleDateString()
+        : "",
+      "User Name": sale.userName || "",
+      "Description": sale.description || "",
+    }));
+
+    // Create worksheet
+    const worksheet = XLSX.utils.json_to_sheet(data, { origin: 3 });
+    const colCount = Object.keys(data[0] || {}).length;
+
+    // Add heading manually
+    XLSX.utils.sheet_add_aoa(
+      worksheet,
+      [
+        [`Sales Report`],
+        [`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`],
+        [] // empty row before table
+      ],
+      { origin: "A1" }
+    );
+
+    // Merge first row across all columns for the title
+    worksheet["!merges"] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: colCount - 1 } }
+    ];
+
+    // Set column widths for readability
+    worksheet["!cols"] = [
+      { wch: 15 }, { wch: 20 }, { wch: 20 }, { wch: 10 }, { wch: 10 },
+      { wch: 10 }, { wch: 20 }, { wch: 20 }, { wch: 20 }, { wch: 12 },
+      { wch: 12 }, { wch: 15 }, { wch: 15 }, { wch: 10 }, { wch: 15 },
+      { wch: 18 }, { wch: 15 }, { wch: 15 }, { wch: 18 }, { wch: 18 },
+      { wch: 15 }, { wch: 30 }
+    ];
+
+    // Create workbook and append worksheet
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sales Report");
+
+    // Generate Excel file
+    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    const file = new Blob([excelBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    // Save
+    saveAs(file, "SalesReport.xlsx");
+  };
+
+  const exportPurchase = (allPurchases) => {
+    if (!allPurchases || allPurchases.length === 0) return;
+
+    // Map Redux data to Excel rows
+    const data = allPurchases.map((p) => ({
+      "Purchase Date": p.purchaseDate
+        ? new Date(p.purchaseDate).toLocaleDateString()
+        : "",
+      "Order No": p.orderNo || "",
+      "Product": p.productName || "",
+      "Category": p.categoryName || "",
+      "Description": p.description || "",
+      "Quantity": p.quantity || 0,
+      "Unit": p.unit || "",
+      "Weight": p.weight || 0,
+      "Supplier": p.supplierName || "",
+      "Party": p.party || "",
+      "Company": p.companyName || "",
+      "Warehouse": p.warehouseName || "",
+      "Unit Cost": p.unitCost || 0,
+      "Exchanged Amt": p.exchangedAmt || 0,
+      "Total Cost": p.totalCost || 0,
+      "Local Total": p.totalLocalCost || 0,
+      "Currency": p.currency || "USD",
+      "Commission": p.totalComission || 0,
+      "Dealer": p.dealerName || "",
+      "Country": p.countryName || "",
+      "Batch": p.batch || "",
+      "Created At": p.createdAt
+        ? new Date(p.createdAt).toLocaleDateString()
+        : "",
+      "User Name": p.userName || "",
+
+    }));
+
+    // Create worksheet
+
+    const worksheet = XLSX.utils.json_to_sheet(data, { origin: 3 }); // start table at row 4
+
+    const colCount = Object.keys(data[0] || {}).length;
+
+    // Add heading manually
+    XLSX.utils.sheet_add_aoa(
+      worksheet,
+      [
+        [`Purchase Report`],
+        [`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`],
+        [] // empty row before table
+      ],
+      { origin: "A1" }
+    );
+
+    // Merge first row across all columns for the title
+    worksheet["!merges"] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: colCount - 1 } }
+    ];
+    // Optional: Set column widths for better formatting
+    const colWidths = [
+      { wch: 15 }, // Invoice No
+      { wch: 15 }, // Order No
+      { wch: 20 }, // Product
+      { wch: 20 }, // Category
+      { wch: 10 }, // Quantity
+      { wch: 10 }, // Unit
+      { wch: 10 }, // Weight
+      { wch: 20 }, // Supplier
+      { wch: 15 }, // Party
+      { wch: 20 }, // Customer
+      { wch: 20 }, // Company
+      { wch: 20 }, // Warehouse
+      { wch: 12 }, // Unit Cost
+      { wch: 12 }, // Exchanged Amt
+      { wch: 15 }, // Total Cost
+      { wch: 15 }, // Local Total
+      { wch: 10 }, // Currency
+      { wch: 15 }, // Commission
+      { wch: 18 }, // Dealer
+      { wch: 15 }, // Country
+      { wch: 15 }, // Batch
+      { wch: 18 }, // Purchase Date
+      { wch: 18 }, // Created At
+      { wch: 15 }, // User Name
+      { wch: 30 }, // Description
+    ];
+    worksheet["!cols"] = colWidths;
+
+    // Create workbook and append worksheet
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Purchase Report");
+
+    // Generate Excel file
+    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    const file = new Blob([excelBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    // Save
+    saveAs(file, "PurchaseReport.xlsx");
+  };
+
+
+
+ const exportPayment = (allPayments) => {
+  if (!allPayments || allPayments.length === 0) return;
+
+  // Sort payments by date (optional, for proper running balance)
+  const sortedPayments = [...allPayments].sort(
+    (a, b) => new Date(a.paymentDate) - new Date(b.paymentDate)
+  );
+
+  let runningBalance = 0;
+
+  // Map payments to Excel rows with Debit, Credit, and Balance
+  const data = sortedPayments.map((p) => {
+    const debit = p.paymentType === "dr" ? p.amount || 0 : 0;
+    const credit = p.paymentType === "cr" ? p.amount || 0 : 0;
+
+    runningBalance += debit - credit;
+
+    return {
+      "Payment Date": p.paymentDate
+        ? new Date(p.paymentDate).toLocaleDateString()
+        : "",
+      "Payment No": p.paymentNo || "",
+      "Company": p.companyName || "",
+      "Transaction By": p.transBy || "",
+      "Entity": p.entity || "",
+      "Payment Type": p.paymentType || "",
+      "Transaction Type": p.transactionType || "",
+      "Party No": p.partyNo || "",
+      "Description": p.description || "",
+      
+      "Created At": p.createdAt
+        ? new Date(p.createdAt).toLocaleDateString()
+        : "",
+      "User Name": p.userName || "",
+      Debit: debit,
+      Credit: credit,
+      Balance: runningBalance.toFixed(2),
+    };
+  });
+
+  // Create worksheet starting at row 4
+  const worksheet = XLSX.utils.json_to_sheet(data, { origin: 3 });
+  const colCount = Object.keys(data[0] || {}).length;
+
+  // Add main heading
+  XLSX.utils.sheet_add_aoa(
+    worksheet,
+    [
+      ["Payments Report"],
+      [`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`],
+      [] // empty row before table
+    ],
+    { origin: "A1" }
+  );
+
+  // Merge main title row
+  worksheet["!merges"] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: colCount - 1 } }
+  ];
+
+  // Optional: Set column widths
+  worksheet["!cols"] = [
+    { wch: 15 }, // Payment No
+    { wch: 25 }, // Supplier
+    { wch: 20 }, // Company
+    { wch: 20 }, // Transaction By
+    { wch: 15 }, // Entity
+    { wch: 15 }, // Payment Type
+    { wch: 15 }, // Transaction Type
+    { wch: 12 }, // Party No
+    { wch: 30 }, // Description
+    { wch: 18 }, // Payment Date
+    { wch: 18 }, // Created At
+    { wch: 15 }, // User Name
+    { wch: 12 }, // Debit
+    { wch: 12 }, // Credit
+    { wch: 15 }, // Balance
+  ];
+
+  // Create workbook and append worksheet
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Payments Report");
+
+  // Generate Excel file
+  const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+  const file = new Blob([excelBuffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  saveAs(file, "PaymentsReport.xlsx");
+};
+
 
   return (
     <AdminLayOut>
@@ -633,8 +905,38 @@ ${allSupplierBalances.length ? `
         <div className="min-h-screen bg-gradient-to-b from-gray-100 via-gray-50 to-gray-100 font-sans">
           {/* Header */}
           <header className="bg-white shadow-sm py-6 px-8 mb-8 ">
-            <h1 className="md:text-4xl font-extrabold text-zinc-600 tracking-tight">Company Analytics Dashboard</h1>
-
+            <h1 className="md:text-3xl font-extrabold text-zinc-600 py-5 tracking-tight">{branding[0].name} Analytics Dashboard</h1>
+            <hr className='!text-zinc-300' />
+            <div className='mb-4 w-full  flex !text-start  justify-start !px-5 p-2 gap-1 '>
+              <ExchangeCalculator />
+              <Tooltip title="Sales Report">
+                <Button
+                type='text'
+                onClick={() => exportSales(allSales)}
+                className="!border !border-zinc-500 !rounded-sm hover:!bg-white hover:!text-zinc-600 !font-semibold !h-6 !mt-2 !px-2 !flex !justify-center !items-center !p-4  "
+              >
+                <span className="!hidden lg:!flex md:!flex">Save Sales</span><FileExcelOutlined className='w-full !text-lg !text-green-700 ' />
+              </Button>
+              </Tooltip>
+              <Tooltip title="Purchase Report">
+              <Button
+                type='text'
+                onClick={() => exportPurchase(allPurchases)}
+                className="!border !border-zinc-500 !rounded-sm hover:!bg-white hover:!text-zinc-600 !font-semibold !h-6 !mt-2 !px-2 !flex !justify-center !items-center !p-4  "
+              >
+                <span className="!hidden lg:!flex md:!flex">Save Purchase</span><FileExcelOutlined className='w-full !text-lg !text-green-700 ' />
+              </Button>
+              </Tooltip>
+              <Tooltip title="Payment Report">
+              <Button
+                type='text'
+                onClick={() => exportPayment(allPayments)}
+                className="!border !border-zinc-500 !rounded-sm hover:!bg-white hover:!text-zinc-600 !font-semibold !h-6 !mt-2 !px-2 !flex !justify-center !items-center !p-4  "
+              >
+                <span className="!hidden lg:!flex md:!flex">Save Payments</span><FileExcelOutlined className='w-full !text-lg !text-green-700 ' />
+              </Button>
+              </Tooltip>
+            </div>
           </header>
 
 
@@ -1001,14 +1303,14 @@ ${allSupplierBalances.length ? `
               dataSource={allAccountsBalance}
               bordered
               size="small"
-              scroll={{ x: "max-content" }}   
+              scroll={{ x: "max-content" }}
               pagination={{
                 pageSize: 8,
                 align: "center",
               }}
               title={() => (
                 <div className="text-sm md:text-lg font-bold text-red-700 p-2 bg-zinc-200 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-               
+
 
                   <Button
                     type="text"

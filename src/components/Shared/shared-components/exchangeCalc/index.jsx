@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { Input, Button, Form, Select, Modal,Avatar } from "antd";
-import { ArrowLeftOutlined, ArrowRightOutlined } from "@ant-design/icons";
+import { ArrowLeftOutlined, ArrowRightOutlined, SwapOutlined } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCurrency } from "../../../../redux/slices/currencySlice";
 import { toast } from "react-toastify";
@@ -47,10 +47,10 @@ const ExchangeCalculator = () => {
       <Button
         type="text"
         size="small"
-        className="!bg-cyan-600 !text-white !font-semibold !h-6 !mt-2 !px-2 !p-4 !hidden lg:!flex md:!flex "
+        className=" !text-zinc-500 !border !border-zinc-500 !text-lg !font-bold !h-6 !mt-2 !px-2 !p-4 lg:!flex md:!flex "
         onClick={() => setOpenCalc(true)}
       >
-      $ Exch
+    $<SwapOutlined className="!text-lg !font-bold"/>
       </Button>
 
       <Modal
