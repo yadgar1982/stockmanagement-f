@@ -1,6 +1,6 @@
 import React, { useEffect, useState,useMemo} from 'react';
 import { Card, Button,Table,Tag, Tooltip  } from "antd";
-import AdminLayOut from '../Shared/AdminLayOut/index'
+import AdminLayOut from '../Shared/AdminLayout/index.jsx'
 const logo = import.meta.env.VITE_LOGO_URL;
 import { FileExcelOutlined, PrinterOutlined } from '@ant-design/icons';
 import { fetchPurchase } from '../../redux/slices/purchaseSlice'
