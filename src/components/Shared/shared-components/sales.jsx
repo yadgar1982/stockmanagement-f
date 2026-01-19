@@ -489,6 +489,8 @@ const Sales = () => {
       ellipsis: true,
       minWidth: 120
     },
+    { title: "Description", dataIndex: 'description', key: 'description', minWidth: 150, ellipsis: true },
+
     {
       title: "Qty",
       dataIndex: 'quantity',
@@ -558,8 +560,7 @@ const Sales = () => {
       minWidth: 110,
       render: (date) => date ? dayjs(date).format("DD/MM/YYYY") : "-",
     },
-    { title: "Description", dataIndex: 'description', key: 'description', minWidth: 150, ellipsis: true },
-
+    
     // Actions (fixed right)
     {
       title: "Print",
@@ -923,7 +924,7 @@ const exportSales = (allSales) => {
             <h2 className='text-sm md:text-4xl p-2 text-white font-bold [text-shadow:2px_2px_4px_rgba(1,2,2,0.5)]'>Create Sale Record</h2>
             <div> {productQty && (
               <div className='!text-yellow-200  bg-blue-900 mt-3 md:text-1xl text-sm mb-2 p-2'>
-                <span className='text-white'>Availible Qty:</span> {productQty - productSaleQty},{productUnit || null}
+                <span className='text-white'>Availible Qty:</span> {productQty - productSaleQty}, Units
               </div>
             )}</div>
             <div className='mb-4 w-[100%] flex justify-end !px-25 p-2 gap-1'>

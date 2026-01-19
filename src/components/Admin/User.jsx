@@ -27,7 +27,8 @@ const User = () => {
   const { data: users, error: uError } = useSWR("/api/user/get/all", fetcher);
   useEffect(() => {
     if (users && users) {
-      setUserData(users?.data || users)
+      const filtered= (users?.data || users).filter((u)=>u.role==="admin" || u.role==="user");
+      setUserData(filtered)
 
     }
   }, [users])
@@ -195,7 +196,7 @@ const User = () => {
     <AdminLayout>
       <div className='  justify-center w-full bg-zinc-100 h-screen'>
         <ToastContainer position="top-right" autoClose={3000} />
-        <h2 className='md:text-2xl text-center w-full p-2 px-12 text-zinc-500 text-left font-semibold'>User Registeration Form</h2>
+        <h2 className='md:text-2xl text-center w-full p-2 px-12 mb-4 text-zinc-500 text-left font-semibold'>User User Registeration Form</h2>
 
         <div className='w-full bg-zinc-100 px-9' >
           <Card className='!bg-zinc-50 !shadow !border !rounded-none !border-zinc-300 !shadow-sm'>
@@ -215,12 +216,14 @@ const User = () => {
                     label="Full Name"
                     name="fullname"
                     rules={[{ required: true, message: 'Please input your fullname!' }]}
+                    className="!mb-1"
                   >
                     <Input className="w-full" />
                   </Form.Item>
                 </div>
                 <div className="w-full md:w-1/2">
                   <Form.Item
+                  className="!mb-1"
                     label="Mobile"
                     name="mobile"
                   >
@@ -233,6 +236,7 @@ const User = () => {
 
                 <div className="w-full md:w-1/2">
                   <Form.Item
+                    className="!mb-1"
                     label="Country"
                     name="country"
                     rules={[{ required: true, message: 'Please input your country!' }]}
@@ -251,6 +255,7 @@ const User = () => {
                 </div>
                 <div className="w-full md:w-1/2">
                   <Form.Item
+                  className="!mb-1"
                     label="Role"
                     name="role"
                   >
@@ -295,6 +300,7 @@ const User = () => {
 
                 <div className="w-full md:w-1/2">
                   <Form.Item
+                  className="!mb-1"
                     label="Email"
                     name="email"
                     rules={[{ required: true, message: 'Please input your email!' }]}
@@ -304,6 +310,7 @@ const User = () => {
                 </div>
                 <div className="w-full md:w-1/2">
                   <Form.Item
+                  className="!mb-1"
                     label="Password"
                     name="password"
                     rules={[{ required: true, message: 'Please input your password!' }]}
@@ -315,8 +322,9 @@ const User = () => {
               </div>
 
               {/* Submit Button */}
-              <div className="py-4">
+              <div className="py-4 !mb-1">
                 <Form.Item>
+                 
                   <Button type="text" htmlType="submit" className="md:!w-60 !bg-orange-500 !text-white !font-semibold hover:!bg-green-500 hover:!text-white hover:!shadow-lg hover:!shadow-black ">
                     {`${edit ? "Update User" : "Add User"}`}
                   </Button>
@@ -326,8 +334,9 @@ const User = () => {
           </Card>
 
         </div>
-        <h1 className=' text-xl md:text-2xl p-4 font-semibold !text-zinc-800'>Users</h1>
+        <h1 className=' text-xl md:text-xl p-4 font-semibold !text-zinc-800'>Users</h1>
         <Table
+        size='small'
           columns={columns}
           dataSource={userData}
           bordered

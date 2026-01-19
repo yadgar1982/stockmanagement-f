@@ -1,9 +1,9 @@
-import React, { useEffect, useState,useMemo} from 'react';
-import { Card, Button,Table,Tag, Tooltip  } from "antd";
-import AdminLayOut from '../Shared/AdminLayout/index.jsx'
+import React, { useEffect, useMemo, useState } from 'react';
+import { Card, Divider, Tabs, Button, Table, Tag, Tooltip, Select } from "antd";
+import UserLayout from '../Shared/AdminLayout';
 const logo = import.meta.env.VITE_LOGO_URL;
-import { FileExcelOutlined, PrinterOutlined } from '@ant-design/icons';
-import { fetchPurchase } from '../../redux/slices/purchaseSlice'
+const branding = JSON.parse(localStorage.getItem("branding"))
+import { fetchPurchase } from '../../redux/slices/purchaseSlice';
 import { fetchPayment } from '../../redux/slices/paymentSlice';
 import { fetchSales } from '../../redux/slices/salesSlice';
 import { fetchCompany } from '../../redux/slices/companySlice'
@@ -11,12 +11,16 @@ import { fetchStock } from '../../redux/slices/stockSlice'
 import { fetchSuppleirs } from '../../redux/slices/supplierSlice'
 import { fetchCustomers } from '../../redux/slices/customerSlice'
 import { fetchDealer } from '../../redux/slices/dealerSlice'
+import { fetchProducts } from '../../redux/slices/productSlice';
 import { useSelector, useDispatch } from 'react-redux';
-const branding = JSON.parse(localStorage.getItem("branding"))
+import { FileExcelOutlined, PrinterOutlined } from '@ant-design/icons';
 import ExchangeCalculator from '../Shared/shared-components/exchangeCalc';
+import useSWR, { mutate } from "swr";
+import { fetcher } from "../Modules/http";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
-const Admin = () => {
+
+const Inventory = () => {
   const dispatch = useDispatch()
   const [dealer, setDealer] = useState([]);
   const [dealerNo, setDealerNo] = useState(0)
@@ -37,7 +41,6 @@ const Admin = () => {
 
   const [company, setCompany] = useState([]);
   const [companyNo, setCompanyNo] = useState(0)
-  const [coPayment, setCoPayment] = useState(0)
   const [companyBalance, setCompanyBalance] = useState(0)
 
 
@@ -48,9 +51,14 @@ const Admin = () => {
   const [myPayable, setMyPayable] = useState([])
   const [myReceivable, setMyReceivable] = useState([])
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 5;
 
+
+  const [productQty, setProductQty] = useState(null);
+  const [productPurchaseQty, setProductPurchaseQty] = useState(null);
+  const [salesData, setSalesData] = useState(null);
+  const [productUnit, setProductUnit] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState("");
+  const [totalPurchase, setTotalPurchase] = useState([])
 
   const { dealers } = useSelector(state => state.dealers)
   const allDealers = dealers?.data || [];
@@ -69,6 +77,8 @@ const Admin = () => {
 
   const { sale } = useSelector(state => state.sale);
   const allSales = sale || [];
+
+
   const { payment: payments } = useSelector(state => state.payments);
   const allPayments = payments || [];
   const { stocks } = useSelector(state => state.stocks);
@@ -89,6 +99,16 @@ const Admin = () => {
     .reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
 
 
+  const { products, prloading, prerror } = useSelector((state) => state.products);
+  const allProducts = products?.data || [];
+  const product = allProducts.map((item) => ({
+    productName: item.productName,
+    productId: item._id,
+  }));
+  const productOptions = product.map((p) => ({
+    label: p.productName,
+    value: p.productId,
+  }));
 
   useEffect(() => {
     setDealer(allDealers);
@@ -106,12 +126,12 @@ const Admin = () => {
 
     //dealer total balance calculation
     const totalComSale = allSales.reduce(
-      (sum, sale) => sum + (sale.totalComission || 0),
+      (sum, sale) => sum + (sale?.totalComission || 0),
       0
     );
 
     const totalComPur = allPurchases.reduce(
-      (sum, purchase) => sum + (purchase.totalComission || 0),
+      (sum, purchase) => sum + (purchase?.totalComission || 0),
       0
     );
 
@@ -136,8 +156,8 @@ const Admin = () => {
     //total purchae
     const { totalPurchaseQty, totalPurchaseCost } = (allPurchases || []).reduce(
       (acc, pur) => {
-        acc.totalPurchaseQty += Number(pur.quantity * pur.weight || 0);
-        acc.totalPurchaseCost += Number(pur.totalCost || 0);
+        acc.totalPurchaseQty += Number(pur?.quantity * pur?.weight || 0);
+        acc.totalPurchaseCost += Number(pur?.totalCost || 0);
         return acc;
       },
       { totalPurchaseQty: 0, totalPurchaseCost: 0 }
@@ -157,6 +177,7 @@ const Admin = () => {
     const supplier_bal = sdebit - scredit
     setSupplierBalance(supplier_bal)
     setSpayment(sdebit)
+
 
 
     //Customer total balance calculation
@@ -239,6 +260,56 @@ const Admin = () => {
   }, [dealer, sale, purchases, payments, customers, supplier, companys]);
 
 
+  //fetch purchase all data
+  const { data: purchaseData, error: pError } = useSWR("/api/purchase/get", fetcher);
+
+  useEffect(() => {
+    if (purchaseData && purchaseData?.data) {
+      setTotalPurchase(purchaseData?.data);
+    }
+  }, [purchaseData])
+
+  //fetch sales all data
+  const { data: sales, error: saError } = useSWR("/api/sale/get", fetcher);
+
+  useEffect(() => {
+    if (sales && sales?.data) {
+      setSalesData(sales?.data || null);
+    }
+  }, [sales])
+
+  const handleProductChange = (value) => {
+    setSelectedProduct(value);
+
+    // Handle purchase quantities
+
+    if (Array.isArray(allPurchases)) {
+      const filteredPurchase = allPurchases.filter((p) => p.productId === value);
+
+      const calculatedQty = filteredPurchase.reduce((sum, item) => sum + (item.weight) * (item.quantity), 0);
+      const unit = filteredPurchase.length > 0 ? filteredPurchase[0].unit : null;
+      const sprice = selectedProduct.salePrice;
+
+      setProductUnit(unit);
+      setProductPurchaseQty(calculatedQty);
+    }
+    if (Array.isArray(salesData)) {
+      const filteredSales = allSales.filter((p) => p.productId === value);
+      const calculatedSaleQty = filteredSales.reduce((total, item) => total + (item?.weight) * (item?.quantity), 0);
+      const unit = filteredSales.length > 0 ? filteredSales[0].unit : null;
+
+      setProductUnit(unit);
+      setProductQty(calculatedSaleQty)
+    }
+    else {
+      setProductQty(null);
+      setProductPurchaseQty(null);
+    }
+
+
+  };
+
+
 
   useEffect(() => {
     dispatch(fetchCompany())
@@ -249,6 +320,7 @@ const Admin = () => {
     dispatch(fetchStock())
     dispatch(fetchSales())
     dispatch(fetchPurchase())
+    dispatch(fetchProducts())
   }, []);
   // all accounts balance
   const allCompaniesBalance = useMemo(() => {
@@ -803,100 +875,100 @@ ${allSupplierBalances.length ? `
 
 
 
- const exportPayment = (allPayments) => {
-  if (!allPayments || allPayments.length === 0) return;
+  const exportPayment = (allPayments) => {
+    if (!allPayments || allPayments.length === 0) return;
 
-  // Sort payments by date (optional, for proper running balance)
-  const sortedPayments = [...allPayments].sort(
-    (a, b) => new Date(a.paymentDate) - new Date(b.paymentDate)
-  );
+    // Sort payments by date (optional, for proper running balance)
+    const sortedPayments = [...allPayments].sort(
+      (a, b) => new Date(a.paymentDate) - new Date(b.paymentDate)
+    );
 
-  let runningBalance = 0;
+    let runningBalance = 0;
 
-  // Map payments to Excel rows with Debit, Credit, and Balance
-  const data = sortedPayments.map((p) => {
-    const debit = p.paymentType === "dr" ? p.amount || 0 : 0;
-    const credit = p.paymentType === "cr" ? p.amount || 0 : 0;
+    // Map payments to Excel rows with Debit, Credit, and Balance
+    const data = sortedPayments.map((p) => {
+      const debit = p.paymentType === "dr" ? p.amount || 0 : 0;
+      const credit = p.paymentType === "cr" ? p.amount || 0 : 0;
 
-    runningBalance += debit - credit;
+      runningBalance += debit - credit;
 
-    return {
-      "Payment Date": p.paymentDate
-        ? new Date(p.paymentDate).toLocaleDateString()
-        : "",
-      "Payment No": p.paymentNo || "",
-      "Company": p.companyName || "",
-      "Transaction By": p.transBy || "",
-      "Entity": p.entity || "",
-      "Payment Type": p.paymentType || "",
-      "Transaction Type": p.transactionType || "",
-      "Party No": p.partyNo || "",
-      "Description": p.description || "",
-      
-      "Created At": p.createdAt
-        ? new Date(p.createdAt).toLocaleDateString()
-        : "",
-      "User Name": p.userName || "",
-      Debit: debit,
-      Credit: credit,
-      Balance: runningBalance.toFixed(2),
-    };
-  });
+      return {
+        "Payment Date": p.paymentDate
+          ? new Date(p.paymentDate).toLocaleDateString()
+          : "",
+        "Payment No": p.paymentNo || "",
+        "Company": p.companyName || "",
+        "Transaction By": p.transBy || "",
+        "Entity": p.entity || "",
+        "Payment Type": p.paymentType || "",
+        "Transaction Type": p.transactionType || "",
+        "Party No": p.partyNo || "",
+        "Description": p.description || "",
 
-  // Create worksheet starting at row 4
-  const worksheet = XLSX.utils.json_to_sheet(data, { origin: 3 });
-  const colCount = Object.keys(data[0] || {}).length;
+        "Created At": p.createdAt
+          ? new Date(p.createdAt).toLocaleDateString()
+          : "",
+        "User Name": p.userName || "",
+        Debit: debit,
+        Credit: credit,
+        Balance: runningBalance.toFixed(2),
+      };
+    });
 
-  // Add main heading
-  XLSX.utils.sheet_add_aoa(
-    worksheet,
-    [
-      ["Payments Report"],
-      [`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`],
-      [] // empty row before table
-    ],
-    { origin: "A1" }
-  );
+    // Create worksheet starting at row 4
+    const worksheet = XLSX.utils.json_to_sheet(data, { origin: 3 });
+    const colCount = Object.keys(data[0] || {}).length;
 
-  // Merge main title row
-  worksheet["!merges"] = [
-    { s: { r: 0, c: 0 }, e: { r: 0, c: colCount - 1 } }
-  ];
+    // Add main heading
+    XLSX.utils.sheet_add_aoa(
+      worksheet,
+      [
+        ["Payments Report"],
+        [`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`],
+        [] // empty row before table
+      ],
+      { origin: "A1" }
+    );
 
-  // Optional: Set column widths
-  worksheet["!cols"] = [
-    { wch: 15 }, // Payment No
-    { wch: 25 }, // Supplier
-    { wch: 20 }, // Company
-    { wch: 20 }, // Transaction By
-    { wch: 15 }, // Entity
-    { wch: 15 }, // Payment Type
-    { wch: 15 }, // Transaction Type
-    { wch: 12 }, // Party No
-    { wch: 30 }, // Description
-    { wch: 18 }, // Payment Date
-    { wch: 18 }, // Created At
-    { wch: 15 }, // User Name
-    { wch: 12 }, // Debit
-    { wch: 12 }, // Credit
-    { wch: 15 }, // Balance
-  ];
+    // Merge main title row
+    worksheet["!merges"] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: colCount - 1 } }
+    ];
 
-  // Create workbook and append worksheet
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Payments Report");
+    // Optional: Set column widths
+    worksheet["!cols"] = [
+      { wch: 15 }, // Payment No
+      { wch: 25 }, // Supplier
+      { wch: 20 }, // Company
+      { wch: 20 }, // Transaction By
+      { wch: 15 }, // Entity
+      { wch: 15 }, // Payment Type
+      { wch: 15 }, // Transaction Type
+      { wch: 12 }, // Party No
+      { wch: 30 }, // Description
+      { wch: 18 }, // Payment Date
+      { wch: 18 }, // Created At
+      { wch: 15 }, // User Name
+      { wch: 12 }, // Debit
+      { wch: 12 }, // Credit
+      { wch: 15 }, // Balance
+    ];
 
-  // Generate Excel file
-  const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-  const file = new Blob([excelBuffer], {
-    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  });
-  saveAs(file, "PaymentsReport.xlsx");
-};
+    // Create workbook and append worksheet
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Payments Report");
+
+    // Generate Excel file
+    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    const file = new Blob([excelBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    saveAs(file, "PaymentsReport.xlsx");
+  };
 
 
   return (
-    <AdminLayOut>
+    <UserLayout>
 
       <div className="relative w-full md:w-full bg-orange-50 h-[95vh] ">
         <img src={logo} alt="Watermark" className="absolute inset-0 m-auto opacity-15 w-7/9 h-7/9 object-contain pointer-events-none" />
@@ -905,41 +977,74 @@ ${allSupplierBalances.length ? `
         <div className="min-h-screen bg-gradient-to-b from-gray-100 via-gray-50 to-gray-100 font-sans">
           {/* Header */}
           <header className="bg-white shadow-sm py-6 px-8 mb-8 ">
-            <h1 className="md:text-3xl font-extrabold text-zinc-600 py-5 tracking-tight">{branding[0].name} Analytics Dashboard</h1>
+            <h1 className="md:text-3xl font-extrabold text-zinc-600 py-5 tracking-tight">{branding?.[0]?.name} Analytics Dashboard</h1>
             <hr className='!text-zinc-300' />
-            <div className='mb-4 w-full  flex !text-start  justify-start !px-5 p-2 gap-1 '>
+            <div className='mb-4 w-full  flex !text-start item-center  justify-start !px-5 p-2 gap-1 '>
               <ExchangeCalculator />
               <Tooltip title="Sales Report">
                 <Button
-                type='text'
-                onClick={() => exportSales(allSales)}
-                className="!border !border-zinc-500 !rounded-sm hover:!bg-white hover:!text-zinc-600 !font-semibold !h-6 !mt-2 !px-2 !flex !justify-center !items-center !p-4  "
-              >
-                <span className="!hidden lg:!flex md:!flex">Save Sales</span><FileExcelOutlined className='w-full !text-lg !text-green-700 ' />
-              </Button>
+                  type='text'
+                  onClick={() => exportSales(allSales)}
+                  className="!border !border-zinc-500 !rounded-sm hover:!bg-white hover:!text-zinc-600 !font-semibold !h-6 !mt-2 !px-2 !flex !justify-center !items-center !p-4  "
+                >
+                  <span className="!hidden lg:!flex md:!flex">Save Sales</span><FileExcelOutlined className='w-full !text-lg !text-green-700 ' />
+                </Button>
               </Tooltip>
               <Tooltip title="Purchase Report">
-              <Button
-                type='text'
-                onClick={() => exportPurchase(allPurchases)}
-                className="!border !border-zinc-500 !rounded-sm hover:!bg-white hover:!text-zinc-600 !font-semibold !h-6 !mt-2 !px-2 !flex !justify-center !items-center !p-4  "
-              >
-                <span className="!hidden lg:!flex md:!flex">Save Purchase</span><FileExcelOutlined className='w-full !text-lg !text-green-700 ' />
-              </Button>
+                <Button
+                  type='text'
+                  onClick={() => exportPurchase(allPurchases)}
+                  className="!border !border-zinc-500 !rounded-sm hover:!bg-white hover:!text-zinc-600 !font-semibold !h-6 !mt-2 !px-2 !flex !justify-center !items-center !p-4  "
+                >
+                  <span className="!hidden lg:!flex md:!flex">Save Purchase</span><FileExcelOutlined className='w-full !text-lg !text-green-700 ' />
+                </Button>
               </Tooltip>
-              <Tooltip title="Payment Report">
-              <Button
-                type='text'
-                onClick={() => exportPayment(allPayments)}
-                className="!border !border-zinc-500 !rounded-sm hover:!bg-white hover:!text-zinc-600 !font-semibold !h-6 !mt-2 !px-2 !flex !justify-center !items-center !p-4  "
-              >
-                <span className="!hidden lg:!flex md:!flex">Save Payments</span><FileExcelOutlined className='w-full !text-lg !text-green-700 ' />
-              </Button>
+              <Tooltip title="Payments Report">
+                <Button
+                  type='text'
+                  onClick={() => exportPayment(allPayments)}
+                  className="!border !border-zinc-500 !rounded-sm hover:!bg-white hover:!text-zinc-600 !font-semibold !h-6 !mt-2 !px-2 !flex !justify-center !items-center !p-4  "
+                >
+                  <span className="!hidden lg:!flex md:!flex">Save Payments</span><FileExcelOutlined className='w-full !text-lg !text-green-700 ' />
+                </Button>
               </Tooltip>
+
+
+
+
             </div>
           </header>
 
+          <div className=' flex gap-2 flex flex-col w-auto h-full bg-zinc-200 item-center p-2 mb-2 px-4 md:px-8'>
+            <Select
+            size='small'
+              showSearch={{ optionFilterProp: 'label', }}
+              placeholder="Select a product to get Balance"
+              options={productOptions}
+              onChange={handleProductChange}
+              className='!w-2/6 md:!w-2/14 !mb-1'
+            />
 
+           <div className='flex '> <span className='md:text-lg md:font-bold px-2'>Purchase: {Number(productPurchaseQty || 0).toFixed(2)} kg</span> |
+
+            <span className='md:text-lg md:font-bold px-2'> Sales: {Number(productQty || 0).toFixed(2)} kg</span> | 
+           
+              
+              <span  className={ parseFloat(productPurchaseQty || 0) -parseFloat(productQty || 0) <
+                    0
+                    ? "text-red-500  text-sm md:text-lg md:font-bold flex md:flex-row gap-4"
+                    : "text-cyan-500 text-sm  md:text-lg md:font-bold flex  md:flex-row gap-4"
+                }
+                
+              >
+                <p className='text-black pl-2'> Balance:</p> {(
+                  parseFloat(productPurchaseQty || 0) -
+                  parseFloat(productQty || 0)
+                ).toFixed(2)} kg
+              </span></div>
+           
+
+          </div>
           {/* Cards Grid */}
           <div className="px-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Dealer Card */}
@@ -1016,7 +1121,7 @@ ${allSupplierBalances.length ? `
                   <span className="text-blue-500 font-bold text-[12px] md:text-sm">{supplierNo}</span>
                 </p>
 
-                <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
+                {/* <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
                   Total Purchase Qty:{" "}
                   <span
                     className={
@@ -1028,7 +1133,7 @@ ${allSupplierBalances.length ? `
                     {(myPurchaseQty / 1000).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })} tons
 
                   </span>
-                </p>
+                </p> */}
                 <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
                   Total Purchase + Adv:{" "}
                   <span
@@ -1087,7 +1192,7 @@ ${allSupplierBalances.length ? `
                   Total Customers:{" "}
                   <span className="text-blue-500 font-bold text-[12px] md:text-sm">{customerNo}</span>
                 </p>
-                <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
+                {/* <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
                   Total Sales Qty:{" "}
                   <span
                     className={
@@ -1099,7 +1204,7 @@ ${allSupplierBalances.length ? `
                     {(mySalesQty / 1000).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })} Tons
 
                   </span>
-                </p>
+                </p> */}
                 <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
                   Total Sales + Adv:{" "}
                   <span
@@ -1148,7 +1253,7 @@ ${allSupplierBalances.length ? `
               <div className="absolute top-0 left-0 h-2 w-full bg-zinc-400"></div>
               <div className="relative z-10">
                 <div className="mb-4">
-                  <h2 className="text-xl font-bold text-gray-800">Company Balance:</h2>
+                  <h2 className="text-xl font-bold text-gray-800">Current Balance:</h2>
                 </div>
                 <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
                   Total Company: <span className="text-blue-500 font-bold text-[12px] md:text-sm">{companyNo}</span>
@@ -1161,6 +1266,9 @@ ${allSupplierBalances.length ? `
                 <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
                   Total Receivable: <span className="text-green-500 font-bold text-[12px] md:text-sm"> $ {myReceivable.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </p>
+                {/* <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
+                  Total Availible: <span className="text-green-500 font-bold text-[12px] md:text-sm"> $ {myReceivable.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                </p> */}
               </div>
 
               <div className="absolute bottom-0 right-0 w-32 h-32 bg-blue-100 rounded-full opacity-20 -translate-x-8 translate-y-8"></div>
@@ -1272,7 +1380,7 @@ ${allSupplierBalances.length ? `
                     $ {dealerComission.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </p>
-                <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
+                {/* <p className="text-gray-600 text-[12px] md:text-sm text-blue-600 mb-1 w-full flex justify-between bg-zinc-50">
                   Current availible Stock:{" "}
                   <span
                     className={
@@ -1286,7 +1394,7 @@ ${allSupplierBalances.length ? `
                       maximumFractionDigits: 3,
                     })} tons
                   </span>
-                </p>
+                </p> */}
               </div>
 
 
@@ -1327,10 +1435,8 @@ ${allSupplierBalances.length ? `
         </div>
 
       </div>
-    </AdminLayOut>
+    </UserLayout>
   )
 }
 
-
-
-export default Admin
+export default Inventory

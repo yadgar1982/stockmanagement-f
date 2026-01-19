@@ -27,7 +27,7 @@ const ContactPage = () => {
 
   return (
     <div className="w-full   px-2 flex items-center justify-center py-2  bg-white">
-      <div className="w-full max-w-3xl bg-white shadow-2xl rounded-sm p-8 m-2 !md:p-16 border border-zinc-300">
+      <div className="w-full max-w-6xl bg-white shadow-xl rounded-sm p-8 m-2 !md:p-16 border border-zinc-300">
         <Title
           level={2}
           className="text-center text-yellow-900 font-extrabold text-3xl md:text-4xl mb-4"
@@ -93,11 +93,11 @@ const ContactPage = () => {
 
           <Form.Item>
             <Button
-              type="primary"
+              type="text"
               htmlType="submit"
               loading={loading}
               block
-              className="bg-yellow-900 hover:bg-yellow-800 text-white font-bold text-lg py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
+              className="!bg-yellow-600 hover:!bg-cyan-500 !text-white font-bold text-lg py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
             >
               {t("Send Message")}
             </Button>

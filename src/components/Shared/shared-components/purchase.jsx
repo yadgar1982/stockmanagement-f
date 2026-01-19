@@ -403,15 +403,15 @@ const allPurchase = purchaseList || [];
       const sprice = selectedProduct.salePrice;
 
       setProductUnit(unit);
-      setProductQty(calculatedQty);
+      setProductPurchaseQty(calculatedQty);
     }
     if (Array.isArray(salesData)) {
       const filteredSales = salesData.filter((p) => p.productId === value);
-      const calculatedSaleQty = filteredSales.reduce((total, item) => total + (item.weight) * (item.quantity), 0);
+      const calculatedSaleQty = filteredSales.reduce((total, item) => total + (item?.weight) * (item?.quantity), 0);
       const unit = filteredSales.length > 0 ? filteredSales[0].unit : null;
 
       setProductUnit(unit);
-      setProductPurchaseQty(calculatedSaleQty)
+      setProductQty(calculatedSaleQty)
     }
     else {
       setProductQty(null);
@@ -419,19 +419,9 @@ const allPurchase = purchaseList || [];
     }
 
 
-    // Handle sales quantities
-    if (Array.isArray(salesData)) {
-      const filteredSales = salesData.filter((p) => p.productId === value);
-      const calculatedSaleQty = filteredSales.reduce((sum, item) => sum + item.quantity, 0);
-      const unit = filteredSales.length > 0 ? filteredSales[0].unit : null;
-
-      setProductUnit(unit); // optional: override if you want sales unit
-      setProductPurchaseQty(calculatedSaleQty); // use separate state for sales
-    } else {
-      setProductPurchaseQty(null);
-    }
   };
 
+ 
   //Delete 
   const handleDelete = async (obj) => {
     try {
@@ -497,6 +487,7 @@ const allPurchase = purchaseList || [];
     ellipsis: true, 
     minWidth: 120 
   },
+  { title: "Description", dataIndex: 'description', key: 'description', minWidth: 150, ellipsis: true },
   {
     title: "Qty",
     dataIndex: 'quantity',
@@ -566,7 +557,7 @@ const allPurchase = purchaseList || [];
     minWidth: 110,
     render: (date) => date ? dayjs(date).format("DD/MM/YYYY") : "-",
   },
-  { title: "Description", dataIndex: 'description', key: 'description', minWidth: 150, ellipsis: true },
+  
 
   // Actions (fixed right)
   {
@@ -980,7 +971,7 @@ const allPurchase = purchaseList || [];
             <h2 className="text-sm md:text-3xl p-2 text-white font-bold [text-shadow:2px_2px_4px_rgba(1,2,2,0.5)]">Create Purchase Record</h2>
             <div> {productQty && (
               <div className='!text-yellow-200  bg-blue-900 mt-3 md:text-1xl text-sm mb-2 p-2'>
-                <span className='text-white'>Availible Qty:</span> {Number(productQty) - Number(productPurchaseQty)},{productUnit || null}
+                <span className='text-white'>Availible Qty:</span> {Number(productQty) - Number(productPurchaseQty)}, Units
               </div>
 
             )}</div>

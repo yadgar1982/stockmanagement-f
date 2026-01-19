@@ -29,10 +29,13 @@ const Login = () => {
       const { token, user } = data;
 
       localStorage.setItem("userInfo", JSON.stringify(user));
-      cookies.set("authToken", token, { path: "/", maxAge: 3600 });
+      cookies.set("authToken", token, { path: "/", maxAge: 7200 });
 
       if (user.role === "admin") return navigate("/admin");
       if (user.role === "user") return navigate("/inventory");
+      if (user.role === "supplier") return navigate("/supplierdash");
+      if (user.role === "customer") return navigate("/customerdash");
+      if (user.role === "dealer") return navigate("/dealerdash");
       navigate("/login");
 
     } catch (error) {

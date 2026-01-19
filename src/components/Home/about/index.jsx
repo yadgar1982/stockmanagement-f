@@ -11,7 +11,7 @@ const { Title, Paragraph } = Typography;
 import { useTranslation } from 'react-i18next';
 const AboutUs = () => {
 
-const statsImages = [
+  const statsImages = [
     "/a.jpeg",
     "/b.jpeg",
     "/c.jpeg",
@@ -27,8 +27,7 @@ const statsImages = [
         {/* Hero Section */}
         <div className="hero-section">
           <div className="hero-overlay" />
-          <div className="hero-content !w-full !h-[80vh] !bg-cover !bg-center cursor-pointer !bg-no-repeat !bg-[url('/home.jpg')] ">
-
+          <div className="hero-content !w-full !h-[98vh] !bg-cover !bg-center cursor-pointer !bg-no-repeat !rounded-none !bg-[url('/home.jpg')] ">
           </div>
 
         </div>
@@ -55,17 +54,8 @@ const statsImages = [
             </Col>
           </Row>
         </div>
-
-        {/* Core Values */}
-        <div className="section-padding core-values !w-full  !bg-[#e0ddcb] md:!px-60 ">
-          <Title level={2} className="!text-zinc-900 !font-bold !text-4xl md:ml-5">{(t("About Us"))}</Title>
-          <Paragraph style={{ textAlign: "justify", margin: "0 auto", width: "100%", padding: 20 }} className="!text-zinc-900!w-full !text-sm md:!text-xl ">
-            {(t("Hadia Gold is a pioneering company in the supply of a wide variety of high-quality dried fruits, fully compliant with international standards. The company delivers its products to customers while strictly adhering to quality and freshness standards, ensuring that every product retains its superior taste, nutritional value, and freshness.Established in 2023 in Almaty, Kazakhstan, Hadia Gold operates with the goal of providing the highest quality products and services to its customers and citizens. The company is managed by an experienced team and effective leadership with decades of expertise in international trade.The CEO, Mr. Mohammad Dad, assures customers that using high-quality products at fair prices will establish a trustworthy, strong, and long-lasting relationship with Hadia Gold.The Hadia Gold team carefully selects and packages the finest dried fruits, ensuring that the highest standards are maintained from supplier to customer. Every nut, fruit, and seed is meticulously packaged to preserve its flavor, nutrition, and quality, providing a safe, healthy, and enjoyable experience.Hadia Gold is committed to bringing the best of nature to your table, delivering a reliable, high-quality, and delightful experience to every customer."))}
-          </Paragraph>
-        </div>
-
         {/* Stats Section */}
-        <div className="!section-padding !stats-section !bg-black !py-5 !px-9">
+        <div className="!section-padding !stats-section !bg-black !py-25 !px-9">
           <Slider
             dots={true}
             infinite={true}
@@ -92,16 +82,25 @@ const statsImages = [
             {statsImages.map((img, idx) => (
               <div key={idx} className="!px-2">
                 <Card
-                  className="stats-card !w-full !h-72 !bg-cover !bg-center cursor-pointer !bg-no-repeat hover:!shadow-2xl transition-all duration-500"
+                  className="stats-card !w-full !h-100 !bg-cover !bg-center cursor-pointer !bg-no-repeat hover:!shadow-2xl transition-all duration-500 !rounded-none"
                   style={{ backgroundImage: `url(${img})` }}
                 />
               </div>
             ))}
           </Slider>
         </div>
-       <div className="!h-auto">
-         <Contact />
-       </div>
+        {/* Core Values */}
+        <div className="section-padding core-values !w-full  !bg-[#e0ddcb] md:!px-60 ">
+          <Title level={2} className="!text-zinc-900 !font-bold !text-4xl md:ml-5">{(t("About Us"))}</Title>
+          <Paragraph style={{ textAlign: "justify", margin: "0 auto", width: "100%", padding: 20 }} className="!text-zinc-900!w-full !text-sm md:!text-xl ">
+            {(t("Hadia Gold is a pioneering company in the supply of a wide variety of high-quality dried fruits, fully compliant with international standards. The company delivers its products to customers while strictly adhering to quality and freshness standards, ensuring that every product retains its superior taste, nutritional value, and freshness.Established in 2023 in Almaty, Kazakhstan, Hadia Gold operates with the goal of providing the highest quality products and services to its customers and citizens. The company is managed by an experienced team and effective leadership with decades of expertise in international trade.The CEO, Mr. Mohammad Dad, assures customers that using high-quality products at fair prices will establish a trustworthy, strong, and long-lasting relationship with Hadia Gold.The Hadia Gold team carefully selects and packages the finest dried fruits, ensuring that the highest standards are maintained from supplier to customer. Every nut, fruit, and seed is meticulously packaged to preserve its flavor, nutrition, and quality, providing a safe, healthy, and enjoyable experience.Hadia Gold is committed to bringing the best of nature to your table, delivering a reliable, high-quality, and delightful experience to every customer."))}
+          </Paragraph>
+        </div>
+
+
+        <div className="!h-auto !w-full">
+          <Contact />
+        </div>
       </div>
     </HomeLayout>
   );

@@ -28,7 +28,7 @@ const HomeLayout = ({ children }) => {
     <Layout className='h-screen'  dir={i18n.language === 'fa' ? 'rtl' : 'ltr'}>
 
       <Layout>
-        <Header style={{ padding: 0, background: colorBgContainer }} className='!fixed !z-100 !w-full top-0 left-0 !bg-cyan-500 !text-blue-500   flex justify-between items-center !px-5'>
+        <Header style={{ padding: 0, background: colorBgContainer }} className='!fixed !z-100 !w-full top-0 left-0 !bg-[#483702] !text-white   flex justify-between items-center !px-5'>
 
           <LanguageSwitcher className="!border-none !text-[#3d3100]" />
           <div className="!w-full !flex !flex-col !justify-start !items-end !items-center ">
@@ -76,9 +76,11 @@ const HomeLayout = ({ children }) => {
           dir={i18n.language === 'fa' ? 'rtl' : 'ltr'}
           style={{
             margin: '0px 0px',
-            padding: 1,
+            padding: 0,
             minHeight: 280,
+
           }}
+          className='!h-screen'
         >
           {children}
         </Content>

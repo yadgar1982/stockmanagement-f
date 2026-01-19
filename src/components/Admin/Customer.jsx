@@ -6,7 +6,7 @@ import { http, fetcher } from '../Modules/http';
 import AdminLayout from '../Shared/AdminLayout'
 import Cookies from 'universal-cookie';
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
-import {countries} from "../Shared/countries/countries"
+import { countries } from "../Shared/countries/countries"
 const { Option } = Select;
 const cookies = new Cookies();
 
@@ -14,7 +14,7 @@ const cookies = new Cookies();
 const Customer = () => {
   const [custData, setCustData] = useState(null);
   const [formData, setFormData] = useState(null);
-    const [edit, setEdit] = useState(false);
+  const [edit, setEdit] = useState(false);
   const [id, setId] = useState(null);
 
   const [form] = Form.useForm()
@@ -27,20 +27,20 @@ const Customer = () => {
     }
   }, [customers])
 
-console.log("custer",custData)
+  console.log("custer", custData)
 
   const onFinish = async (values) => {
     try {
-      if(!token){
-         toast.error("Your session has been expired please login again ")
+      if (!token) {
+        toast.error("Your session has been expired please login again ")
         setTimeout(() => {
           navigate("/login")
         }, 1000);
-       return
+        return
       }
       const httpReq = http(token);
-      const data = { ...values, role: "customer" };
-
+      const data = { ...values, role: "customer",password:values.email };
+      await httpReq.post("/api/user/create", data);
       const res = await httpReq.post("/api/customer/create", data);
       toast.success(res?.data?.msg)
       setFormData((prev) => ({ ...prev, ...res?.data?.customer }))
@@ -57,16 +57,17 @@ console.log("custer",custData)
   const onUpdate = async (values) => {
 
     try {
-      if(!token){
-         toast.error("Your session has been expired please login again ")
+      if (!token) {
+        toast.error("Your session has been expired please login again ")
         setTimeout(() => {
           navigate("/login")
         }, 1000);
-       return
+        return
       }
       const httpReq = http(token);
       const data = { ...values };
-      await httpReq.put(`/api/customer/update/${id._id}`, data);
+      await httpReq.put(`/api/user/updatebyemail/${id.email}`, data);
+      await httpReq.put(`/api/customer/updatecustomer/${id._id}`, data);
       toast.success("Customer updated successfully");
       form.resetFields();
       setEdit(false)
@@ -114,58 +115,59 @@ console.log("custer",custData)
 
     },
     {
-          title: "Edit",
-          key: "edit",
-          width: 90,
-          // fixed: "right",
-          render: (_, record) => ( // ✅ use record (row data)
-            <a
-              onClick={() => handleEdit(record)} // pass full row object
-              className="!text-white w-full !w-[200px] !rounded-full"
-            >
-              <EditOutlined className="w-full  hover:!bg-blue-500  bg-green-500 flex justify-center md:text-lg h-6" />
-            </a>
-          ),
-        },
-        {
-          title: "Delete",
-          key: 'delete',
-          width: 90,
-          // fixed: "right",
-    
-          render: (_, obj) => (
-            <Popconfirm
-              title="Are you sure to delete this purchase record?"
-              description="This action cannot be undone."
-              okText="yes"
-              cancelText="No"
-              onConfirm={async () => handleDelete(obj._id)}
-            >
-              <a className="!text-white w-[20px] !w-[200px] !rounded-full "><DeleteOutlined className="w-full  hover:!bg-blue-500  bg-red-500 flex justify-center md:text-lg h-6" /></a>
-            </Popconfirm>
-          )
-        }
+      title: "Edit",
+      key: "edit",
+      width: 90,
+      // fixed: "right",
+      render: (_, record) => ( // ✅ use record (row data)
+        <a
+          onClick={() => handleEdit(record)} // pass full row object
+          className="!text-white w-full !w-[200px] !rounded-full"
+        >
+          <EditOutlined className="w-full  hover:!bg-blue-500  bg-green-500 flex justify-center md:text-lg h-6" />
+        </a>
+      ),
+    },
+    {
+      title: "Delete",
+      key: 'delete',
+      width: 90,
+      // fixed: "right",
+
+      render: (_, obj) => (
+        <Popconfirm
+          title="Are you sure to delete this purchase record?"
+          description="This action cannot be undone."
+          okText="yes"
+          cancelText="No"
+          onConfirm={async () => handleDelete(obj)}
+        >
+          <a className="!text-white w-[20px] !w-[200px] !rounded-full "><DeleteOutlined className="w-full  hover:!bg-blue-500  bg-red-500 flex justify-center md:text-lg h-6" /></a>
+        </Popconfirm>
+      )
+    }
   ];
 
   //Edit
   let handleEdit = (record) => {
     setId(record);
     form.setFieldsValue(record);
-      setEdit(true)
+    setEdit(true)
   }
   //delete
-  const handleDelete = async (id) => {
+  const handleDelete = async (obj) => {
 
     try {
-      if(!token){
-         toast.error("Your session has been expired please login again ")
+      if (!token) {
+        toast.error("Your session has been expired please login again ")
         setTimeout(() => {
           navigate("/login")
         }, 1000);
-       return
+        return
       }
       const httpReq = http(token);
-      await httpReq.delete(`/api/customer/delete/${id}`);
+       await httpReq.delete(`/api/customer/delete/${obj._id}`);
+      await httpReq.delete(`/api/user/deleteUserbyemail/${obj.email}`);
       mutate("/api/customer/get/all");
       toast.success("Customer Deleted Successfully")
 
@@ -181,7 +183,7 @@ console.log("custer",custData)
     <AdminLayout>
       <div className='  justify-center w-full bg-zinc-100 h-screen'>
         <ToastContainer position="top-right" autoClose={3000} />
-        <h2 className='md:text-2xl text-center w-full p-2 px-12 text-zinc-500 text-left font-semibold'>Customer Registeration Form</h2>
+        <h2 className='md:text-2xl text-center w-full p-2 px-12 text-zinc-500 text-left font-semibold mb-4'>Customer Registeration Form</h2>
 
         <div className='w-full bg-zinc-100 px-9' >
           <Card className='!bg-zinc-50 !shadow !border !rounded-none !border-zinc-300 !shadow-sm'>
@@ -198,6 +200,7 @@ console.log("custer",custData)
 
                 <div className="w-full md:w-1/2">
                   <Form.Item
+                  className='!mb-1'
                     label="Full Name"
                     name="fullname"
                     rules={[{ required: true, message: 'Please input your fullname!' }]}
@@ -207,6 +210,7 @@ console.log("custer",custData)
                 </div>
                 <div className="w-full md:w-1/2">
                   <Form.Item
+                   className='!mb-1'
                     label="Mobile"
                     name="mobile"
                   >
@@ -219,6 +223,7 @@ console.log("custer",custData)
 
                 <div className="w-full md:w-1/2">
                   <Form.Item
+                   className='!mb-1'
                     label="Country"
                     name="country"
                     rules={[{ required: true, message: 'Please input your country!' }]}
@@ -237,10 +242,11 @@ console.log("custer",custData)
                 </div>
                 <div className="w-full md:w-1/2">
                   <Form.Item
+                   className='!mb-1'
                     label="Acc No"
                     name="accountNo"
                   >
-                   <Input className="w-full" />
+                    <Input className="w-full" />
                   </Form.Item>
                 </div>
               </div>
@@ -250,6 +256,7 @@ console.log("custer",custData)
 
                 <div className="w-full md:w-1/2">
                   <Form.Item
+                   className='!mb-1'
                     label="Email"
                     name="email"
                     rules={[{ required: true, message: 'Please input your email!' }]}
@@ -259,18 +266,19 @@ console.log("custer",custData)
                 </div>
                 <div className="w-full md:w-1/2">
                   <Form.Item
-                    label="Password"
-                    name="password"
-                    rules={[{ required: true, message: 'Please input your password!' }]}
+                   className='!mb-1'
+                    label="Address"
+                    name="address"
+
                   >
-                    <Input.Password className="w-full" />
+                    <Input className="w-full" />
                   </Form.Item>
                 </div>
 
               </div>
 
               {/* Submit Button */}
-              <div className="py-4">
+              <div className="py-4 !mb-1">
                 <Form.Item>
                   <Button type="text" htmlType="submit" className="md:!w-60 !bg-orange-500 !text-white !font-semibold hover:!bg-green-500 hover:!text-white hover:!shadow-lg hover:!shadow-black ">
                     {`${edit ? "Update Customer" : "Add Customer"}`}
@@ -282,20 +290,21 @@ console.log("custer",custData)
 
         </div>
         <h1 className='text-xl md:text-2xl ml-4 p-4 font-semibold !text-zinc-800'>Customer List</h1>
-       <div className="text-xs w-[96%] mx-auto">
-         <Table
-          columns={columns}
-          dataSource={custData}
-          bordered
-           rowKey="_id"
-          scroll={{ x: 'max-content' }}
-          sticky
-          pagination={{ pageSize: 5 }}
-          className="compact-table"
+        <div className="text-xs w-[96%] mx-auto">
+          <Table
+          size='small'
+            columns={columns}
+            dataSource={custData}
+            bordered
+            rowKey="_id"
+            scroll={{ x: 'max-content' }}
+            sticky
+            pagination={{ pageSize: 5 }}
+            className="compact-table"
 
-        />
+          />
 
-       </div>
+        </div>
 
       </div>
 

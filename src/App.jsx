@@ -7,6 +7,7 @@ import "./App.css";
 import { ConfigProvider,Spin } from "antd";
 import { store } from "./redux/store";
 import ProtectedRoute from "./components/Modules/ProtectedRoutes";
+import Dealer from "./components/Admin/Dealer";
 
 
 
@@ -49,6 +50,9 @@ const PartyReport = lazy(() => import("./components/Shared/Reports/Statements/pa
 
 
 const Admin = lazy(() => import("./components/Admin"));
+const SupplierDash = lazy(() => import("./components/Supplier"));
+const CustomerDash = lazy(() => import("./components/Customer"));
+const DealerDash = lazy(() => import("./components/Dealer"));
 
 const UserRegister = lazy(() => import("./components/Admin/User"));
 const SupplierRegister = lazy(() => import("./components/Admin/Supplier"));
@@ -100,7 +104,12 @@ function App() {
             <Route path="/warehouseStatement" element={<ProtectedRoute role="user"><WareHouseReport /></ProtectedRoute>} />
             <Route path="/party" element={<ProtectedRoute role="user"><PartyReport /></ProtectedRoute>} />
             
-
+            {/* Supplier */}
+             <Route path="/supplierdash" element={<ProtectedRoute role="supplier"><SupplierDash /></ProtectedRoute>} />
+            {/* Customer */}
+             <Route path="/customerdash" element={<ProtectedRoute role="customer"><CustomerDash /></ProtectedRoute>} />
+            {/* Dealer */}
+             <Route path="/dealerdash" element={<ProtectedRoute role="dealer"><DealerDash /></ProtectedRoute>} />
             
 
             {/* Admin */}

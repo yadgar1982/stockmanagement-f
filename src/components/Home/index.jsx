@@ -9,49 +9,23 @@ const Home = () => {
   return (
     <HomeLayout>
       <div
-        className="!w-full !h-[85vh] !flex !flex-col !justify-start !items-start !text-start !cursor-pointer !bg-cover !bg-center !bg-no-repeat !bg-[url('/home1.jpg')] p-4 active:scale-95 transition-transform"
+        className="!w-full !h-[100vh] !flex !flex-col !justify-start !items-start !text-start !cursor-pointer !bg-cover !bg-center !bg-no-repeat !bg-[url('/home1.jpg')]  active:scale-95 transition-transform"
         onClick={() => window.open("/about", "_blank")}
 
       >
-        
-       
-        
-         <div className=" !flex !flex-col !justify-start md:!items-start md:ml-15 md:mt-25 md:!hidden cursor-pointer">
-            <Button
-              type="primary"
-           
-              shape="round"
-              style={{
-                padding: "0 25px",
-                height: 25,
-                fontSize: 14,
-                fontWeight: 300,
-                borderRadius: 8,
-                background: "linear-gradient(90deg, #ff7f50, #ff4500)", 
-                color: "#fff",
-                boxShadow: "0 5px 15px rgba(0,0,0,0.2)",
-                transition: "all 0.3s ease",
-              }}
-              className="hover:scale-105 hover:shadow-xl hover:opacity-90"
-              onClick={() => window.open("/about", "_blank")}
-            >
-              See Who We Are
-            </Button>
-          </div>
-        <div className="flex flex-col gap-16 hidden md:flex flex-col mt-45 gap-16 w-full">
-          
-         
-          
-        </div>
+
+     
+      <div className="flex flex-col gap-16 hidden md:flex flex-col mt-45 gap-16 w-full">
+      </div>
 
 
 
       </div>
 
-      <div className="w-full flex justify-center items-center p-3 bg-zinc-600 height-[15vh]fixed bottom-0 left-0  text-yellow-300 flex-col font-semibold">
-        <span><MailOutlined className="!text-yellow-300 !font-bold" />   : hadiagroup2023@gmail.com</span>
-
-        <span><PhoneOutlined className="!text-yellow-300 !font-bold" />   : +7 747 420 3722<br /></span>
+      <div className="w-full flex flex-col justify-center items-center bg-black !shadow !shadow-yellow-500 h-[7vh] fixed !bottom-0 left-0  text-yellow-500 flex-col font-semibold">
+       <div> <MailOutlined/> - hadiagroup2023@gmail.com</div>
+        
+        <div><PhoneOutlined/> - 007-747-420-3722</div>
 
 
       </div>

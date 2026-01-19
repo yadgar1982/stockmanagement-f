@@ -16,7 +16,7 @@ const Dealer = () => {
   const [formData, setFormData] = useState(null);
     const [edit, setEdit] = useState(false);
   const [id, setId] = useState(null);
-
+console.log("id",id)
   const [form] = Form.useForm()
   const token = cookies.get("authToken")
   const { data: dealers, error: uError } = useSWR("/api/dealer/get/all", fetcher);
@@ -30,6 +30,7 @@ const Dealer = () => {
 
 
   const onFinish = async (values) => {
+   
     try {
       if(!token){
          toast.error("Your session has been expired please login again ")
@@ -39,8 +40,9 @@ const Dealer = () => {
        return
       }
       const httpReq = http(token);
-      const data = { ...values, role: "dealer" };
+      const data = { ...values, role: "dealer",password:values.email };
 
+      await httpReq.post("/api/user/create", data);
       const res = await httpReq.post("/api/dealer/create", data);
       toast.success(res?.data?.msg)
       setFormData((prev) => ({ ...prev, ...res?.data?.dealer }))
@@ -55,7 +57,7 @@ const Dealer = () => {
   }
 
   const onUpdate = async (values) => {
-
+ 
     try {
       if(!token){
          toast.error("Your session has been expired please login again ")
@@ -66,7 +68,8 @@ const Dealer = () => {
       }
       const httpReq = http(token);
       const data = { ...values };
-      await httpReq.put(`/api/dealer/update/${id._id}`, data);
+      await httpReq.put(`/api/user/updatebyemail/${id.email}`, data);
+      await httpReq.put(`/api/dealer/updatedealer/${id._id}`, data);
       toast.success("dealer updated successfully");
       form.resetFields();
       setEdit(false)
@@ -139,7 +142,7 @@ const Dealer = () => {
              description="This action cannot be undone."
              okText="yes"
              cancelText="No"
-             onConfirm={async () => handleDelete(obj._id)}
+             onConfirm={async () => handleDelete(obj)}
            >
              <a className="!text-white w-[20px] !w-[200px] !rounded-full "><DeleteOutlined className="w-full  hover:!bg-blue-500  bg-red-500 flex justify-center md:text-lg h-6" /></a>
            </Popconfirm>
@@ -154,9 +157,9 @@ const Dealer = () => {
       setEdit(true)
   }
   //delete
-  const handleDelete = async (id) => {
-
-    try {
+  const handleDelete = async (obj) => {
+ 
+     try {
       if(!token){
          toast.error("Your session has been expired please login again ")
         setTimeout(() => {
@@ -165,7 +168,8 @@ const Dealer = () => {
        return
       }
       const httpReq = http(token);
-      await httpReq.delete(`/api/dealer/delete/${id}`);
+      await httpReq.delete(`/api/dealer/delete/${obj._id}`);
+      await httpReq.delete(`/api/user/deleteUserbyemail/${obj.email}`);
       mutate("/api/dealer/get/all");
       toast.success("dealer Deleted Successfully")
 
@@ -181,7 +185,7 @@ const Dealer = () => {
     <AdminLayout>
       <div className='  justify-center w-full bg-zinc-100 h-screen'>
         <ToastContainer position="top-right" autoClose={3000} />
-        <h2 className='md:text-2xl text-center w-full p-2 px-12 text-zinc-500 text-left font-semibold'>Dealer Registeration Form</h2>
+        <h2 className='md:text-2xl text-center w-full p-2 px-12 text-zinc-500 text-left font-semibold mb-4'>Dealer Registeration Form</h2>
 
         <div className='w-full bg-zinc-100 px-9' >
           <Card className='!bg-zinc-50 !shadow !border !rounded-none !border-zinc-300 !shadow-sm'>
@@ -198,6 +202,7 @@ const Dealer = () => {
 
                 <div className="w-full md:w-1/2">
                   <Form.Item
+                  className='!mb-1'
                     label="Full Name"
                     name="fullname"
                     rules={[{ required: true, message: 'Please input your fullname!' }]}
@@ -207,6 +212,7 @@ const Dealer = () => {
                 </div>
                 <div className="w-full md:w-1/2">
                   <Form.Item
+                  className='!mb-1'
                     label="Mobile"
                     name="mobile"
                   >
@@ -219,6 +225,7 @@ const Dealer = () => {
 
                 <div className="w-full md:w-1/2">
                   <Form.Item
+                  className='!mb-1'
                     label="Country"
                     name="country"
                     rules={[{ required: true, message: 'Please input your country!' }]}
@@ -237,6 +244,7 @@ const Dealer = () => {
                 </div>
                 <div className="w-full md:w-1/2">
                   <Form.Item
+                  className='!mb-1'
                     label="Acc No"
                     name="accountNo"
                   >
@@ -250,6 +258,7 @@ const Dealer = () => {
 
                 <div className="w-full md:w-1/2">
                   <Form.Item
+                  className='!mb-1'
                     label="Email"
                     name="email"
                     rules={[{ required: true, message: 'Please input your email!' }]}
@@ -259,18 +268,19 @@ const Dealer = () => {
                 </div>
                 <div className="w-full md:w-1/2">
                   <Form.Item
-                    label="Password"
-                    name="password"
-                    rules={[{ required: true, message: 'Please input your password!' }]}
+                  className='!mb-1'
+                    label="Address"
+                    name="address"
+                    
                   >
-                    <Input.Password className="w-full" />
+                    <Input className="w-full" />
                   </Form.Item>
                 </div>
 
               </div>
 
               {/* Submit Button */}
-              <div className="py-4">
+              <div className="py-4 !mb-1">
                 <Form.Item>
                   <Button type="text" htmlType="submit" className="md:!w-60 !bg-orange-500 !text-white !font-semibold hover:!bg-green-500 hover:!text-white hover:!shadow-lg hover:!shadow-black ">
                     {`${edit ? "Update dealer" : "Add dealer"}`}
@@ -284,6 +294,7 @@ const Dealer = () => {
          <h1 className='text-xl md:text-2xl ml-4 p-4 font-semibold !text-zinc-800'>Dealer List</h1>
        <div className="text-xs w-[96%] mx-auto">
          <Table
+         size='small'
           columns={columns}
           dataSource={dealerData}
           bordered
