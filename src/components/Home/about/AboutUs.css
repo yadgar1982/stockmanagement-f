@@ -137,40 +137,11 @@
 }
 
 /* Customize slick dots */
-<<<<<<< HEAD
-/* .slick-dots li button:before {
-=======
 .slick-dots li button:before {
->>>>>>> da2b565ddce62cf2ce9831f0f10f7286ea54c8f2
   font-size: 12px;
   color: #000;
 }
 
-<<<<<<< HEAD
-/* .slick-dots li.slick-active button:before {
-  color: #1890ff; /* Ant Design primary color 
-} */
-
-/* 
-
-.slick-slide {
-    padding: 10px;
-}
-
-.slick-dots li button:before {
-    color: #d4af37;
-    font-size: 12px;
-}
-
-.slick-dots li.slick-active button:before {
-    color: #FFD700;
-}
-
-.slick-slide > div {
-    height: 100%;
-} */ 
-=======
 .slick-dots li.slick-active button:before {
   color: #1890ff; /* Ant Design primary color */
 }
->>>>>>> da2b565ddce62cf2ce9831f0f10f7286ea54c8f2
