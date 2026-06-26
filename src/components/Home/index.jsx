@@ -12,8 +12,9 @@ const Home = () => {
     <HomeLayout>
       {/* Hero Section */}
       <div
-        className="
+      className="
       mb-5
+      mt-4
       w-full
       h-[35vh]
       sm:h-[45vh]

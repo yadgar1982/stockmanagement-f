@@ -72,8 +72,9 @@ const HomeLayout = ({ children }) => {
         >
           <LanguageSwitcher className="!border-none !text-[#3d3100]" />
 
-          <div className="md:!hidden block ">
-            <Button type="primary" onClick={() => setOpen(true)}>
+          <div className="md:!hidden block  ">
+            <Button type="primary" onClick={() => setOpen(true)}
+              className="!bg-yellow-500 hover:!bg-yellow-200 !text-orange-900">
               {open ? <CloseOutlined /> : <MenuOutlined />}
             </Button>
           </div>
