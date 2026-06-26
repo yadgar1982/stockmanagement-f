@@ -49,11 +49,14 @@ console.log("id",id)
       mutate("/api/dealer/get/all");
       form.resetFields();
 
-    } catch (err) {
-      if (err) {
-        toast.error("Unable to Save Data", err.message)
-      }
-    }
+   } catch (err) {
+         console.log(err.response?.data);
+         console.log(err.message);
+   
+         toast.error(
+           err.response?.data?.msg || err.message || "Unable to Save Data",
+         );
+       }
   }
 
   const onUpdate = async (values) => {

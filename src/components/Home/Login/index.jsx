@@ -39,6 +39,12 @@ const Login = () => {
       navigate("/login");
 
     } catch (error) {
+        console.log(error);
+  console.log("Message:", error.message);
+  console.log("Code:", error.code);
+  console.log("Request:", error.request);
+  console.log("Response:", error.response);
+
       toast.error(error.response?.data?.msg || "Login failed");
     } finally {
       setLoader(false);

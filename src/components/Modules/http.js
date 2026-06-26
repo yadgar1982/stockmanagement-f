@@ -2,7 +2,7 @@ import axios from "axios";
 
 export const http = (isToken = null) => {
   axios.defaults.baseURL = import.meta.env.VITE_ENDPOINT;
-
+console.log("VITE_ENDPOINT =", import.meta.env.VITE_ENDPOINT);
   if (isToken) {
     axios.defaults.headers.common["Authorization"] = `Bearer ${isToken}`;
   }
